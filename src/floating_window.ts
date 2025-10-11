@@ -120,6 +120,49 @@ export class FloatingScoreWindow {
         }
     }
 
+    _addEventHeader(eventHeader: St.BoxLayout, match: TennisMatch) {
+        const event = match.event;
+
+        const eventType = new St.BoxLayout({ style_class: 'event-type' });
+        const url = match.event.eventTypeUrl;
+        if (!url) {
+            const eventTypeLabel = new St.Label({ text: match.event.type });
+            eventType.add_child(eventTypeLabel);
+        } else {
+            loadWebImage(url, this._uuid, eventType, 40, this._log);
+        }
+
+        eventHeader.add_child(eventType);
+
+        const eventDescription = new St.BoxLayout({ vertical: true });
+        const eventNameLabel = new St.Label({ text: match.event.title, style_class: 'event-text' });
+        eventDescription.add_child(eventNameLabel);
+        const locationBox = new St.BoxLayout();
+        const eventLocationLabel = new St.Label({ text: `${match.event.city}, ${match.event.country}`, style_class: 'event-text' });
+        locationBox.add_child(eventLocationLabel);
+        eventDescription.add_child(locationBox);
+        if (event.countryCode) {
+            const iconPath = `${this._extensionPath}/flags/${event.countryCode.toLowerCase()}.svg`;
+            const gicon = Gio.icon_new_for_string(iconPath);
+            const flagIcon = new St.Icon({ gicon: gicon, icon_size: 16, style_class: 'player-flag' });
+            locationBox.add_child(flagIcon);
+        }
+        eventHeader.add_child(eventDescription);
+
+        const eventDetails = new St.BoxLayout({ vertical: true, x_expand: true, xAlign: Clutter.ActorAlign.END, yAlign: Clutter.ActorAlign.START });
+        if (event.surface) {
+            const surface = new St.Label({ text: `${event.surface}/${event.indoor ? 'Indoor' : 'Outdoor'}`, style_class: 'event-text' });
+            eventDetails.add_child(surface);
+        }
+        if (event.prizeMoney && event.prizeMoneyCurrency) {
+            eventDetails.add_child(new St.Label({ text: `Prize Money: ${event.prizeMoneyCurrency} ${event.prizeMoney}`, style_class: 'event-text' }))
+        }
+        if (event.singlesDrawSize && event.doublesDrawSize) {
+            eventDetails.add_child(new St.Label({ text: `Draw: ${event.singlesDrawSize}/${event.doublesDrawSize}`, style_class: 'event-text' }));
+        }
+        eventHeader.add_child(eventDetails);
+    }
+
     _addMatchHeader(box: St.BoxLayout, match: TennisMatch) {
         // Match Header (Quarterfinals, etc.)
         const matchHeader = new St.BoxLayout({ style_class: 'match-header-box' });
@@ -278,25 +321,7 @@ export class FloatingScoreWindow {
         this._windowActor.show();
 
         const eventHeader = new St.BoxLayout();
-
-        const eventType = new St.BoxLayout({ style_class: 'event-type' });
-        const url = match.event.eventTypeUrl;
-        if (!url) {
-            const eventTypeLabel = new St.Label({ text: match.event.type });
-            eventType.add_child(eventTypeLabel);
-        } else {
-            loadWebImage(url, this._uuid, eventType, 40, this._log);
-        }
-
-        eventHeader.add_child(eventType);
-
-        const eventDescription = new St.BoxLayout({ vertical: true });
-        const eventNameLabel = new St.Label({ text: match.event.title, style_class: 'event-text' });
-        eventDescription.add_child(eventNameLabel);
-        const eventLocationLabel = new St.Label({ text: `${match.event.city}, ${match.event.country}`, style_class: 'event-text' });
-        eventDescription.add_child(eventLocationLabel);
-        eventHeader.add_child(eventDescription);
-
+        this._addEventHeader(eventHeader, match);
         this._mainBox.add_child(eventHeader);
 
         const box = new St.BoxLayout({ vertical: true, style_class: 'sub-main-box' });

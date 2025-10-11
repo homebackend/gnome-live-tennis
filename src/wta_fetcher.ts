@@ -88,7 +88,7 @@ export class WtaFetcher {
         if (level == 'WTA 1000') {
             return 'https://www.wtatennis.com/resources/v7.8.3/i/elements/1000k-tag.svg';
         } else if (level == 'WTA 125') {
-            'https://www.wtatennis.com/resources/v7.8.3/i/elements/125k-tag.svg'
+            return 'https://www.wtatennis.com/resources/v7.8.3/i/elements/125k-tag.svg'
         }
     }
 
@@ -137,7 +137,7 @@ export class WtaFetcher {
                     matchTimeStamp: m['MatchTimeStamp'],
                     matchStateReasonMessage: "",
                     message: "",
-                    server: m['Serve'] == 'A' ? 0 : 1,
+                    server: m['Serve'] == 'A' ? 0 : m['Serve'] == 'B' ? 1 : -1,
                     winnerId: -1,
                     umpireFirstName: "",
                     umpireLastName: "",
