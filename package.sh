@@ -2,7 +2,7 @@
 
 set -x
 
-ZIP_FILE=live-tennis-neerajcd@gmail.com.zip
+ZIP_FILE=live-tennis.zip
 DIST_DIR="dist"
 
 npm run compile:schemas
