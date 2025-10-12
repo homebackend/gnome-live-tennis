@@ -2,7 +2,7 @@
   "name": "Live Tennis Monitor",
   "description": "A Gnome extension that helps you show live tennis scores.",
   "uuid": "live-tennis-neerajcd@gmail.com",
-  "shell-version": ["45", "46", "47", "48"],
+  "shell-version": ["45", "46", "47", "48", "49"],
   "url": "https://github.com/homebackend/gnome-live-tennis",
   "settings-schema": "org.gnome.shell.extensions.live-tennis"
 }
