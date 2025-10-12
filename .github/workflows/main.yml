@@ -26,7 +26,10 @@ jobs:
           node-version: 22
 
       - name: List files in repository root
-        run: ls -F $GITHUB_WORKSPACE
+        run: ls -R $GITHUB_WORKSPACE
+
+      - name: List files in current directory
+        run: ls -R .
 
       # Get the version from package.json to use in the release name and tag.
       - name: Get version from package.json
