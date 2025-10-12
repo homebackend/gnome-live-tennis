@@ -7,7 +7,9 @@ DIST_DIR="dist"
 
 npm run compile:schemas
 npm run build
+ls -R .
 mkdir -p "$DIST_DIR"
+ls -R .
 
 cd "$DIST_DIR"
 rm -rf metadata.json icons schemas flags
