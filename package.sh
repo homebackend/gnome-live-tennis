@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -x
+
 ZIP_FILE=live-tennis-neerajcd@gmail.com.zip
 DIST_DIR="dist"
 
