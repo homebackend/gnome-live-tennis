@@ -1,0 +1,54 @@
+name: CI/CD Release
+
+# Trigger the workflow on pushes to the main branch
+# only when the package.json file has been updated.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      # Check out the repository code so the workflow can access it.
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up the Node.js environment using the specified LTS version.
+      - name: Setup Node.js LTS 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Get the version from package.json to use in the release name and tag.
+      - name: Get version from package.json
+        id: package-version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      # Install dependencies for your project.
+      - name: Install dependencies
+        run: npm install
+
+      # Run your custom command to build the zip file.
+      - name: Run package script
+        run: npm run package
+
+      # Create a new GitHub release and upload the zip file.
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # The secret is provided automatically.
+        with:
+          tag_name: v${{ steps.package-version.outputs.VERSION }}
+          name: Release v${{ steps.package-version.outputs.VERSION }}
+          body: |
+            ## New Release
+            Version ${{ steps.package-version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.zip
