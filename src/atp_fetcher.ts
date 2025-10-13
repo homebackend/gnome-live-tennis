@@ -5,10 +5,12 @@ export class AtpFetcher {
     private static atp_url = 'https://app.atptour.com/api/v2/gateway/livematches/website?scoringTournamentLevel=tour';
     private static atp_challenger_url = 'https://app.atptour.com/api/v2/gateway/livematches/website?scoringTournamentLevel=challenger';
 
+    private _httpSession: Soup.Session | undefined;
     private _build_req: (url: string) => Soup.Message;
-    private _data_fetcher: (msg: Soup.Message, handler: (json_data: any) => any) => void;
+    private _data_fetcher: (session: Soup.Session, msg: Soup.Message, handler: (json_data: any) => any) => void;
 
-    constructor(build_req: (url: string) => Soup.Message, data_fetcher: (msg: Soup.Message, handler: (json_data: any) => any) => void) {
+    constructor(build_req: (url: string) => Soup.Message, data_fetcher: (session: Soup.Session, msg: Soup.Message, handler: (json_data: any) => any) => void) {
+        this._httpSession = undefined;
         this._build_req = build_req;
         this._data_fetcher = data_fetcher;
     }
@@ -116,10 +118,13 @@ export class AtpFetcher {
     }
 
     fetchData(tour: string, callback: (tennisEvents: TennisEvent[] | undefined) => void) {
+        this._httpSession = new Soup.Session();
         const msg = this._build_req(tour == 'ATP' ? AtpFetcher.atp_url : AtpFetcher.atp_challenger_url);
         const tennisEvents: TennisEvent[] = [];
 
-        this._data_fetcher(msg, jsonData => {
+        this._data_fetcher(this._httpSession, msg, jsonData => {
+            this._httpSession = undefined;
+
             if (jsonData == null) {
                 return callback(undefined);
             }
@@ -195,5 +200,12 @@ export class AtpFetcher {
 
             callback(tennisEvents);
         });
+    }
+
+    disable() {
+        if (this._httpSession) {
+            this._httpSession.abort();
+            this._httpSession = undefined;
+        }
     }
 }

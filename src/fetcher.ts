@@ -3,7 +3,7 @@
 import Soup from "gi://Soup";
 import GLib from "gi://GLib";
 import GObject from "gi://GObject";
-import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types";
+import { TennisEvent, TennisMatch } from "./types";
 import Gio from "gi://Gio";
 import { AtpFetcher } from "./atp_fetcher";
 import { WtaFetcher } from "./wta_fetcher";
@@ -61,8 +61,7 @@ export const LiveTennis = GObject.registerClass({
         return request;
     }
 
-    _fetch_data_common(msg: Soup.Message, handler: (json_data: any) => any) {
-        const httpSession = new Soup.Session();
+    _fetch_data_common(httpSession: Soup.Session, msg: Soup.Message, handler: (json_data: any) => any) {
         httpSession.timeout = 60000;
 
         httpSession.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, null, (_, r) => {
@@ -91,8 +90,6 @@ export const LiveTennis = GObject.registerClass({
                     this._log(['Stack trace', e.stack]);
                 }
                 handler(null);
-            } finally {
-                httpSession.abort();
             }
         });
     }
@@ -140,7 +137,7 @@ export const LiveTennis = GObject.registerClass({
 
         return this._wta_fetcher.fetchData(tennisEvents => {
             this._wta_lock = false;
-            
+
             if (!tennisEvents) {
                 this._log(['Fetch for WTA received no data']);
                 return callback(this._wta_events);
@@ -262,5 +259,10 @@ export const LiveTennis = GObject.registerClass({
         }
 
         tourHandlers.forEach(h => h(eventCallback, matchCallback, myDoneCallback));
+    }
+
+    disable() {
+        this._atp_fetcher.disable();
+        this._wta_fetcher.disable();
     }
 });

@@ -102,9 +102,7 @@ export class FloatingScoreWindow {
 
     _createSeparator(): St.BoxLayout {
         let separator = new St.BoxLayout({
-            style_class: 'separator', // The CSS class for styling the line
-            // You can also set a fixed height here, but it's best done in CSS
-            // height: 2, 
+            style_class: 'separator',
         });
         return separator;
     }

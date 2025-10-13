@@ -6,10 +6,12 @@ export class WtaFetcher {
     private static wta_all_events_url_template = 'https://api.wtatennis.com/tennis/tournaments/?page=0&pageSize=20&excludeLevels=ITF&from={from-date}&to={to-date}';
     private static wta_event_url_template = 'https://api.wtatennis.com/tennis/tournaments/{event-id}/{year}/matches?from={from-date}&to={to-date}';
 
+    private _httpSession: Soup.Session | undefined;
     private _build_req: (url: string) => Soup.Message;
-    private _data_fetcher: (msg: Soup.Message, handler: (json_data: any) => any) => void;
+    private _data_fetcher: (session: Soup.Session, msg: Soup.Message, handler: (json_data: any) => any) => void;
 
-    constructor(build_req: (url: string) => Soup.Message, data_fetcher: (msg: Soup.Message, handler: (json_data: any) => any) => void) {
+    constructor(build_req: (url: string) => Soup.Message, data_fetcher: (session: Soup.Session, msg: Soup.Message, handler: (json_data: any) => any) => void) {
+        this._httpSession = undefined;
         this._build_req = build_req;
         this._data_fetcher = data_fetcher;
     }
@@ -134,8 +136,11 @@ export class WtaFetcher {
 
     _fetch_event_data(event: TennisEvent, events: any[], index: number, tennisEvents: TennisEvent[],
         callback: (tennisEvents: TennisEvent[]) => void) {
+        this._httpSession = new Soup.Session();
         const msg = this._build_req(this._get_event_url(event.id, event.year));
-        this._data_fetcher(msg, json_data => {
+        this._data_fetcher(this._httpSession, msg, json_data => {
+            this._httpSession = undefined;
+
             json_data['matches'].forEach((m: any) => {
                 const team1 = this._get_team_data(m, m['DrawMatchType'], 'A');
                 const team2 = this._get_team_data(m, m['DrawMatchType'], 'B');
@@ -212,11 +217,20 @@ export class WtaFetcher {
     }
 
     fetchData(callback: (tennisEvents: TennisEvent[]) => void) {
+        this._httpSession = new Soup.Session();
         const msg = this._build_req(this._get_all_events_url());
         const tennisEvents: TennisEvent[] = [];
 
-        this._data_fetcher(msg, json_data => {
+        this._data_fetcher(this._httpSession, msg, json_data => {
             this._process_event(json_data['content'], 0, tennisEvents, callback);
+            this._httpSession = undefined;
         });
+    }
+
+    disable() {
+        if (this._httpSession) {
+            this._httpSession.abort();
+            this._httpSession = undefined;
+        }
     }
 }

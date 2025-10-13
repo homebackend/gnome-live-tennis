@@ -17,6 +17,7 @@ import { loadPopupMenuGicon } from './image_loader.js';
 import { CheckedMenuItem, MatchMenuItem } from './menuItem.js';
 import { SortedStringList } from './utit.js';
 
+const DEBUG = false;
 const ICON_SIZE = 22;
 
 let _activeFloatingWindows: FloatingScoreWindow[] = [];
@@ -25,7 +26,9 @@ let _matchCycleTimeout: number | null = null;
 let _currentMatchIndex = 0;
 
 function _log(logs: string[]) {
-    console.log("[Live Tennis]", logs.join(", "));
+    if (DEBUG) {
+        console.log("[Live Tennis]", logs.join(", "));
+    }
 }
 
 class LiveScoreButton extends PanelMenu.Button {
@@ -448,6 +451,7 @@ export default class LiveScoreExtension extends Extension {
         };
 
         cycle();
+        this._destroyCycleTimeout();
         _matchCycleTimeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, this._settings!.get_int('match-display-duration'), cycle);
     }
 
@@ -469,7 +473,11 @@ export default class LiveScoreExtension extends Extension {
     }
 
     disable() {
-        if (_dataFetchTimeout) GLib.source_remove(_dataFetchTimeout);
+        if (_dataFetchTimeout) {
+            GLib.source_remove(_dataFetchTimeout);
+        }
+
+        this._liveTennis!.disable();
         this._destroyCycleTimeout();
         this._destroyLiveView();
 

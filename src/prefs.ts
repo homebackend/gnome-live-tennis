@@ -4,7 +4,6 @@ import Gtk from 'gi://Gtk';
 import GdkPixbuf from 'gi://GdkPixbuf';
 import { ExtensionPreferences, getPreferencesWindow } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
 
 import { Countries } from './countries';
 import GObject from 'gi://GObject';
@@ -43,22 +42,8 @@ factory.connect('bind', (factory, listItem) => {
 });
 
 export default class LiveScorePreferences extends ExtensionPreferences {
-    private _settings: Gio.Settings;
-    private _schema: Gio.SettingsSchema;
-
-    constructor(metadata: any) {
-        super(metadata);
-        this._settings = this.getSettings();
-        const schemaSource = Gio.SettingsSchemaSource.new_from_directory(
-            this.path + '/schemas',
-            Gio.SettingsSchemaSource.get_default(),
-            false
-        );
-        this._schema = schemaSource?.lookup('org.gnome.shell.extensions.live-tennis', true)!;
-    }
-
-    private _addCheckBoxSettingRow(group: Adw.PreferencesGroup, key: string) {
-        const keyObject = this._schema.get_key(key);
+    private _addCheckBoxSettingRow(group: Adw.PreferencesGroup, key: string, settings: Gio.Settings, schema: Gio.SettingsSchema) {
+        const keyObject = schema.get_key(key);
         const row = new Adw.ActionRow({
             title: keyObject.get_summary()!,
             subtitle: keyObject.get_description()!,
@@ -71,15 +56,15 @@ export default class LiveScorePreferences extends ExtensionPreferences {
         });
         row.add_suffix(checkButton);
 
-        this._settings.bind(key, checkButton, 'active', Gio.SettingsBindFlags.DEFAULT);
+        settings.bind(key, checkButton, 'active', Gio.SettingsBindFlags.DEFAULT);
     }
 
-    private _addIntBasedEntry(group: Adw.PreferencesGroup, key: string) {
-        const keyObject = this._schema.get_key(key);
+    private _addIntBasedEntry(group: Adw.PreferencesGroup, key: string, settings: Gio.Settings, schema: Gio.SettingsSchema) {
+        const keyObject = schema.get_key(key);
 
         const entryRow = new Adw.EntryRow({
             title: keyObject.get_summary()!,
-            text: String(this._settings.get_int(key)),
+            text: String(settings.get_int(key)),
         });
         entryRow.set_tooltip_text(keyObject.get_description());
         group.add(entryRow);
@@ -102,7 +87,7 @@ export default class LiveScorePreferences extends ExtensionPreferences {
             console.log('Inside changed');
 
             if (!isNaN(value) && value >= minValue && value <= maxValue) {
-                this._settings.set_int(key, value);
+                settings.set_int(key, value);
                 entryRow.remove_css_class('error-input');
                 errorIcon.set_visible(false);
             } else {
@@ -112,8 +97,8 @@ export default class LiveScorePreferences extends ExtensionPreferences {
         });
     }
 
-    private _addSpinBoxSettingRow(group: Adw.PreferencesGroup, key: string, min: number, max: number, increment: number=5) {
-        const keyObject = this._schema.get_key(key);
+    private _addSpinBoxSettingRow(group: Adw.PreferencesGroup, key: string, min: number, max: number, settings: Gio.Settings, schema: Gio.SettingsSchema, increment: number=5) {
+        const keyObject = schema.get_key(key);
 
         const durationRow = new Adw.ActionRow({
             title: keyObject.get_summary()!,
@@ -130,39 +115,38 @@ export default class LiveScorePreferences extends ExtensionPreferences {
         durationRow.add_suffix(spinner);
         durationRow.activatable_widget = spinner;
 
-        this._settings.bind(key, spinner, 'value', Gio.SettingsBindFlags.DEFAULT);
-
+        settings.bind(key, spinner, 'value', Gio.SettingsBindFlags.DEFAULT);
     }
 
-    private _addTourSettings(page: Adw.PreferencesPage) {
+    private _addTourSettings(page: Adw.PreferencesPage, settings: Gio.Settings, schema: Gio.SettingsSchema) {
         const tourGroup = new Adw.PreferencesGroup({
             title: 'Enable tours',
             description: 'Control which tours are enabled and processed.',
         });
         page.add(tourGroup);
 
-        this._addCheckBoxSettingRow(tourGroup, 'enable-atp'!);
-        this._addCheckBoxSettingRow(tourGroup, 'enable-wta');
-        this._addCheckBoxSettingRow(tourGroup, 'enable-atp-challenger');
+        this._addCheckBoxSettingRow(tourGroup, 'enable-atp', settings, schema);
+        this._addCheckBoxSettingRow(tourGroup, 'enable-wta', settings, schema);
+        this._addCheckBoxSettingRow(tourGroup, 'enable-atp-challenger', settings, schema);
     }
 
-    private _addLiveViewSettings(page: Adw.PreferencesPage) {
+    private _addLiveViewSettings(page: Adw.PreferencesPage, settings: Gio.Settings, schema: Gio.SettingsSchema) {
         const liveViewGroup = new Adw.PreferencesGroup({
             title: 'Live Score Window',
             description: 'Control Live Score Window behaviour',
         });
         page.add(liveViewGroup);
 
-        this._addIntBasedEntry(liveViewGroup, 'live-window-size-x');
-        this._addIntBasedEntry(liveViewGroup, 'live-window-size-y');
-        this._addCheckBoxSettingRow(liveViewGroup, 'auto-hide-no-live-matches');
-        this._addCheckBoxSettingRow(liveViewGroup, 'only-show-live-matches');
+        this._addIntBasedEntry(liveViewGroup, 'live-window-size-x', settings, schema);
+        this._addIntBasedEntry(liveViewGroup, 'live-window-size-y', settings, schema);
+        this._addCheckBoxSettingRow(liveViewGroup, 'auto-hide-no-live-matches', settings, schema);
+        this._addCheckBoxSettingRow(liveViewGroup, 'only-show-live-matches', settings, schema);
     }
 
-    private _addMultiCountrySelection(group: Adw.PreferencesGroup, key: string) {
-        const keyObject = this._schema.get_key(key);
+    private _addMultiCountrySelection(group: Adw.PreferencesGroup, key: string, settings: Gio.Settings, schema: Gio.SettingsSchema) {
+        const keyObject = schema.get_key(key);
 
-        const selectedCodes = new Set(this._settings.get_strv(key));
+        const selectedCodes = new Set(settings.get_strv(key));
         const model = new Gio.ListStore({ item_type: CountryItem.$gtype });
 
         // Populate the model
@@ -210,7 +194,7 @@ export default class LiveScorePreferences extends ExtensionPreferences {
                         selectedCodes.push(item.ioc);
                     }
                 }
-                this._settings.set_strv(key, selectedCodes);
+                settings.set_strv(key, selectedCodes);
             });
 
             if (countryItem.flag) {
@@ -240,11 +224,10 @@ export default class LiveScorePreferences extends ExtensionPreferences {
         group.add(row);
     }
 
+    private _addPlayerNamesEntry(group: Adw.PreferencesGroup, key: string, settings: Gio.Settings, schema: Gio.SettingsSchema) {
+        const keyObject = schema.get_key(key);
 
-    private _addPlayerNamesEntry(group: Adw.PreferencesGroup, key: string) {
-        const keyObject = this._schema.get_key(key);
-
-        const currentNames = this._settings.get_strv(key).join(', ');
+        const currentNames = settings.get_strv(key).join(', ');
 
         const entryRow = new Adw.EntryRow({
             title: keyObject.get_summary()!,
@@ -266,7 +249,7 @@ export default class LiveScorePreferences extends ExtensionPreferences {
 
             if (text === '' || regex.test(text.trim())) {
                 const names = text.split(',').map(s => s.trim()).filter(Boolean);
-                this._settings.set_strv(key, names);
+                settings.set_strv(key, names);
                 entryRow.remove_css_class('error-input');
                 errorIcon.set_visible(false);
             } else {
@@ -276,24 +259,27 @@ export default class LiveScorePreferences extends ExtensionPreferences {
         });
     }
 
-    private _addAutoSelectSettings(page: Adw.PreferencesPage) {
+    private _addAutoSelectSettings(page: Adw.PreferencesPage, settings: Gio.Settings, schema: Gio.SettingsSchema) {
         const group = new Adw.PreferencesGroup({
             title: 'Live View Match Selection',
             description: 'Control how Live View match selection works.'
         });
         page.add(group);
 
-        this._addCheckBoxSettingRow(group, 'auto-select-live-matches');
-        this._addMultiCountrySelection(group, 'auto-select-country-codes');
-        this._addPlayerNamesEntry(group, 'auto-select-player-names');
-        this._addSpinBoxSettingRow(group, 'keep-completed-duration', 0, 120);
+        this._addCheckBoxSettingRow(group, 'auto-select-live-matches', settings, schema);
+        this._addMultiCountrySelection(group, 'auto-select-country-codes', settings, schema);
+        this._addPlayerNamesEntry(group, 'auto-select-player-names', settings, schema);
+        this._addSpinBoxSettingRow(group, 'keep-completed-duration', 0, 120, settings, schema);
     }
 
     fillPreferencesWindow(window: Adw.PreferencesWindow) {
+        const settings: Gio.Settings = this.getSettings();
+        const schema = settings.settings_schema;
+
         const page = new Adw.PreferencesPage();
         window.add(page);
-        this._addTourSettings(page);
-        this._addLiveViewSettings(page);
-        this._addAutoSelectSettings(page);
+        this._addTourSettings(page, settings, schema);
+        this._addLiveViewSettings(page, settings, schema);
+        this._addAutoSelectSettings(page, settings, schema);
     }
 }
