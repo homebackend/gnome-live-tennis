@@ -3,10 +3,8 @@
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
-import GLib from '@girs/glib-2.0';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 
 
 import { TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from './types.js';
@@ -112,16 +110,7 @@ export class FloatingScoreWindow {
     }
 
     _openURL(url: string): void {
-        try {
-            let appInfo = Gio.AppInfo.get_default_for_uri_scheme('http');
-            if (appInfo) {
-                appInfo.launch_uris([url], null);
-            } else {
-                GLib.spawn_command_line_async(`xdg-open ${url}`);
-            }
-        } catch (e) {
-            GLib.spawn_command_line_async(`xdg-open ${url}`);
-        }
+        Gio.AppInfo.launch_default_for_uri(url, null);
     }
 
     _addEventHeader(eventHeader: St.BoxLayout, match: TennisMatch) {

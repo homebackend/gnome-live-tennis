@@ -1,6 +1,6 @@
 {
   "name": "Live Tennis Monitor",
-  "description": "A Gnome extension that helps you show live tennis scores.",
+  "description": "A Gnome extension that helps you show live tennis scores. Service provider: atptour.com and wtatennis.com",
   "uuid": "live-tennis-neerajcd@gmail.com",
   "shell-version": ["45", "46", "47", "48", "49"],
   "url": "https://github.com/homebackend/gnome-live-tennis",

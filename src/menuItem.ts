@@ -1,11 +1,10 @@
-import Gio from '@girs/gio-2.0';
+import Gio from 'gi://Gio';
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St'
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import { TennisMatch, TennisTeam } from './types';
 import { loadGicon } from './image_loader';
-import { extension } from '@girs/gnome-shell/dist/extensions';
 
 export const CheckedMenuItem = GObject.registerClass({
 

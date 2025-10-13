@@ -56,7 +56,7 @@ export async function loadGicon(url: string, uuid: string, icon: St.Icon, log: (
 export async function loadPopupMenuGicon(url: string, uuid: string, menuitem: PopupMenu.PopupSubMenuMenuItem, log: (logs: string[]) => void): Promise<void> {
     loadImage(url, uuid, log, (cacheFilePath: string) => {
         menuitem.icon.gicon = Gio.icon_new_for_string(cacheFilePath);
-    });    
+    });
 }
 
 export async function loadWebImage(url: string, uuid: string, imageBox: St.BoxLayout, imageSize: number, log: (logs: string[]) => void): Promise<void> {
@@ -65,17 +65,21 @@ export async function loadWebImage(url: string, uuid: string, imageBox: St.BoxLa
 
 async function downloadImage(url: string, destinationPath: string): Promise<string> {
     const session = new Soup.Session();
-    const message = Soup.Message.new('GET', url);
+    try {
+        const message = Soup.Message.new('GET', url);
 
-    const bytes = await session.send_and_read_async(message, 0, null);
+        const bytes = await session.send_and_read_async(message, 0, null);
 
-    if (message.status_code !== Soup.Status.OK) {
-        throw new Error(`Failed to download image. Status: ${message.status_code} - ${message.reason_phrase}`);
+        if (message.status_code !== Soup.Status.OK) {
+            throw new Error(`Failed to download image. Status: ${message.status_code} - ${message.reason_phrase}`);
+        }
+
+        const file = Gio.File.new_for_path(destinationPath);
+
+        await file.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.NONE, null, null);
+
+        return destinationPath;
+    } finally {
+        session.abort();
     }
-
-    const file = Gio.File.new_for_path(destinationPath);
-
-    await file.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.NONE, null, null);
-
-    return destinationPath;
 }

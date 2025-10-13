@@ -406,10 +406,7 @@ export default class LiveScoreExtension extends Extension {
             _activeFloatingWindows.pop()?.destroy();
         }
 
-        if (_matchCycleTimeout) {
-            GLib.source_remove(_matchCycleTimeout);
-            _matchCycleTimeout = null;
-        }
+        this._destroyCycleTimeout();
 
         if (selectedMatches.length > numWindows) {
             this._cycleMatches(selectedMatches);
@@ -418,6 +415,13 @@ export default class LiveScoreExtension extends Extension {
             for (let i = selectedMatches.length; i < _activeFloatingWindows.length; i++) {
                 _activeFloatingWindows[i].updateContent(undefined);
             }
+        }
+    }
+
+    _destroyCycleTimeout() {
+        if (_matchCycleTimeout) {
+            GLib.source_remove(_matchCycleTimeout);
+            _matchCycleTimeout = null;
         }
     }
 
@@ -431,7 +435,7 @@ export default class LiveScoreExtension extends Extension {
 
             if (selectedMatches.length <= _activeFloatingWindows.length) {
                 this._updateFloatingWindows(matchesData);
-                _matchCycleTimeout = null;
+                this._destroyCycleTimeout();
                 return GLib.SOURCE_REMOVE;
             }
 
@@ -466,8 +470,7 @@ export default class LiveScoreExtension extends Extension {
 
     disable() {
         if (_dataFetchTimeout) GLib.source_remove(_dataFetchTimeout);
-        if (_matchCycleTimeout) GLib.source_remove(_matchCycleTimeout);
-
+        this._destroyCycleTimeout();
         this._destroyLiveView();
 
         this._panelButton?.destroy();

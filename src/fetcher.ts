@@ -91,6 +91,8 @@ export const LiveTennis = GObject.registerClass({
                     this._log(['Stack trace', e.stack]);
                 }
                 handler(null);
+            } finally {
+                httpSession.abort();
             }
         });
     }
