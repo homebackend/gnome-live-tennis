@@ -12,23 +12,27 @@ import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import { TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from './types.js';
 import { loadWebImage } from './image_loader.js';
 
-const WINDOW_WIDTH = 450;
-const WINDOW_HEIGHT = 400;
 const PADDING = 10;
 
 export class FloatingScoreWindow {
     private _extensionPath: string;
     private _uuid: string;
     private _log: (logs: string[]) => void;
+    private _settings: Gio.Settings;
     private _windowActor: St.Widget;
     private _windowIndex: number;
     private _mainBox: St.BoxLayout;
+    private _windowWidth: number;
+    private _windowHeight: number;
 
-    constructor(windowIndex: number, extensionPath: string, uuid: string, log: (logs: string[]) => void) {
+    constructor(windowIndex: number, extensionPath: string, uuid: string, log: (logs: string[]) => void, settings: Gio.Settings) {
         this._extensionPath = extensionPath;
         this._uuid = uuid;
         this._windowIndex = windowIndex;
         this._log = log;
+        this._settings = settings;
+        this._windowWidth = this._settings.get_int('live-window-size-x');
+        this._windowHeight = this._settings.get_int('live-window-size-y');
 
         const closeButtonContainer = new St.Bin({
             child: this._closeButton(),
@@ -67,8 +71,8 @@ export class FloatingScoreWindow {
             can_focus: true,
             child: windowContentContainer,
             //track_hover: true,
-            width: WINDOW_WIDTH,
-            height: WINDOW_HEIGHT,
+            width: this._windowWidth,
+            height: this._windowHeight,
         });
 
         Main.uiGroup.add_child(this._windowActor);
@@ -157,7 +161,7 @@ export class FloatingScoreWindow {
         if (event.prizeMoney && event.prizeMoneyCurrency) {
             eventDetails.add_child(new St.Label({ text: `Prize Money: ${event.prizeMoneyCurrency} ${event.prizeMoney}`, style_class: 'event-text' }))
         }
-        if (event.singlesDrawSize && event.doublesDrawSize) {
+        if (event.singlesDrawSize && event.singlesDrawSize > 0 && event.doublesDrawSize && event.doublesDrawSize > 0) {
             eventDetails.add_child(new St.Label({ text: `Draw: ${event.singlesDrawSize}/${event.doublesDrawSize}`, style_class: 'event-text' }));
         }
         eventHeader.add_child(eventDetails);
@@ -336,8 +340,8 @@ export class FloatingScoreWindow {
 
     updatePosition() {
         const primary = Main.layoutManager.primaryMonitor;
-        const x = primary.x + primary.width - WINDOW_WIDTH - PADDING;
-        const y = primary.y + primary.height - PADDING - ((this._windowIndex + 1) * (WINDOW_HEIGHT + PADDING));
+        const x = primary.x + primary.width - this._windowWidth - PADDING;
+        const y = primary.y + primary.height - PADDING - ((this._windowIndex + 1) * (this._windowHeight + PADDING));
         this._windowActor.set_position(x, y);
     }
 

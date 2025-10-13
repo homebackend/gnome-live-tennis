@@ -181,6 +181,7 @@ export class AtpFetcher {
                         team2: team2,
                         event: event,
                         hasFinished: m['MatchStatus'] == 'F',
+                        isLive: m['MatchStatus'] == 'P',
                         displayName: `${team1.displayName} vs ${team2.displayName}`,
                         displayStatus: this._get_match_display_status(m['MatchStatus']),
                         displayScore: this._formatSetScores(team1.setScores, team2.setScores),

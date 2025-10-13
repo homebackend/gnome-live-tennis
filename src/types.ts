@@ -45,6 +45,7 @@ export interface TennisMatch {
     team2: TennisTeam;
     event: TennisEvent;
     hasFinished: boolean;
+    isLive: boolean;
     displayName: string;
     displayStatus: string;
     displayScore: string;

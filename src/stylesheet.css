@@ -189,6 +189,10 @@
     color: orchid;
 }
 
+.match-status-suspended {
+    color: gray;
+}
+
 .game-score-box-top {
     border: 2px solid #555555;
     border-bottom: none;
@@ -245,4 +249,10 @@
 
 .small-text-label {
     font-size: 10px;
+}
+
+/* Preferences */
+
+.error-input text {
+  color: #c00; /* A dark red color */
 }

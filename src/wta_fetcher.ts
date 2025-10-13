@@ -85,20 +85,32 @@ export class WtaFetcher {
     }
 
     _get_event_type_url(level: string): string | undefined {
-        if (level == 'WTA 1000') {
-            return 'https://www.wtatennis.com/resources/v7.8.3/i/elements/1000k-tag.svg';
-        } else if (level == 'WTA 125') {
-            return 'https://www.wtatennis.com/resources/v7.8.3/i/elements/125k-tag.svg'
+        switch (level) {
+            case 'WTA 1000':
+                return 'https://www.wtatennis.com/resources/v7.8.3/i/elements/1000k-tag.svg';
+            case 'WTA 500':
+                return 'https://www.wtatennis.com/resources/v7.8.3/i/elements/500k-tag.svg'
+            case 'WTA 250':
+                return 'https://www.wtatennis.com/resources/v7.8.3/i/elements/250k-tag.svg'
+            case 'WTA 125':
+                return 'https://www.wtatennis.com/resources/v7.8.3/i/elements/125k-tag.svg';
         }
     }
 
     _get_round_name(roundId: string): string {
-        if (roundId == 'Q') {
-            return 'Quarterfinal';
-        } else if (roundId == 'S') {
-            return 'Semifinal';
-        } else if (roundId == 'F') {
-            return 'Final';
+        switch (roundId) {
+            case 'Q':
+                return 'Quarterfinal';
+            case 'S':
+                return 'Semifinal';
+            case 'F':
+                return 'Final';
+            case '1':
+                return 'Qualifying(1)';
+            case '2':
+                return 'Qualifying(2)';
+            case '3':
+                return 'Qualifying(3)';
         }
 
         return roundId;
@@ -113,6 +125,8 @@ export class WtaFetcher {
             return 'Live';
         } else if (status == 'C') {
             return 'Paused';
+        } else if (status == 'S') {
+            return 'Suspended';
         }
 
         return status;
@@ -147,6 +161,7 @@ export class WtaFetcher {
                     event: event,
                     status: m['MatchState'],
                     hasFinished: m['MatchState'] == 'F',
+                    isLive: m['MatchState'] == 'P',
                     displayName: `${team1.displayName} vs ${team2.displayName}`,
                     displayStatus: this._get_match_status(m['MatchState']),
                     displayScore: m['ScoreString'],

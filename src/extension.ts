@@ -16,7 +16,6 @@ import { LiveTennis, QueryResponseType } from './fetcher.js';
 import { loadPopupMenuGicon } from './image_loader.js';
 import { CheckedMenuItem, MatchMenuItem } from './menuItem.js';
 import { SortedStringList } from './utit.js';
-import { panelMenu } from '@girs/gnome-shell/dist/ui/index.js';
 
 const ICON_SIZE = 22;
 
@@ -40,6 +39,8 @@ class LiveScoreButton extends PanelMenu.Button {
     private _refreshItem?: PopupMenu.PopupMenuItem;
     private _refreshLabel?: St.Label;
     private _settingsItem?: PopupMenu.PopupMenuItem;
+    private _manuallyDeselectedMatches: Set<string> = new Set();
+    private _matchCompletionTimings: Map<String, Date> = new Map();
 
     constructor(settings: Gio.Settings, extensionPath: string, uuid: string) {
         super(0.0, 'Live Score Tracker', false);
@@ -120,6 +121,41 @@ class LiveScoreButton extends PanelMenu.Button {
         }
     }
 
+    private _shouldAutoSelectMatch(matchId: string, event: TennisEvent, match: TennisMatch) {
+        if (this._manuallyDeselectedMatches.has(matchId)) {
+            return false;
+        }
+
+        if (match.isLive && this._settings.get_boolean('auto-select-live-matches')) {
+            return true;
+        }
+
+        const autoEvents = this._settings.get_strv('auto-view-new-matches');
+        if (autoEvents && autoEvents.length > 0 && autoEvents.includes(event.id)) {
+            return true;
+        }
+
+        const countries = this._settings.get_strv('auto-select-country-codes');
+        if (countries && countries.length > 0 &&
+            ([...match.team1.players, ...match.team2.players].some(v => countries.includes(v.countryCode)))
+        ) {
+            return true;
+        }
+
+        const names = this._settings.get_strv('auto-select-player-names').map(n => n.toLowerCase());
+        if (names && names.length > 0 &&
+            ([...match.team1.players, ...match.team2.players].some(
+                v => names.includes(v.firstName.toLowerCase()) ||
+                    names.includes(v.lastName.toLowerCase()) ||
+                    names.some(n => v.displayName.includes(n))
+            ))
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
     addMatch(event: TennisEvent, match: TennisMatch) {
         if (!this._matchesMenuItems.has(this.uniqMatchId(event, match))) {
             _log(['Adding match', event.title, match.displayName, match.id]);
@@ -127,8 +163,8 @@ class LiveScoreButton extends PanelMenu.Button {
             const matchId = this.uniqMatchId(event, match);
             let currentSelection = this._settings.get_strv('selected-matches');
             if (!currentSelection.includes(matchId) && !match.hasFinished) {
-                const autoEvents = this._settings.get_strv('auto-view-new-matches');
-                if (autoEvents.includes(event.id)) {
+                if (this._shouldAutoSelectMatch(matchId, event, match)) {
+                    _log(['Auto selected', match.displayName]);
                     currentSelection.push(matchId);
                     this._settings.set_strv('selected-matches', currentSelection);
                 }
@@ -152,6 +188,22 @@ class LiveScoreButton extends PanelMenu.Button {
         const menuItem = this._matchesMenuItems.get(this.uniqMatchId(event, match));
         if (menuItem) {
             menuItem.match = match;
+        }
+
+        if (menuItem.checked) {
+            // If menu item is checked means live view is enabled
+            // stop selection after keep-completed-duration minutes
+            const matchId = this.uniqMatchId(event, match);
+            if (this._matchCompletionTimings.has(matchId)) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - this._settings.get_int('keep-completed-duration'));
+                if (now > this._matchCompletionTimings.get(matchId)!) {
+                    menuItem.checked = false;
+                    this._matchCompletionTimings.delete(matchId);
+                }
+            } else {
+                this._matchCompletionTimings.set(matchId, new Date());
+            }
         }
     }
 
@@ -179,6 +231,7 @@ class LiveScoreButton extends PanelMenu.Button {
 
         const matchId = this.uniqMatchId(event, match);
         this.filterLiveViewMatches(id => id !== matchId);
+        this._manuallyDeselectedMatches.delete(matchId);
 
         const matchItem = this._matchesMenuItems.get(matchId);
         if (matchItem) {
@@ -206,6 +259,7 @@ class LiveScoreButton extends PanelMenu.Button {
     }
 
     private _toggleMatchSelection(matchId: string) {
+        this._manuallyDeselectedMatches.add(matchId);
         return this._toggleSetting('selected-matches', matchId);
     }
 
@@ -310,24 +364,43 @@ export default class LiveScoreExtension extends Extension {
         this._updateFloatingWindows(this._currentMatchesData);
     }
 
+    _destroyLiveView() {
+        _activeFloatingWindows.forEach(w => w.destroy());
+        _activeFloatingWindows = [];
+    }
+
+    _recreateUI() {
+        this._destroyLiveView();
+        this._updateUI();
+    }
+
     _getSelectedMatches(matchesData: TennisMatch[]) {
         const selectedMatchIds = this._settings!.get_strv('selected-matches');
-        return matchesData.filter(m => selectedMatchIds.includes(this._panelButton!.uniqMatchId(m.event, m)));
+        const onlyLiveMatches = this._settings!.get_boolean('only-show-live-matches');
+        const filteredMatchData = matchesData.filter(m => (onlyLiveMatches && m.isLive) &&
+            selectedMatchIds.includes(this._panelButton!.uniqMatchId(m.event, m)));
+        _log(['Live View Count', matchesData.length.toString(), selectedMatchIds.length.toString(), filteredMatchData.length.toString()]);
+        return filteredMatchData;
+    }
+
+    _shouldHideLiveView(selectedMatches: TennisMatch[]): boolean {
+        return !this._settings?.get_boolean('enabled') ||
+            (this._settings?.get_boolean('auto-hide-no-live-matches') && selectedMatches.every(m => !m.isLive));
     }
 
     _updateFloatingWindows(matchesData: TennisMatch[]) {
-        if (!this._settings?.get_boolean('enabled')) {
+        const selectedMatches = this._getSelectedMatches(matchesData);
+        if (this._shouldHideLiveView(selectedMatches)) {
             _activeFloatingWindows.forEach(w => w.hide());
             return;
         }
 
-        const numWindows = this._settings.get_int('num-windows');
-        const selectedMatches = this._getSelectedMatches(matchesData);
+        const numWindows = this._settings!.get_int('num-windows');
 
         _log(['Will create windows', numWindows.toString(), selectedMatches.length.toString()]);
 
         while (_activeFloatingWindows.length < numWindows) {
-            _activeFloatingWindows.push(new FloatingScoreWindow(_activeFloatingWindows.length, this.path, this.uuid, log));
+            _activeFloatingWindows.push(new FloatingScoreWindow(_activeFloatingWindows.length, this.path, this.uuid, log, this._settings!));
         }
         while (_activeFloatingWindows.length > numWindows) {
             _activeFloatingWindows.pop()?.destroy();
@@ -350,12 +423,12 @@ export default class LiveScoreExtension extends Extension {
 
     _cycleMatches(matchesData: TennisMatch[]) {
         const cycle = () => {
-            if (!this._settings?.get_boolean('enabled')) {
+            const selectedMatches = this._getSelectedMatches(matchesData);
+            if (this._shouldHideLiveView(selectedMatches)) {
                 _activeFloatingWindows.forEach(w => w.hide());
                 return GLib.SOURCE_REMOVE;
             }
 
-            const selectedMatches = this._getSelectedMatches(matchesData);
             if (selectedMatches.length <= _activeFloatingWindows.length) {
                 this._updateFloatingWindows(matchesData);
                 _matchCycleTimeout = null;
@@ -381,11 +454,11 @@ export default class LiveScoreExtension extends Extension {
         this._panelButton.connect('open-prefs', () => this.openPreferences());
         this._panelButton.connect('manual-refresh', () => this._fetchMatchData());
 
-        this._settings.connect('changed::enabled', () => this._updateUI());
-        this._settings.connect('changed::num-windows', () => this._updateUI());
-        this._settings.connect('changed::selected-matches', () => this._updateUI());
-        this._settings.connect('changed::auto-view-new-matches', () => this._updateUI());
-        this._settings.connect('changed::match-display-duration', () => this._updateUI());
+        ['enabled', 'num-windows', 'selected-matches', 'auto-view-new-matches',
+            'match-display-duration', 'enable-atp', 'enable-wta', 'enable-atp-challenger',
+            'auto-hide-no-live-matches']
+            .forEach(k => this._settings!.connect(`changed::${k}`, () => this._updateUI()));
+        ['live-window-size-x', 'live-window-size-y'].forEach(k => this._settings!.connect(`changed::${k}`, () => this._recreateUI()))
 
         Main.panel.addToStatusArea(this.uuid, this._panelButton);
         this._fetchMatchData();
@@ -395,8 +468,7 @@ export default class LiveScoreExtension extends Extension {
         if (_dataFetchTimeout) GLib.source_remove(_dataFetchTimeout);
         if (_matchCycleTimeout) GLib.source_remove(_matchCycleTimeout);
 
-        _activeFloatingWindows.forEach(w => w.destroy());
-        _activeFloatingWindows = [];
+        this._destroyLiveView();
 
         this._panelButton?.destroy();
         this._panelButton = undefined;

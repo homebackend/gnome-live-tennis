@@ -121,6 +121,10 @@ export const MatchMenuItem = GObject.registerClass({
         return this._checked;
     }
 
+    set checked(checked: boolean) {
+        this._checked = checked;
+    }
+
     // prevents menu from being closed
     activate(event) {
         this._log(['Menuitem event activated', this._match.displayName]);
