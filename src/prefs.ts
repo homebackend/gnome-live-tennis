@@ -2,7 +2,7 @@
 import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
 import GdkPixbuf from 'gi://GdkPixbuf';
-import { ExtensionPreferences, getPreferencesWindow } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 import Gio from 'gi://Gio';
 
 import { Countries } from './countries';
@@ -17,29 +17,6 @@ const CountryItem = GObject.registerClass({
         'selected': GObject.ParamSpec.boolean('selected', 'selected', 'Selection State', GObject.ParamFlags.READWRITE, false),
     },
 }, class CountryItem extends GObject.Object { });
-
-const factory = new Gtk.SignalListItemFactory();
-factory.connect('setup', (factory, listItem) => {
-    const box = new Gtk.Box({
-        spacing: 6,
-        orientation: Gtk.Orientation.HORIZONTAL,
-        homogeneous: false,
-    });
-    const flagImage = new Gtk.Image();
-    const label = new Gtk.Label({ xalign: 0 });
-    box.append(flagImage);
-    box.append(label);
-    listItem.set_child(box);
-});
-factory.connect('bind', (factory, listItem) => {
-    const countryItem = listItem.get_item();
-    const box = listItem.get_child();
-    const flagImage = box.get_first_child();
-    const label = flagImage.get_next_sibling();
-
-    flagImage.set_from_pixbuf(countryItem.flag);
-    label.set_text(countryItem.name);
-});
 
 export default class LiveScorePreferences extends ExtensionPreferences {
     private _addCheckBoxSettingRow(group: Adw.PreferencesGroup, key: string, settings: Gio.Settings, schema: Gio.SettingsSchema) {
