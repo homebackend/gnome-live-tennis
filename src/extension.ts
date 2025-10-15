@@ -124,15 +124,22 @@ class LiveScoreButton extends PanelMenu.Button {
             return false;
         }
 
+        // Never select matches that are already over.
+        if (match.hasFinished) {
+            return false;
+        }
+
         if (match.isLive && this._settings.get_boolean('auto-select-live-matches')) {
             return true;
         }
 
+        // If event is marked as auto select.
         const autoEvents = this._settings.get_strv('auto-view-new-matches');
         if (autoEvents && autoEvents.length > 0 && autoEvents.includes(event.id)) {
             return true;
         }
 
+        // If match involves players from configured list of countries
         const countries = this._settings.get_strv('auto-select-country-codes');
         if (countries && countries.length > 0 &&
             ([...match.team1.players, ...match.team2.players].some(v => countries.includes(v.countryCode)))
@@ -188,19 +195,25 @@ class LiveScoreButton extends PanelMenu.Button {
             menuItem.match = match;
         }
 
-        if (menuItem.checked) {
+        // If match is selected and match has finished
+        if (menuItem.checked && match.hasFinished) {
             // If menu item is checked means live view is enabled
             // stop selection after keep-completed-duration minutes
             const matchId = this.uniqMatchId(event, match);
+            const now = new Date();
             if (this._matchCompletionTimings.has(matchId)) {
-                const now = new Date();
-                now.setMinutes(now.getMinutes() - this._settings.get_int('keep-completed-duration'));
                 if (now > this._matchCompletionTimings.get(matchId)!) {
+                    this._log(['Match deselected']);
                     menuItem.checked = false;
+                    this._toggleMatchSelection(matchId);
                     this._matchCompletionTimings.delete(matchId);
+                } else {
+                    this._log(['Match will be deselected at', this._matchCompletionTimings.get(matchId)!.toString(), menuItem.state]);
                 }
             } else {
-                this._matchCompletionTimings.set(matchId, new Date());
+                this._log(['Match is selected, marking for deselection']);
+                now.setMinutes(now.getMinutes() + this._settings.get_int('keep-completed-duration'));
+                this._matchCompletionTimings.set(matchId, now);
             }
         }
     }
@@ -236,6 +249,10 @@ class LiveScoreButton extends PanelMenu.Button {
             matchItem.destroy();
             this._matchesMenuItems.delete(matchId);
         }
+    }
+
+    isMatchWaitingDeselection(matchId: string): boolean {
+        return this._matchCompletionTimings.has(matchId);
     }
 
     private _toggleSetting(key: string, toggleValue: string): boolean {
@@ -382,8 +399,16 @@ export default class LiveScoreExtension extends Extension {
     _getSelectedMatches(matchesData: TennisMatch[]) {
         const selectedMatchIds = this._settings!.get_strv('selected-matches');
         const onlyLiveMatches = this._settings!.get_boolean('only-show-live-matches');
-        const filteredMatchData = matchesData.filter(m => (onlyLiveMatches && m.isLive) &&
-            selectedMatchIds.includes(this._panelButton!.uniqMatchId(m.event, m)));
+        const filteredMatchData = matchesData.filter(m => {
+            const matchId = this._panelButton!.uniqMatchId(m.event, m);
+            /*
+             * - A live match shown in live window previously is kept till it gets deselected.
+             * - If only live matches are to be shown allow only selected live matches.
+             * - Otherwise, show all selected matches.
+             */
+            return this._panelButton!.isMatchWaitingDeselection(matchId) ||
+                ((!onlyLiveMatches || m.isLive) && selectedMatchIds.includes(matchId));
+        });
         this._log(['Live View Count', matchesData.length.toString(), selectedMatchIds.length.toString(), filteredMatchData.length.toString()]);
         return filteredMatchData;
     }
