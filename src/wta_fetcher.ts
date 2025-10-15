@@ -99,23 +99,54 @@ export class WtaFetcher {
         }
     }
 
-    _get_round_name(roundId: string): string {
-        switch (roundId) {
-            case 'Q':
-                return 'Quarterfinal';
-            case 'S':
-                return 'Semifinal';
-            case 'F':
-                return 'Final';
-            case '1':
-                return 'Qualifying(1)';
-            case '2':
-                return 'Qualifying(2)';
-            case '3':
-                return 'Qualifying(3)';
+    _get_round_name_main_draw(event: TennisEvent, drawLevelType: string, roundId: string | number, matchState: string): string {
+        if (typeof roundId == 'string') {
+            switch (roundId) {
+                case 'Q':
+                    return 'Quarterfinal';
+                case 'S':
+                    return 'Semifinal';
+                case 'F':
+                    return 'Final';
+            }
+
+            return roundId;
         }
 
-        return roundId;
+        let roundOf: number;
+        if (matchState == 'U') {
+            roundOf = 2 ** roundId;
+        } else {
+            const drawSize = drawLevelType == 'D' ? event.doublesDrawSize : event.singlesDrawSize;
+            let actualDrawSize: number = 2;
+            while (drawSize > actualDrawSize) {
+                actualDrawSize *= 2;
+            }
+
+            roundOf = actualDrawSize / (2 ** (roundId - 1));
+        }
+
+        switch (roundOf) {
+            case 8:
+                return 'Quarterfinal';
+            case 4:
+                return 'Semifinal';
+            case 2:
+                return 'Final';
+        }
+
+        return `Round of ${roundOf}`;
+    }
+
+    _get_round_name(event: TennisEvent, drawMatchType: string, drawLevelType: string, roundId: string | number, matchState: string): string {
+        switch (drawLevelType) {
+            case 'Q': // Qualifying (only doubles??)
+                return `Qualifying(${drawMatchType})`;
+            case 'M': // Main Draw (can be singles or doubles)
+                return this._get_round_name_main_draw(event, drawLevelType, roundId, matchState);
+        }
+
+        return roundId.toString();
     }
 
     _get_match_status(status: string): string {
@@ -144,18 +175,19 @@ export class WtaFetcher {
             json_data['matches'].forEach((m: any) => {
                 const team1 = this._get_team_data(m, m['DrawMatchType'], 'A');
                 const team2 = this._get_team_data(m, m['DrawMatchType'], 'B');
+                const isDoubles = m['DrawMatchType'] !== 'S';
 
                 const tennisMatch: TennisMatch = {
                     id: m['MatchID'],
-                    isDoubles: m['DrawMatchType'] !== 'S',
+                    isDoubles: isDoubles,
                     roundId: m['RoundID'],
-                    roundName: this._get_round_name(m['RoundID']),
+                    roundName: this._get_round_name(event, m['DrawMatchType'], m['DrawLevelType'], m['RoundID'], m['MatchState']),
                     courtName: m['CourtName'],
                     courtId: m['CourtID'],
                     matchTotalTime: m['MatchTimeTotal'],
                     matchTimeStamp: m['MatchTimeStamp'],
                     matchStateReasonMessage: "",
-                    message: "",
+                    message: m['FreeText'],
                     server: m['Serve'] == 'A' ? 0 : m['Serve'] == 'B' ? 1 : -1,
                     winnerId: -1,
                     umpireFirstName: "",
