@@ -16,6 +16,7 @@
   "main": "dist/extension.js",
   "scripts": {
     "build": "node esbuild.js",
+    "prettify": "prettier --write dist/extension.js dist/prefs.js",
     "compile:schemas": "glib-compile-schemas src/schemas/",
     "package": "./package.sh",
     "deploy": "./deploy.sh",
@@ -34,7 +35,8 @@
     "@girs/meta-14": "^14.0.0-4.0.0-beta.38",
     "@girs/soup-3.0": "^3.6.5-4.0.0-beta.36",
     "@girs/st-1.0": "^1.0.0-4.0.0-beta.36",
-    "esbuild": "^0.25.9",
+    "esbuild": "^0.25.10",
+    "prettier": "^3.6.2",
     "typescript": "^5.9.2"
   }
 }

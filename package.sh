@@ -6,6 +6,7 @@ ZIP_FILE=live-tennis.zip
 DIST_DIR="dist"
 
 npm run build
+npm run prettify
 mkdir -p "$DIST_DIR"
 
 cd "$DIST_DIR"

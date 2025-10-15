@@ -7,6 +7,7 @@ gnome-extensions disable "$EXTENSION"
 
 npm run compile:schemas
 npm run build
+npm run prettify
 
 rm -rf "$DEST_DIR"
 
