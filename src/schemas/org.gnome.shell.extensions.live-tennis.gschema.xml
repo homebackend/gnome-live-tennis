@@ -67,7 +67,8 @@
     <key name="auto-select-player-names" type="as">
       <default>[]</default>
       <summary>Auto select Player Names</summary>
-      <description>A comma-separated list of player names. Each name must contain only alphabetic characters. The name could be first name or last name.</description>
+      <description>A comma-separated list of player names. Each name must contain only alphabetic
+        characters. The name could be first name or last name.</description>
     </key>
 
     <key name="keep-completed-duration" type="i">
@@ -106,6 +107,12 @@
       <summary>Live view window height</summary>
       <description>Height in pixels of Live view window (between 200 and 600).</description>
       <range min="200" max="600" />
+    </key>
+
+    <key type="b" name="enable-debug-logging">
+      <default>false</default>
+      <summary>Enable Debug Logging</summary>
+      <description>Debug logging.</description>
     </key>
 
   </schema>

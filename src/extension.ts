@@ -17,7 +17,6 @@ import { loadPopupMenuGicon } from './image_loader.js';
 import { CheckedMenuItem, MatchMenuItem } from './menuItem.js';
 import { SortedStringList } from './utit.js';
 
-const DEBUG = false;
 const ICON_SIZE = 22;
 
 let _activeFloatingWindows: FloatingScoreWindow[] = [];
@@ -25,13 +24,8 @@ let _dataFetchTimeout: number | null = null;
 let _matchCycleTimeout: number | null = null;
 let _currentMatchIndex = 0;
 
-function _log(logs: string[]) {
-    if (DEBUG) {
-        console.log("[Live Tennis]", logs.join(", "));
-    }
-}
-
 class LiveScoreButton extends PanelMenu.Button {
+    private _log: (logs: string[]) => void;
     private _settings: Gio.Settings;
     private _extensionPath: string;
     private _uuid: string;
@@ -45,8 +39,9 @@ class LiveScoreButton extends PanelMenu.Button {
     private _manuallyDeselectedMatches: Set<string> = new Set();
     private _matchCompletionTimings: Map<String, Date> = new Map();
 
-    constructor(settings: Gio.Settings, extensionPath: string, uuid: string) {
+    constructor(log: (logs: string[]) => void, settings: Gio.Settings, extensionPath: string, uuid: string) {
         super(0.0, 'Live Score Tracker', false);
+        this._log = log;
         this._settings = settings;
         this._extensionPath = extensionPath;
         this._uuid = uuid;
@@ -104,13 +99,13 @@ class LiveScoreButton extends PanelMenu.Button {
 
     addTournament(event: TennisEvent) {
         if (!this._tournamentHeaders.has(event.id)) {
-            _log([`Adding tournament: ${event.title} (${event.id})`]);
+            this._log([`Adding tournament: ${event.title} (${event.id})`]);
 
             const position = this._tennisEvents.insert(event.title);
             const submenuItem = new PopupMenu.PopupSubMenuMenuItem(event.title, true);
             const eventTypeUrl = event.eventTypeUrl;
             if (eventTypeUrl) {
-                loadPopupMenuGicon(eventTypeUrl, this._uuid, submenuItem, _log);
+                loadPopupMenuGicon(eventTypeUrl, this._uuid, submenuItem, this._log.bind(this));
             }
 
             this.menu.addMenuItem(submenuItem, position);
@@ -161,21 +156,21 @@ class LiveScoreButton extends PanelMenu.Button {
 
     addMatch(event: TennisEvent, match: TennisMatch) {
         if (!this._matchesMenuItems.has(this.uniqMatchId(event, match))) {
-            _log(['Adding match', event.title, match.displayName, match.id]);
+            this._log(['Adding match', event.title, match.displayName, match.id]);
 
             const matchId = this.uniqMatchId(event, match);
             let currentSelection = this._settings.get_strv('selected-matches');
             if (!currentSelection.includes(matchId) && !match.hasFinished) {
                 if (this._shouldAutoSelectMatch(matchId, event, match)) {
-                    _log(['Auto selected', match.displayName]);
+                    this._log(['Auto selected', match.displayName]);
                     currentSelection.push(matchId);
                     this._settings.set_strv('selected-matches', currentSelection);
                 }
             }
 
-            _log([event.title, event.id, match.displayName, match.id, String(match.hasFinished), String(currentSelection.includes(matchId))]);
+            this._log([event.title, event.id, match.displayName, match.id, String(match.hasFinished), String(currentSelection.includes(matchId))]);
 
-            const menuItem = new MatchMenuItem(this._extensionPath, match, currentSelection.includes(matchId), this._uuid, _log);
+            const menuItem = new MatchMenuItem(this._extensionPath, match, currentSelection.includes(matchId), this._uuid, this._log.bind(this));
             const submenuItem = this._tournamentHeaders.get(event.id);
             submenuItem.menu.addMenuItem(menuItem);
             menuItem.connect('toggle', () => this._toggleMatchSelection(matchId));
@@ -186,7 +181,7 @@ class LiveScoreButton extends PanelMenu.Button {
     }
 
     updateMatch(event: TennisEvent, match: TennisMatch) {
-        _log(['Updating match', event.title, event.id, match.displayName, match.id]);
+        this._log(['Updating match', event.title, event.id, match.displayName, match.id]);
 
         const menuItem = this._matchesMenuItems.get(this.uniqMatchId(event, match));
         if (menuItem) {
@@ -211,7 +206,7 @@ class LiveScoreButton extends PanelMenu.Button {
     }
 
     removeTournament(event: TennisEvent) {
-        _log([`Removing tournament: ${event.title}`]);
+        this._log([`Removing tournament: ${event.title}`]);
 
         this._tennisEvents.remove(event.title);
         this.filterAutoEvents(s => s !== event.id);
@@ -230,7 +225,7 @@ class LiveScoreButton extends PanelMenu.Button {
     }
 
     removeMatch(event: TennisEvent, match: TennisMatch) {
-        _log(['Removinging match', event.title, match.displayName]);
+        this._log(['Removinging match', event.title, match.displayName]);
 
         const matchId = this.uniqMatchId(event, match);
         this.filterLiveViewMatches(id => id !== matchId);
@@ -296,9 +291,16 @@ export default class LiveScoreExtension extends Extension {
         super(metadata);
     }
 
+    private _log(logs: string[]) {
+        if (this._settings?.get_boolean('enable-debug-logging')) {
+            console.log("[Live Tennis]", logs.join(", "));
+        }
+    }
+
+
     async _fetchMatchData() {
         try {
-            _log(['Starting _fetchMatchData']);
+            this._log(['Starting _fetchMatchData']);
             const matchIds: Set<string> = new Set();
             const eventIds: Set<String> = new Set();
             const matchesData: TennisMatch[] = [];
@@ -311,7 +313,7 @@ export default class LiveScoreExtension extends Extension {
                             eventIds.add(e.id);
                             this._panelButton.addTournament(e);
                         } else {
-                            _log(['Skipping event having null title', e.id]);
+                            this._log(['Skipping event having null title', e.id]);
                         }
                     } else if (r === QueryResponseType.UpdateTournament) {
                         eventIds.add(e.id);
@@ -354,10 +356,10 @@ export default class LiveScoreExtension extends Extension {
                 return GLib.SOURCE_CONTINUE;
             });
         } catch (e) {
-            _log(['Error during data fetch', String(e)]);
+            this._log(['Error during data fetch', String(e)]);
             if (e instanceof Error) {
                 if (e.stack) {
-                    _log(['Stack trace', e.stack]);
+                    this._log(['Stack trace', e.stack]);
                 }
             }
         }
@@ -382,7 +384,7 @@ export default class LiveScoreExtension extends Extension {
         const onlyLiveMatches = this._settings!.get_boolean('only-show-live-matches');
         const filteredMatchData = matchesData.filter(m => (onlyLiveMatches && m.isLive) &&
             selectedMatchIds.includes(this._panelButton!.uniqMatchId(m.event, m)));
-        _log(['Live View Count', matchesData.length.toString(), selectedMatchIds.length.toString(), filteredMatchData.length.toString()]);
+        this._log(['Live View Count', matchesData.length.toString(), selectedMatchIds.length.toString(), filteredMatchData.length.toString()]);
         return filteredMatchData;
     }
 
@@ -400,7 +402,7 @@ export default class LiveScoreExtension extends Extension {
 
         const numWindows = this._settings!.get_int('num-windows');
 
-        _log(['Will create windows', numWindows.toString(), selectedMatches.length.toString()]);
+        this._log(['Will create windows', numWindows.toString(), selectedMatches.length.toString()]);
 
         while (_activeFloatingWindows.length < numWindows) {
             _activeFloatingWindows.push(new FloatingScoreWindow(_activeFloatingWindows.length, this.path, this.uuid, log, this._settings!));
@@ -457,8 +459,8 @@ export default class LiveScoreExtension extends Extension {
 
     enable() {
         this._settings = this.getSettings();
-        this._liveTennis = new LiveTennis(_log, this._settings!);
-        this._panelButton = new GObjectLiveScoreButton(this._settings, this.path, this.uuid);
+        this._liveTennis = new LiveTennis(this._log.bind(this), this._settings!);
+        this._panelButton = new GObjectLiveScoreButton(this._log.bind(this), this._settings, this.path, this.uuid);
         this._panelButton.connect('open-prefs', () => this.openPreferences());
         this._panelButton.connect('manual-refresh', () => this._fetchMatchData());
 

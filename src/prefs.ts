@@ -74,7 +74,7 @@ export default class LiveScorePreferences extends ExtensionPreferences {
         });
     }
 
-    private _addSpinBoxSettingRow(group: Adw.PreferencesGroup, key: string, min: number, max: number, settings: Gio.Settings, schema: Gio.SettingsSchema, increment: number=5) {
+    private _addSpinBoxSettingRow(group: Adw.PreferencesGroup, key: string, min: number, max: number, settings: Gio.Settings, schema: Gio.SettingsSchema, increment: number = 5) {
         const keyObject = schema.get_key(key);
 
         const durationRow = new Adw.ActionRow({
@@ -118,6 +118,7 @@ export default class LiveScorePreferences extends ExtensionPreferences {
         this._addIntBasedEntry(liveViewGroup, 'live-window-size-y', settings, schema);
         this._addCheckBoxSettingRow(liveViewGroup, 'auto-hide-no-live-matches', settings, schema);
         this._addCheckBoxSettingRow(liveViewGroup, 'only-show-live-matches', settings, schema);
+        this._addSpinBoxSettingRow(liveViewGroup, 'keep-completed-duration', 0, 120, settings, schema);
     }
 
     private _addMultiCountrySelection(group: Adw.PreferencesGroup, key: string, settings: Gio.Settings, schema: Gio.SettingsSchema) {
@@ -246,7 +247,16 @@ export default class LiveScorePreferences extends ExtensionPreferences {
         this._addCheckBoxSettingRow(group, 'auto-select-live-matches', settings, schema);
         this._addMultiCountrySelection(group, 'auto-select-country-codes', settings, schema);
         this._addPlayerNamesEntry(group, 'auto-select-player-names', settings, schema);
-        this._addSpinBoxSettingRow(group, 'keep-completed-duration', 0, 120, settings, schema);
+    }
+
+    private _addDeveloperSettings(page: Adw.PreferencesPage, settings: Gio.Settings, schema: Gio.SettingsSchema) {
+        const group = new Adw.PreferencesGroup({
+            title: 'Developer Options',
+            description: 'Control developer mode used to debug this extension.'
+        });
+        page.add(group);
+
+        this._addCheckBoxSettingRow(group, 'enable-debug-logging', settings, schema);
     }
 
     fillPreferencesWindow(window: Adw.PreferencesWindow) {
@@ -258,5 +268,6 @@ export default class LiveScorePreferences extends ExtensionPreferences {
         this._addTourSettings(page, settings, schema);
         this._addLiveViewSettings(page, settings, schema);
         this._addAutoSelectSettings(page, settings, schema);
+        this._addDeveloperSettings(page, settings, schema);
     }
 }
