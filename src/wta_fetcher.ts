@@ -165,6 +165,18 @@ export class WtaFetcher {
         return status;
     }
 
+    _get_human_readable_prize_money(prizeMoney: number): string {
+        if (Math.abs(prizeMoney) < 1000) {
+            return prizeMoney.toString();
+        }
+
+        const formatter = new Intl.NumberFormat('en-US', {
+            notation: 'compact',
+            maximumFractionDigits: 1, // Adjust decimal places as needed
+        });
+        return formatter.format(prizeMoney);
+    }
+
     _fetch_event_data(event: TennisEvent, events: any[], index: number, tennisEvents: TennisEvent[],
         callback: (tennisEvents: TennisEvent[]) => void) {
         this._httpSession = new Soup.Session();
@@ -239,6 +251,7 @@ export class WtaFetcher {
             doublesDrawSize: e['doublesDrawSize'],
             prizeMoney: e['prizeMoney'],
             prizeMoneyCurrency: e['prizeMoneyCurrency'],
+            displayPrizeMoney: `${e['prizeMoneyCurrency']} ${this._get_human_readable_prize_money(e['prizeMoney'])}`,
             status: e['status'],
             matches: [],
             matchMapping: {},

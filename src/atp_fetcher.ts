@@ -170,6 +170,7 @@ export class AtpFetcher {
                     doublesDrawSize: -1,
                     prizeMoney: -1,
                     prizeMoneyCurrency: "",
+                    displayPrizeMoney: "",
                     status: ""
                 };
 

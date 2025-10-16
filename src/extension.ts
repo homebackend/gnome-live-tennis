@@ -102,7 +102,8 @@ class LiveScoreButton extends PanelMenu.Button {
             this._log([`Adding tournament: ${event.title} (${event.id})`]);
 
             const position = this._tennisEvents.insert(event.title);
-            const submenuItem = new PopupMenu.PopupSubMenuMenuItem(event.title, true);
+            const prizeMoney = event.displayPrizeMoney ? ` [${event.displayPrizeMoney}]` : '';
+            const submenuItem = new PopupMenu.PopupSubMenuMenuItem(`${event.title}${prizeMoney}`, true);
             const eventTypeUrl = event.eventTypeUrl;
             if (eventTypeUrl) {
                 loadPopupMenuGicon(eventTypeUrl, this._uuid, submenuItem, this._log.bind(this));

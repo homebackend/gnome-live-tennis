@@ -72,6 +72,7 @@ export interface TennisEvent {
     doublesDrawSize: number;
     prizeMoney: number;
     prizeMoneyCurrency: string;
+    displayPrizeMoney: string;
     status: string;
     matches: TennisMatch[];
     matchMapping: { [key: string]: TennisMatch };
