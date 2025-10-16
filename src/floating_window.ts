@@ -107,6 +107,16 @@ export class FloatingScoreWindow {
         return separator;
     }
 
+    _createHorizontalSepartor(height: number): St.Bin {
+        return new St.Bin({
+            style_class: 'horizontal-separator',
+            width: 2,
+            height: height,
+            xAlign: Clutter.ActorAlign.START,
+            yAlign: Clutter.ActorAlign.CENTER,
+        });
+    }
+
     _openURL(url: string): void {
         Gio.AppInfo.launch_default_for_uri(url, null);
     }
@@ -114,16 +124,23 @@ export class FloatingScoreWindow {
     _addEventHeader(eventHeader: St.BoxLayout, match: TennisMatch) {
         const event = match.event;
 
-        const eventType = new St.BoxLayout({ style_class: 'event-type' });
-        const url = match.event.eventTypeUrl;
-        if (!url) {
-            const eventTypeLabel = new St.Label({ text: match.event.type });
-            eventType.add_child(eventTypeLabel);
-        } else {
-            loadWebImage(url, this._uuid, eventType, 40, this._log);
-        }
+        const eventType = new St.BoxLayout({ style_class: 'event-type', x_align: Clutter.ActorAlign.CENTER, y_expand: false });
+        ///*
+        const eventTypeLabel = new St.Label({ text: match.event.displayType, style_class: 'event-type-text' });
+        eventType.add_child(eventTypeLabel);
+        //*/
+        /*
+            const url = match.event.eventTypeUrl;
+            if (!url) {
+                const eventTypeLabel = new St.Label({ text: match.event.type, style_class: 'event-type-text' });
+                eventType.add_child(eventTypeLabel);
+            } else {
+                loadWebImage(url, this._uuid, eventType, -120, this._log);
+            }
+        */
 
         eventHeader.add_child(eventType);
+        eventHeader.add_child(this._createHorizontalSepartor(40));
 
         const eventDescription = new St.BoxLayout({ vertical: true });
         const eventNameLabel = new St.Label({ text: match.event.title, style_class: 'event-text' });
@@ -140,18 +157,27 @@ export class FloatingScoreWindow {
         }
         eventHeader.add_child(eventDescription);
 
+        let hasDetails = false;
+
         const eventDetails = new St.BoxLayout({ vertical: true, x_expand: true, xAlign: Clutter.ActorAlign.END, yAlign: Clutter.ActorAlign.START });
         if (event.surface) {
+            hasDetails = true;
             const surface = new St.Label({ text: `${event.surface}/${event.indoor ? 'Indoor' : 'Outdoor'}`, style_class: 'event-text' });
             eventDetails.add_child(surface);
         }
         if (event.prizeMoney && event.prizeMoneyCurrency) {
-            eventDetails.add_child(new St.Label({ text: `Prize Money: ${event.prizeMoneyCurrency} ${event.prizeMoney}`, style_class: 'event-text' }))
+            hasDetails = true;
+            eventDetails.add_child(new St.Label({ text: `${event.prizeMoneyCurrency} ${event.prizeMoney}`, style_class: 'event-text' }))
         }
         if (event.singlesDrawSize && event.singlesDrawSize > 0 && event.doublesDrawSize && event.doublesDrawSize > 0) {
+            hasDetails = true;
             eventDetails.add_child(new St.Label({ text: `Draw: ${event.singlesDrawSize}/${event.doublesDrawSize}`, style_class: 'event-text' }));
         }
-        eventHeader.add_child(eventDetails);
+
+        if (hasDetails) {
+            eventHeader.add_child(this._createHorizontalSepartor(40));
+            eventHeader.add_child(eventDetails);
+        }
     }
 
     _addMatchHeader(box: St.BoxLayout, match: TennisMatch) {
@@ -171,14 +197,14 @@ export class FloatingScoreWindow {
         matchHeader.add_child(matchStatus)
 
         const matchCourt = new St.Label({
-            text: match.courtName ?? 'Unknown',
+            text: match.courtName ?? '',
             style_class: 'match-header-label',
             y_align: Clutter.ActorAlign.START,
         });
         matchHeader.add_child(matchCourt);
 
         const matchDuration = new St.Label({
-            text: match.matchTotalTime ?? 'Unknown',
+            text: match.matchTotalTime ?? '',
             style_class: 'match-header-label',
             x_expand: true,
             x_align: Clutter.ActorAlign.END,
@@ -297,8 +323,10 @@ export class FloatingScoreWindow {
             box.add_child(row);
         }
 
-        const message = new St.Label({ text: match.message, style_class: 'small-text-label' });
-        box.add_child(message);
+        if (match.message) {
+            const message = new St.Label({ text: match.message, style_class: 'small-text-label' });
+            box.add_child(message);
+        }
     }
 
     updateContent(match: TennisMatch | undefined) {
@@ -311,7 +339,7 @@ export class FloatingScoreWindow {
 
         this._windowActor.show();
 
-        const eventHeader = new St.BoxLayout();
+        const eventHeader = new St.BoxLayout({ x_align: Clutter.ActorAlign.START });
         this._addEventHeader(eventHeader, match);
         this._mainBox.add_child(eventHeader);
 

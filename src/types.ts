@@ -65,6 +65,7 @@ export interface TennisEvent {
     surface: string;
     indoor: boolean;
     type: string;
+    displayType: string;
     isLive: boolean;
     tour: string;
     singlesDrawSize: number;

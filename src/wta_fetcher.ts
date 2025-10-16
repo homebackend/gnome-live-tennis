@@ -36,8 +36,8 @@ export class WtaFetcher {
     }
 
     _get_player(p: any, suffix: string): TennisPlayer {
-        const firstName: string = p[`PlayerNameFirst${suffix}`];
-        const lastName: string = p[`PlayerNameLast${suffix}`];
+        const firstName: string = p[`PlayerNameFirst${suffix}`] || 'TBD';
+        const lastName: string = p[`PlayerNameLast${suffix}`] || 'TBD';
         return {
             id: p[`PlayerID${suffix}`],
             countryCode: p[`PlayerCountry${suffix}`],
@@ -82,7 +82,7 @@ export class WtaFetcher {
             seed: t[`Seed${team}`],
             gameScore: t[`Point${team}`],
             setScores: this._get_set_scores(t, team),
-            displayName: players.map(p => p.lastName).join('/'),
+            displayName: players.map(p => p.lastName || 'TBD').join('/'),
         };
     }
 
@@ -110,7 +110,7 @@ export class WtaFetcher {
                     return 'Final';
             }
 
-            return roundId;
+            roundId = parseInt(roundId, 10);
         }
 
         let roundOf: number;
@@ -232,6 +232,7 @@ export class WtaFetcher {
             surface: e['surface'],
             indoor: e['inOutdoor'] == 1,
             type: e['level'],
+            displayType: e['level'],
             isLive: e['status'] == 'inProgress',
             tour: 'WTA',
             singlesDrawSize: e['singlesDrawSize'],

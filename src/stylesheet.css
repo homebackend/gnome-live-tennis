@@ -62,6 +62,15 @@
     margin-bottom: 8px;
 }
 
+.horizontal-separator {
+    background-color: #555555;
+    /* Light gray color */
+    width: 2px;
+    /* Thin line */
+    margin: 0 8px;
+    /* Add some spacing around the separator */
+}
+
 
 /* Floating window CSS */
 
@@ -156,7 +165,13 @@
 }
 
 .event-type {
-    min-width: 60px;
+    min-width: 120px;
+    max-width: 120px;
+}
+
+.event-type-text {
+    font-weight: bolder;
+    font-size: 24px;
 }
 
 .player-flag {
@@ -254,5 +269,6 @@
 /* Preferences */
 
 .error-input text {
-  color: #c00; /* A dark red color */
+    color: #c00;
+    /* A dark red color */
 }

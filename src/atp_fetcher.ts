@@ -88,6 +88,18 @@ export class AtpFetcher {
         };
     }
 
+    private _get_display_type(tour: string, eventType: string) {
+        if (tour == 'ATP') {
+            return `ATP ${eventType}`;
+        } else {
+            if (eventType == 'CH') {
+                return `ATP Challenger`;
+            } else {
+                return `ATP ${eventType}`;
+            }
+        }
+    }
+
     private _get_event_type_url(tour: string, eventType: string) {
         if (tour == 'ATP') {
             return ["1000", "500", "250"].includes(eventType) ? `https://www.atptour.com/assets/atpwt/images/tournament/badges/categorystamps_${eventType}.png` : undefined;
@@ -145,6 +157,7 @@ export class AtpFetcher {
                     startDate: e["EventStartDate"],
                     endDate: e["EventEndDate"],
                     type: e["EventType"],
+                    displayType: this._get_display_type(tour, e["EventType"]),
                     isLive: e["IsLive"],
                     tour: tour,
                     matches: matches,

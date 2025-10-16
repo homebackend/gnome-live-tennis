@@ -20,13 +20,18 @@ declare module 'gi://Gio?version=2.0' {
 }
 
 declare module 'gi://St' {
-  import St from '@girs/st-1.0';
+  import St from '@girs/st-16';
   export = St;
 }
 
-declare module 'gi://St?version=1.0' {
-  import St from '@girs/st-1.0';
-  export = St;
+declare module 'gi://GdkPixbuf' {
+  import GdkPixbuf from '@girs/gdkpixbuf-2.0';
+  export = GdkPixbuf;
+}
+
+declare module 'gi://Gtk' {
+  import Gtk from '@girs/gtk-4.0';
+  export = Gtk;
 }
 
 // Add the declaration for gi://Shell
