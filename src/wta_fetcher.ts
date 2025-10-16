@@ -59,13 +59,15 @@ export class WtaFetcher {
         return players;
     }
 
-    _get_set_scores(t: any, team: string): TennisSetScore[] {
+    _get_set_scores(t: any, team: string, other: string): TennisSetScore[] {
         const setScores: TennisSetScore[] = [];
 
         for (let i = 1; i <= 5; i++) {
+            const teamScore = t[`ScoreSet${i}${team}`];
+            const otherScore = t[`ScoreSet${i}${other}`];
             setScores.push({
-                score: t[`ScoreSet${i}${team}`],
-                tiebrake: t[`ScoreTbSet${i}`],
+                score: teamScore,
+                tiebrake: teamScore < otherScore ? t[`ScoreTbSet${i}`] : undefined,
                 stats: undefined,
             });
         }
@@ -73,7 +75,7 @@ export class WtaFetcher {
         return setScores;
     }
 
-    _get_team_data(t: any, matchType: string, team: string): TennisTeam {
+    _get_team_data(t: any, matchType: string, team: string, other: string): TennisTeam {
         const players: TennisPlayer[] = this._get_players(t, matchType, team);
 
         return {
@@ -81,7 +83,7 @@ export class WtaFetcher {
             entryType: t[`EntryType${team}`],
             seed: t[`Seed${team}`],
             gameScore: t[`Point${team}`],
-            setScores: this._get_set_scores(t, team),
+            setScores: this._get_set_scores(t, team, other),
             displayName: players.map(p => p.lastName || 'TBD').join('/'),
         };
     }
@@ -185,8 +187,8 @@ export class WtaFetcher {
             this._httpSession = undefined;
 
             json_data['matches'].forEach((m: any) => {
-                const team1 = this._get_team_data(m, m['DrawMatchType'], 'A');
-                const team2 = this._get_team_data(m, m['DrawMatchType'], 'B');
+                const team1 = this._get_team_data(m, m['DrawMatchType'], 'A', 'B');
+                const team2 = this._get_team_data(m, m['DrawMatchType'], 'B', 'A');
                 const isDoubles = m['DrawMatchType'] !== 'S';
 
                 const tennisMatch: TennisMatch = {
