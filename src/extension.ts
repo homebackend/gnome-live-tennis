@@ -32,6 +32,7 @@ class LiveScoreButton extends PanelMenu.Button {
     private _matchesMenuItems: Map<string, MatchMenuItem> = new Map();
     private _tennisEvents: SortedStringList;
     private _tournamentHeaders: Map<string, PopupMenu.PopupMenuItem> = new Map();
+    private _tournamentMatches: Map<string, string[]> = new Map();
     private _eventAutoItems: Map<string, CheckedMenuItem> = new Map();
     private _refreshItem?: PopupMenu.PopupMenuItem;
     private _refreshLabel?: St.Label;
@@ -183,6 +184,11 @@ class LiveScoreButton extends PanelMenu.Button {
             submenuItem.menu.addMenuItem(menuItem);
             menuItem.connect('toggle', () => this._toggleMatchSelection(matchId));
             this._matchesMenuItems.set(this.uniqMatchId(event, match), menuItem);
+            if (this._tournamentMatches.has(event.id)) {
+                this._tournamentMatches.get(event.id)?.push(matchId);
+            } else {
+                this._tournamentMatches.set(event.id, [matchId]);
+            }
         } else {
             this.updateMatch(event, match);
         }
@@ -235,6 +241,17 @@ class LiveScoreButton extends PanelMenu.Button {
         if (header) {
             header.destroy();
             this._tournamentHeaders.delete(event.id);
+        }
+
+        if (this._tournamentMatches.has(event.id)) {
+            let currentSelection = this._settings.get_strv('selected-matches');
+            currentSelection = currentSelection.filter(id => !this._tournamentMatches.get(event.id)?.includes(id));
+            this._settings.set_strv('selected-matches', currentSelection);
+
+            this._tournamentMatches.get(event.id)?.forEach(matchId => {
+                this._matchesMenuItems.delete(matchId)
+            });
+            this._tournamentMatches.delete(event.id);
         }
     }
 
