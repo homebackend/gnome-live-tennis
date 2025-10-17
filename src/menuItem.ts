@@ -89,8 +89,14 @@ export const MatchMenuItem = GObject.registerClass({
         this._addTeam(this._match.team1);
         this._container.add_child(new St.Label({ text: ' vs' }));
         this._addTeam(this._match.team2);
+        if (this._match.isLive) {
+            this._container.add_child(new St.Label({ text: ' LIVE', style_class: 'match-status-live-menu' }))
+        }
         if (this._match.displayScore) {
-            this._scoreContainer.add_child(new St.Label({ text: this._match.displayScore }));
+            this._scoreContainer.add_child(new St.Label({
+                text: this._match.displayScore,
+                style_class: this._match.isLive ? 'match-status-live-menu' : 'match-status-finished-menu',
+            }));
         }
     }
 
