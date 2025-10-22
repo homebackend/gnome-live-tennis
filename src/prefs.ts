@@ -61,8 +61,6 @@ export default class LiveScorePreferences extends ExtensionPreferences {
             const text = entryRow.get_text();
             const value = parseInt(text, 10);
 
-            console.log('Inside changed');
-
             if (!isNaN(value) && value >= minValue && value <= maxValue) {
                 settings.set_int(key, value);
                 entryRow.remove_css_class('error-input');

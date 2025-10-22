@@ -1,6 +1,6 @@
 {
   "name": "gnome-live-tennis",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Gnome Extension to show live tennis data",
   "homepage": "https://github.com/homebackend/gnome-live-tennis#readme",
   "bugs": {

@@ -264,14 +264,19 @@ export class WtaFetcher {
         this._fetch_event_data(event, events, index, tennisEvents, callback);
     }
 
-    fetchData(callback: (tennisEvents: TennisEvent[]) => void) {
+    fetchData(callback: (tennisEvents: TennisEvent[] | undefined) => void) {
         this._httpSession = new Soup.Session();
         const msg = this._build_req(this._get_all_events_url());
         const tennisEvents: TennisEvent[] = [];
 
-        this._data_fetcher(this._httpSession, msg, json_data => {
-            this._process_event(json_data['content'], 0, tennisEvents, callback);
+        this._data_fetcher(this._httpSession, msg, jsonData => {
             this._httpSession = undefined;
+
+            if (jsonData == null) {
+                return callback(undefined);
+            }
+
+            this._process_event(jsonData['content'], 0, tennisEvents, callback);
         });
     }
 
