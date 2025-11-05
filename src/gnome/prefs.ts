@@ -1,12 +1,12 @@
 // src/prefs.ts (Example)
 import Adw from 'gi://Adw';
+import Gio from 'gi://Gio';
+import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 import GdkPixbuf from 'gi://GdkPixbuf';
 import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
-import Gio from 'gi://Gio';
 
-import { Countries } from './countries';
-import GObject from 'gi://GObject';
+import { Countries } from '../common/countries.js';
 
 const CountryItem = GObject.registerClass({
     GTypeName: 'CountryItem',

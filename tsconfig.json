@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -12,9 +12,7 @@
       "dom"
     ],
     "types": [
-      "@girs/gtk-4.0",
       "gnome-shell",
-      "node"
     ],
     "paths": {
       "gi://*": [
@@ -32,7 +30,7 @@
   },
   "include": [
     "src/**/*",
-    "src/ambient.d.ts", // Add this line to include the declaration file
-    "src/gi.d.ts"
+    "src/gnome/ambient.d.ts", // Add this line to include the declaration file
+    "src/gnome/gi.d.ts"
   ]
 }

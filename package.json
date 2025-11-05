@@ -13,11 +13,14 @@
   "license": "GPL-3.0-or-later",
   "author": "neerajcd@gmail.com",
   "type": "module",
-  "main": "dist/extension.js",
+  "main": "run/main.cjs",
   "scripts": {
     "build": "node esbuild.js",
+    "start": "npm run start:electron",
+    "start:electron": "npm run build && ./run-electron.sh",
     "prettify": "prettier --write dist/extension.js dist/prefs.js",
-    "compile:schemas": "glib-compile-schemas src/schemas/",
+    "generate:schemas": "npm run build && node dist/schema.js",
+    "compile:schemas": "npm run generate:schemas && glib-compile-schemas dist/schemas/",
     "package": "./package.sh",
     "deploy": "./deploy.sh",
     "clean": "rm -rf dist"
@@ -35,8 +38,16 @@
     "@girs/meta-16": "^16.0.0-4.0.0-beta.38",
     "@girs/soup-3.0": "^3.6.5-4.0.0-beta.36",
     "@girs/st-16": "^16.0.0-4.0.0-beta.38",
+    "@types/electron": "^1.4.38",
+    "electron": "^38.4.0",
     "esbuild": "^0.25.10",
     "prettier": "^3.6.2",
-    "typescript": "^5.9.2"
+    "sslkeylog": "^0.2.2",
+    "typescript": "^5.9.3",
+    "xml-js": "^1.6.11"
+  },
+  "dependencies": {
+    "axios": "^1.12.2",
+    "electron-store": "^11.0.2"
   }
 }
