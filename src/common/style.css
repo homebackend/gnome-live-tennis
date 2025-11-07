@@ -21,6 +21,10 @@
     }
 }
 
+div {
+    box-sizing: border-box;
+}
+
 .no-wrap-text {
     white-space: nowrap;
     /*overflow: hidden;
@@ -112,6 +116,7 @@
 
 .team-box {
     spacing: 5px;
+    padding: 0px 5px;
 }
 
 .team-row {
@@ -125,7 +130,7 @@
 
 .player-flag {
     spacing: 5px;
-    padding: 0px, 5px;
+    padding: 0px 5px;
 }
 
 .service-box {
@@ -145,16 +150,19 @@
 
 .game-score-box {
     spacing: 2px;
+    padding: 0px 2px;
     min-width: 20px;
 }
 
 .scores-box {
     spacing: 2px;
+    padding: 0px 2px;
     min-width: 15px;
 }
 
 .match-content-box {
     spacing: 10px;
+    padding: 0px 10px;
     /* Spacing between the two team displays */
 }
 

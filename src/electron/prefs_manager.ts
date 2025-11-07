@@ -1,4 +1,4 @@
-import { BrowserView, BrowserWindow, ipcMain } from 'electron';
+import { BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import { PreferenceRenderKeys } from './render_keys.js';
 
@@ -15,6 +15,7 @@ export class PrefsManager {
             show: true,
             frame: false,
             transparent: false,
+            roundedCorners: true,
             webPreferences: {
                 preload: preloadPath,
                 contextIsolation: true,

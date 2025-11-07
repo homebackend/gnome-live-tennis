@@ -4,7 +4,7 @@ import { ElectronRunner } from './runner.js';
 import { ElectronSettings } from './settings.js';
 import { MenuRenderKeys } from './render_keys.js';
 import { ElectronLiveViewManager } from './live_view_manager.js';
-import { LiveViewUpdater } from '../common/live_view_updater.js';
+import { ApiHandlers, LiveViewUpdater } from '../common/live_view_updater.js';
 import { AxiosApiHandler, CurlApiHandler } from './api.js';
 import { PrefsManager } from './prefs_manager.js';
 
@@ -20,10 +20,13 @@ app.whenReady().then(() => {
             }
         }
 
-        const apiHandler = new CurlApiHandler(log);
+        const apiHandlers: ApiHandlers = {
+            atp: new CurlApiHandler(log),
+            wta: new AxiosApiHandler(log),
+        };
         const runner = new ElectronRunner(log, __dirname, settings);
         const manager = new ElectronLiveViewManager(__dirname, settings);
-        const updater = new LiveViewUpdater(runner, manager, apiHandler, settings, log);
+        const updater = new LiveViewUpdater(runner, manager, apiHandlers, settings, log);
 
         function redrawLiveView(key: string) {
             ['enabled', 'num-windows', 'selected-matches', 'auto-view-new-matches',
@@ -62,11 +65,7 @@ app.whenReady().then(() => {
         ipcMain.on(MenuRenderKeys.log, (_, logs: string[]) => log(logs));
         ipcMain.handle(MenuRenderKeys.basePath, () => __dirname);
         ipcMain.on(MenuRenderKeys.quit, () => app.quit());
-        ipcMain.on(MenuRenderKeys.openSettingsWindow, ()=> new PrefsManager(__dirname));
-
-        //const apiHandler = new AxiosApiHandler(log);
-        //const apiHandler = new FetchApiHandler(log);
-        updater.fetchMatchData();
+        ipcMain.on(MenuRenderKeys.openSettingsWindow, () => new PrefsManager(__dirname));
 
         ipcMain.on(MenuRenderKeys.refresh, () => {
             log(['Manual refresh triggered']);

@@ -16,13 +16,18 @@ declare global {
 
 class LiveViewRenderer extends LiveViewRendererCommon<HTMLDivElement, HTMLSpanElement, HTMLImageElement> {
     updateLiveViewContent(match: TennisMatch): void {
-        console.log('inside updateLiveViewContent')
-        window.electronAPILiveView.log(['updateLiveViewContent']);
         this._clearContent();
         const root = document.getElementById('root');
         if (!root) {
             throw new Error('Root element not found');
         }
+
+        const topBox = this.renderer.createContainer({
+            xExpand: true,
+            yExpand: true,
+            className: StyleKeys.LiveViewFloatingScoreWindow,
+        });
+        root.appendChild(topBox);
 
         const mainDiv = this.renderer.createContainer({
             xExpand: true,
@@ -30,12 +35,12 @@ class LiveViewRenderer extends LiveViewRendererCommon<HTMLDivElement, HTMLSpanEl
             vertical: true,
             className: StyleKeys.LiveViewMainBox,
         });
-        root.appendChild(mainDiv);
+        this.renderer.addContainersToContainer(topBox, mainDiv);
+        
         this.createMainWindow(mainDiv, match);
     }
 
     setLiveViewContentsEmpty(): void {
-        window.electronAPILiveView.log(['setLiveViewContentsEmpty']);
         this._clearContent();
     }
 

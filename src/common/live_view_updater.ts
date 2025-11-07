@@ -20,6 +20,11 @@ export interface LiveViewManager {
     continueCycleTimeout(): boolean;
 };
 
+export interface ApiHandlers {
+    atp: ApiHandler,
+    wta: ApiHandler,
+}
+
 export class LiveViewUpdater {
     private _runner: Runner;
     private _manager: LiveViewManager;
@@ -29,13 +34,13 @@ export class LiveViewUpdater {
     private _currentMatchesData: TennisMatch[] = [];
     private _log: (logs: string[]) => void;
 
-    constructor(runner: Runner, manager: LiveViewManager, apiHandler: ApiHandler, settings: Settings, log: (logs: string[]) => void) {
+    constructor(runner: Runner, manager: LiveViewManager, apiHandlers: ApiHandler | ApiHandlers, settings: Settings, log: (logs: string[]) => void) {
         this._runner = runner;
         this._manager = manager;
         this._settings = settings;
         this._log = log;
-        const atpFetcher = new AtpFetcher(apiHandler);
-        const wtaFetcher = new WtaFetcher(apiHandler);
+        const atpFetcher = new AtpFetcher('atp' in apiHandlers ? apiHandlers.atp : apiHandlers);
+        const wtaFetcher = new WtaFetcher('wta' in apiHandlers ? apiHandlers.wta : apiHandlers);
         this._liveTennis = new LiveTennis(log, settings, atpFetcher, wtaFetcher);
     }
 
@@ -81,9 +86,12 @@ export class LiveViewUpdater {
                         await this._runner.removeMatch(e, m);
                     }
                 },
-                async () => {
-                    await this._runner.filterAutoEvents(id => eventIds.has(id));
-                    await this._runner.filterLiveViewMatches(id => matchIds.has(id));
+                async (allGood: boolean) => {
+                    if (allGood) {
+                        // Only remove stale entries if API call(s) were success
+                        await this._runner.filterAutoEvents(id => eventIds.has(id));
+                        await this._runner.filterLiveViewMatches(id => matchIds.has(id));
+                    }
 
                     this._currentMatchesData = matchesData;
                     await this._updateFloatingWindows(this._currentMatchesData);
@@ -165,7 +173,6 @@ export class LiveViewUpdater {
 
             for (let i = 0; i < this._manager.getLiveViewCount(); i++) {
                 const matchToShow = selectedMatches[(this._currentMatchIndex + i) % selectedMatches.length];
-                this._log(['calling updateLiveViewContent']);
                 this._manager.updateLiveViewContent(i, matchToShow);
             }
             this._currentMatchIndex = (this._currentMatchIndex + 1) % selectedMatches.length;

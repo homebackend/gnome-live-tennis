@@ -1,4 +1,3 @@
-import { electron } from "process";
 import { Countries } from "../common/countries.js";
 import { prefs, PrefSchema, schema } from "../common/schema.js";
 import { StyleKeys } from "./style_keys.js";
@@ -16,65 +15,6 @@ declare global {
             setSettingStrv: (key: string, value: string[]) => void;
         }
     }
-}
-
-async function setupCountrySelection(currentValues: Schema) {
-    const listContainer = document.getElementById('country-list');
-    if (!listContainer) return;
-
-    // Get the currently selected codes from electron-store
-    let selectedCodes = new Set(currentValues.auto_select_country_codes);
-
-    // Prepare the data model (mimicking Gio.ListStore)
-    const countryModel: CountryItem[] = ALL_COUNTRIES.map(country => ({
-        ...country,
-        selected: selectedCodes.has(country.ioc)
-    }));
-
-    // Generate the UI elements (mimicking Gtk.SignalListItemFactory bind/setup)
-    countryModel.forEach(country => {
-        const row = document.createElement('div');
-        row.classList.add('country-item-row');
-
-        // Checkbox element (Gtk.CheckButton equivalent)
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = country.selected;
-        checkbox.id = `check-${country.ioc}`;
-
-        // Flag Image (Gtk.Image equivalent)
-        const flagImage = document.createElement('img');
-        // NOTE: You must ensure your flag images are available at this path in Electron assets
-        flagImage.src = `./assets/flags/${country.ioc.toLowerCase()}.svg`;
-        flagImage.alt = `${country.name} Flag`;
-        flagImage.classList.add('flag-icon');
-
-        // Label (Gtk.Label equivalent)
-        const label = document.createElement('label');
-        label.textContent = country.name;
-        label.htmlFor = checkbox.id;
-        label.classList.add('country-name-label');
-
-        // Add event listener to handle updates and save to store (Gtk check.connect('toggled', ...))
-        checkbox.addEventListener('change', () => {
-            // Update the local model state
-            country.selected = checkbox.checked;
-
-            // Recalculate the full list of selected codes to save
-            const updatedSelectedCodes = countryModel
-                .filter(item => item.selected)
-                .map(item => item.ioc);
-
-            // Send update to main process via IPC
-            window.settingsAPI.saveSetting('auto_select_country_codes', updatedSelectedCodes);
-        });
-
-        // Append elements to the row (Gtk.Box append equivalent)
-        row.appendChild(checkbox);
-        row.appendChild(flagImage);
-        row.appendChild(label);
-        listContainer.appendChild(row);
-    });
 }
 
 async function getSetting(property: string): Promise<HTMLDivElement> {

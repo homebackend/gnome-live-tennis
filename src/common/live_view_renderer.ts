@@ -43,7 +43,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
 
         let hasDetails = false;
 
-        const eventDetails = this.renderer.createContainer({ vertical: true, xExpand: true, xAlign: Alignment.End, yAlign: Alignment.Begin });
+        const eventDetails = this.renderer.createContainer({ vertical: true, xAlign: Alignment.End, yAlign: Alignment.Begin });
         if (event.surface) {
             hasDetails = true;
             this.renderer.addTextToContainer(eventDetails, { text: `${event.surface}/${event.indoor ? 'Indoor' : 'Outdoor'}`, className: StyleKeys.LiveViewEventText });
@@ -65,8 +65,10 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
 
     private _addMatchHeader(box: T, match: TennisMatch) {
         // Match Header (Quarterfinals, etc.)
-        const matchHeader = this.renderer.createContainer({ className: StyleKeys.LiveViewMatchHeaderBox });
-        this.renderer.addTextToContainer(matchHeader, { text: `${match.roundName}`, className: `${StyleKeys.LiveViewMatchHeaderLabel} ${StyleKeys.LiveViewRoundLabel}` });
+        const matchHeader = this.renderer.createContainer({ className: StyleKeys.LiveViewMatchHeaderBox, xExpand: true });
+        this.renderer.addTextToContainer(matchHeader, { 
+            text: `${match.roundName}`, 
+            className: `${StyleKeys.LiveViewMatchHeaderLabel} ${StyleKeys.LiveViewRoundLabel}` });
         this.renderer.addTextToContainer(matchHeader, {
             text: match.displayStatus,
             className: `${StyleKeys.LiveViewMatchHeaderLabel} ${StyleKeys.LiveViewMatchStatus}${match.displayStatus.toLowerCase()}`,
@@ -83,6 +85,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
             xExpand: true,
             xAlign: Alignment.End,
             yAlign: Alignment.Begin,
+            textAlign: Alignment.End,
         });
 
         this.renderer.addContainersToContainer(box, matchHeader);
@@ -206,11 +209,11 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
     }
 
     protected createMainWindow(mainBox: T, match: TennisMatch) {
-        const eventHeader = this.renderer.createContainer({ xAlign: Alignment.Begin, xExpand: true, className: StyleKeys.LiveViewFloatingScoreWindow });
+        const eventHeader = this.renderer.createContainer({ justifyContent: 'space-between', xExpand: true });
         this._addEventHeader(eventHeader, match);
         this.renderer.addContainersToContainer(mainBox, eventHeader);
 
-        const box = this.renderer.createContainer({ vertical: true, className: StyleKeys.LiveViewSubMainBox });
+        const box = this.renderer.createContainer({ vertical: true, xExpand: true, className: StyleKeys.LiveViewSubMainBox });
 
         this._addMatchHeader(box, match);
         this.renderer.addSeparatorToContainer(box, {});

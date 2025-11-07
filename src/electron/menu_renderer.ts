@@ -163,6 +163,8 @@ async function renderMenu() {
     window.electronAPIMenu.onSetMatchSelection((matchId: string, selection: boolean) => menuRenderer.setMatchSelection(matchId, selection));
     window.electronAPIMenu.onRemoveEventMenuItem((event: TennisEvent) => menuRenderer.removeEventMenuItem(event));
     window.electronAPIMenu.onRemoveMatchMenuItem((matchId: string) => menuRenderer.removeMatchMenuItem(matchId));
+
+    window.electronAPIMenu.refresh();
 }
 
 document.addEventListener('DOMContentLoaded', renderMenu);

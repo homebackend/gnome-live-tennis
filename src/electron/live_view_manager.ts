@@ -40,12 +40,12 @@ export class ElectronLiveViewManager implements LiveViewManager {
         const indexFile = path.join(this._basePath, 'live_view_index.html')
         window.loadFile(indexFile);
 
-        /*
+        ///*
         window.webContents.on('did-finish-load', () => {
             console.log('Renderer process loaded HTML');
             window.webContents.openDevTools();
         });
-        */
+        //*/
 
         window.on('ready-to-show', () => {
             window.setAlwaysOnTop(true, 'screen-saver');
@@ -81,7 +81,7 @@ export class ElectronLiveViewManager implements LiveViewManager {
             this._activeFloatingWindows.push(await this._createLiveViewWindow());
         }
 
-        // Add some sleep to allow render processeses to initialize
+        // Add some sleep to allow render processes to initialize
         await this.sleep(1000);
     }
 
@@ -101,7 +101,6 @@ export class ElectronLiveViewManager implements LiveViewManager {
 
     updateLiveViewContent(window: number, match: TennisMatch): void {
         this._activeFloatingWindows[window].showInactive();
-        console.log('calling renderer updateLiveViewContent')
         this._activeFloatingWindows[window].webContents.send(LiveViewRendererKeys.updateLiveViewContent, match);
     }
 

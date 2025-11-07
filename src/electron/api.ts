@@ -18,17 +18,11 @@ export class AxiosApiHandler implements ApiHandler {
     ): void {
         this._log(['Fetching url', url]);
 
-        console.log(method);
-        console.log(headers);
-        //this.abort(); // Ensure any previous request is aborted
-
         const abortController = new AbortController();
         this._cancelSignal = abortController;
 
         const requestHeaders: Record<string, string> = {};
-        //const requestHeaders = Object.fromEntries(headers.entries());
         headers.forEach((value, key) => (requestHeaders[key] = value));
-        headers.set('accept-encoding', '');
 
         const requestConfig: AxiosRequestConfig = {
             url: url,
@@ -36,32 +30,10 @@ export class AxiosApiHandler implements ApiHandler {
             headers: requestHeaders,
             timeout: 60000,
             signal: abortController.signal,
-            transformRequest: [(data, headers1) => {
-                // Clear all existing headers in all groups (common, get, post, etc.)
-                for (const group in headers1) {
-                    if (typeof headers1[group] === 'object') {
-                        for (const headerName in headers1[group]) {
-                            delete headers1[group][headerName];
-                        }
-                    } else {
-                        // Handle cases where a header might be directly on the headers object
-                        delete headers1[group];
-                    }
-                }
-
-                // Add only the specified headers from the Map to the 'common' group
-                // The 'common' group headers are applied to all request methods
-                headers.forEach((value: string, key: string) => {
-                    headers1.common[key] = value;
-                });
-
-                return data; // Must return the data
-            }, ...axios.defaults.transformRequest], // Include default transforms if any
         };
 
         axios(requestConfig)
             .then(response => {
-                console.log(['response headers', response.headers]);
                 if (response.status >= 200 && response.status < 300) {
                     if (response.data === null) {
                         this._log(['Invalid empty response']);

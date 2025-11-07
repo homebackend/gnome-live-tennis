@@ -13,6 +13,8 @@ export interface ContainerProperties {
     yAlign?: Alignment;
     xExpand?: boolean;
     yExpand?: boolean;
+    justifyContent?: string; // Specific to div
+    alignItems?: string; // Specific to div
 }
 
 export interface SeparatorPropeties {

@@ -22,6 +22,30 @@ export class ElectronRenderer extends Renderer<HTMLDivElement, HTMLSpanElement, 
         }
     }
 
+    private _getJustifyContent(properties: ContainerProperties): string {
+        if (properties.justifyContent) {
+            return properties.justifyContent;
+        }
+
+        if (properties.vertical) {
+            return this._getAlignment(properties.yAlign ?? Alignment.Begin);
+        }
+
+        return this._getAlignment(properties.xAlign ?? Alignment.Begin)
+    }
+
+    private _getAlignItems(properties: ContainerProperties): string {
+        if (properties.alignItems) {
+            return properties.alignItems;
+        }
+
+        if (properties.vertical) {
+            return this._getAlignment(properties.xAlign ?? Alignment.Begin);
+        }
+
+        return this._getAlignment(properties.yAlign ?? Alignment.Begin);
+    }
+
     createContainer(properties?: ContainerProperties): HTMLDivElement {
         const div = document.createElement('div');
         if (properties) {
@@ -31,13 +55,8 @@ export class ElectronRenderer extends Renderer<HTMLDivElement, HTMLSpanElement, 
             div.style.display = 'flex';
             div.style.flexDirection = properties.vertical ? 'column' : 'row';
             div.style.flexWrap = 'nowrap';
-            if (properties.vertical) {
-                div.style.justifyContent = this._getAlignment(properties.yAlign ?? Alignment.Begin);                
-                div.style.alignItems = this._getAlignment(properties.xAlign ?? Alignment.Begin);
-            } else {
-                div.style.justifyContent = this._getAlignment(properties.xAlign ?? Alignment.Begin);
-                div.style.alignItems = this._getAlignment(properties.yAlign ?? Alignment.Begin);
-            }
+            div.style.justifyContent = this._getJustifyContent(properties);
+            div.style.alignItems = this._getAlignItems(properties);
 
             if (properties.xExpand) {
                 div.style.width = '100%';

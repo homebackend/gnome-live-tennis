@@ -1,4 +1,3 @@
-//import Soup from "gi://Soup";
 import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
 import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api.js";
 
@@ -7,21 +6,10 @@ export class AtpFetcher {
     private static atp_challenger_url = 'https://app.atptour.com/api/v2/gateway/livematches/website?scoringTournamentLevel=challenger';
 
     private _apiHandler: ApiHandler;
-    //private _httpSession: Soup.Session | undefined;
-    //private _build_req: (url: string) => Soup.Message;
-    //private _data_fetcher: (session: Soup.Session, msg: Soup.Message, handler: (json_data: any) => any) => void;
 
     constructor(apiHandler: ApiHandler) {
         this._apiHandler = apiHandler;
     }
-
-    /*
-    constructor(build_req: (url: string) => Soup.Message, data_fetcher: (session: Soup.Session, msg: Soup.Message, handler: (json_data: any) => any) => void) {
-        this._httpSession = undefined;
-        this._build_req = build_req;
-        this._data_fetcher = data_fetcher;
-    }
-        */
 
     private _get_player_data(p: any): TennisPlayer {
         return {

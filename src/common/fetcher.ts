@@ -47,44 +47,44 @@ export class LiveTennis {
         this._wta_fetcher = wta_fetcher;
     }
 
-    private _fetch_atp_data_common(oldEvents: StringToTennisEventMap, tour: string, callback: (e: StringToTennisEventMap) => void) {
+    private _fetch_atp_data_common(oldEvents: StringToTennisEventMap, tour: string, callback: (good: boolean, e: StringToTennisEventMap) => void) {
         this._atp_fetcher.fetchData(tour, tennisEvents => {
             if (!tennisEvents) {
                 this._log([`Fetch for ${tour} received no data`]);
-                return callback(oldEvents);
+                return callback(false, oldEvents);
             }
 
             const tennisEventsMap: StringToTennisEventMap = {};
             tennisEvents.forEach(e => tennisEventsMap[e.id] = e);
-            callback(tennisEventsMap);
+            callback(true, tennisEventsMap);
         });
     }
 
-    private _fetch_atp_data(callback: (e: StringToTennisEventMap) => void) {
+    private _fetch_atp_data(callback: (good: boolean, e: StringToTennisEventMap) => void) {
         if (this._atp_lock) {
-            return callback(this._atp_events);
+            return callback(true, this._atp_events);
         }
         this._atp_lock = true;
-        return this._fetch_atp_data_common(this._atp_events, 'ATP', (e: StringToTennisEventMap) => {
+        return this._fetch_atp_data_common(this._atp_events, 'ATP', (good: boolean, e: StringToTennisEventMap) => {
             this._atp_lock = false;
-            callback(e);
+            callback(good, e);
         });
     }
 
-    private _fetch_atp_challenger_data(callback: (e: StringToTennisEventMap) => void) {
+    private _fetch_atp_challenger_data(callback: (good: boolean, e: StringToTennisEventMap) => void) {
         if (this._atp_challenger_lock) {
-            return callback(this._atp_challenger_events);
+            return callback(true, this._atp_challenger_events);
         }
         this._atp_challenger_lock = true;
-        return this._fetch_atp_data_common(this._atp_challenger_events, 'ATP-Challenger', (e: StringToTennisEventMap) => {
+        return this._fetch_atp_data_common(this._atp_challenger_events, 'ATP-Challenger', (good: boolean, e: StringToTennisEventMap) => {
             this._atp_challenger_lock = false;
-            callback(e);
+            callback(good, e);
         });
     }
 
-    private _fetch_wta_data(callback: (e: StringToTennisEventMap) => void) {
+    private _fetch_wta_data(callback: (good: boolean, e: StringToTennisEventMap) => void) {
         if (this._wta_lock) {
-            return callback(this._wta_events);
+            return callback(true, this._wta_events);
         }
         this._wta_lock = true;
 
@@ -93,12 +93,12 @@ export class LiveTennis {
 
             if (!tennisEvents) {
                 this._log(['Fetch for WTA received no data']);
-                return callback(this._wta_events);
+                return callback(false, this._wta_events);
             }
 
             const tennisEventsMap: StringToTennisEventMap = {};
             tennisEvents.forEach(e => tennisEventsMap[e.id] = e);
-            callback(tennisEventsMap);
+            callback(true, tennisEventsMap);
         });
     }
 
@@ -138,61 +138,61 @@ export class LiveTennis {
         }
     }
 
-    private async _process_tour_handler(oldEvents: StringToTennisEventMap, newEvents: StringToTennisEventMap,
+    private async _process_tour_handler(good: boolean, oldEvents: StringToTennisEventMap, newEvents: StringToTennisEventMap,
         eventCallback: (r: QueryResponseType, e: TennisEvent) => Promise<void>,
         matchCallback: (r: QueryResponseType, e: TennisEvent, m: TennisMatch) => Promise<void>,
-        doneCallback: (newEvents: StringToTennisEventMap) => Promise<void>
+        doneCallback: (good: boolean, newEvents: StringToTennisEventMap) => Promise<void>
     ) {
         await this._post_fetch_handler(oldEvents, newEvents, eventCallback, matchCallback);
-        await doneCallback(newEvents);
+        await doneCallback(good, newEvents);
     }
 
     private async _process_common(settingKey: string, oldEvents: StringToTennisEventMap,
-        fetcher: (callback: (e: StringToTennisEventMap) => void) => void,
+        fetcher: (callback: (good: boolean, e: StringToTennisEventMap) => void) => void,
         eventCallback: (r: QueryResponseType, e: TennisEvent) => Promise<void>,
         matchCallback: (r: QueryResponseType, e: TennisEvent, m: TennisMatch) => Promise<void>,
-        doneCallback: (newEvents: StringToTennisEventMap) => Promise<void>) {
+        doneCallback: (good: boolean, newEvents: StringToTennisEventMap) => Promise<void>) {
         if (await this._settings.getBoolean(`enable-${settingKey}`)) {
-            fetcher(async (newEvents) => {
-                await this._process_tour_handler(oldEvents, newEvents, eventCallback, matchCallback, doneCallback);
+            fetcher(async (good, newEvents) => {
+                await this._process_tour_handler(good, oldEvents, newEvents, eventCallback, matchCallback, doneCallback);
                 this._log([`${settingKey} processed`]);
             });
         } else {
-            await this._process_tour_handler(oldEvents, {}, eventCallback, matchCallback, doneCallback);
+            await this._process_tour_handler(true, oldEvents, {}, eventCallback, matchCallback, doneCallback);
             this._log([`${settingKey} not enabled`]);
         }
     }
 
     private async _process_atp(eventCallback: (r: QueryResponseType, e: TennisEvent) => Promise<void>,
         matchCallback: (r: QueryResponseType, e: TennisEvent, m: TennisMatch) => Promise<void>,
-        doneCallback: () => Promise<void>) {
-        this._process_common('atp', this._atp_events, this._fetch_atp_data.bind(this), eventCallback, matchCallback, async (newEvents) => {
+        doneCallback: (good: boolean) => Promise<void>) {
+        this._process_common('atp', this._atp_events, this._fetch_atp_data.bind(this), eventCallback, matchCallback, async (good, newEvents) => {
             this._atp_events = newEvents;
-            await doneCallback();
+            await doneCallback(good);
         });
     }
 
     private async _process_wta(eventCallback: (r: QueryResponseType, e: TennisEvent) => Promise<void>,
         matchCallback: (r: QueryResponseType, e: TennisEvent, m: TennisMatch) => Promise<void>,
-        doneCallback: () => Promise<void>) {
-        this._process_common('wta', this._wta_events, this._fetch_wta_data.bind(this), eventCallback, matchCallback, async (newEvents) => {
+        doneCallback: (good: boolean) => Promise<void>) {
+        this._process_common('wta', this._wta_events, this._fetch_wta_data.bind(this), eventCallback, matchCallback, async (good, newEvents) => {
             this._wta_events = newEvents;
-            await doneCallback();
+            await doneCallback(good);
         });
     }
 
     private _process_atp_challenger(eventCallback: (r: QueryResponseType, e: TennisEvent) => Promise<void>,
         matchCallback: (r: QueryResponseType, e: TennisEvent, m: TennisMatch) => Promise<void>,
-        doneCallback: () => Promise<void>) {
-        this._process_common('atp-challenger', this._atp_challenger_events, this._fetch_atp_challenger_data.bind(this), eventCallback, matchCallback, newEvents => {
+        doneCallback: (good: boolean) => Promise<void>) {
+        this._process_common('atp-challenger', this._atp_challenger_events, this._fetch_atp_challenger_data.bind(this), eventCallback, matchCallback, async (good, newEvents) => {
             this._atp_challenger_events = newEvents;
-            doneCallback();
+            await doneCallback(good);
         });
     }
 
     query(eventCallback: (r: QueryResponseType, e: TennisEvent) => Promise<void>,
         matchCallback: (r: QueryResponseType, e: TennisEvent, m: TennisMatch) => Promise<void>,
-        doneCallback: () => Promise<void>) {
+        doneCallback: (allGood: boolean) => Promise<void>) {
 
         const tourHandlers = [
             this._process_atp.bind(this),
@@ -201,12 +201,12 @@ export class LiveTennis {
         ];
 
         let count = 0;
-        const myDoneCallback = async () => {
+        const myDoneCallback = async (allGood: boolean) => {
             count += 1;
             if (count == tourHandlers.length) {
                 this._log(['Query processing done']);
                 if (doneCallback) {
-                    await doneCallback();
+                    await doneCallback(allGood);
                 }
             }
         }
