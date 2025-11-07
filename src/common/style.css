@@ -243,6 +243,7 @@ img {
 
 .menu-event-indicator {
     font-size: 10px;
+    font-family: monospace;
 }
 
 .matches-submenu {
