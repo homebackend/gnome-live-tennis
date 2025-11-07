@@ -1,6 +1,6 @@
 import { Countries } from "../common/countries.js";
 import { prefs, PrefSchema, schema } from "../common/schema.js";
-import { StyleKeys } from "./style_keys.js";
+import { StyleKeys } from "../common/style_keys.js";
 
 declare global {
     interface Window {

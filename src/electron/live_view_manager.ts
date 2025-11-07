@@ -1,7 +1,7 @@
-import { BrowserWindow, screen } from "electron";
+import { BrowserWindow, ipcMain, screen } from "electron";
 import { LiveViewManager } from "../common/live_view_updater.js";
 import { TennisMatch } from "../common/types.js";
-import { LiveViewRendererKeys } from "../common/render_keys.js";
+import { LiveViewRendererKeys } from "./render_keys.js";
 import * as path from 'path';
 import { Settings } from "../common/settings.js";
 
@@ -17,9 +17,18 @@ export class ElectronLiveViewManager implements LiveViewManager {
     constructor(basePath: string, settings: Settings) {
         this._basePath = basePath;
         this._settings = settings;
+
+        ipcMain.on(LiveViewRendererKeys.resizeToFitContents, async (event, windowIndex: number, width: number, height: number) => {
+            console.log('resize-window', windowIndex, width, height);
+            if (windowIndex < this._activeFloatingWindows.length) {
+                const window = this._activeFloatingWindows[windowIndex];
+                const windowWidth = await this._settings.getInt('live-window-size-x');
+                window.setSize(windowWidth, height, true);
+            }
+        });
     }
 
-    private async _createLiveViewWindow(): Promise<BrowserWindow> {
+    private async _createLiveViewWindow(windowIndex: number): Promise<BrowserWindow> {
         const preloadPath = path.join(this._basePath, 'live_view_preload.js');
         const windowWidth = await this._settings.getInt('live-window-size-x');
         const windowHeight = await this._settings.getInt('live-window-size-y');
@@ -29,7 +38,9 @@ export class ElectronLiveViewManager implements LiveViewManager {
             height: windowHeight,
             show: false,
             frame: false,
-            transparent: false,
+            transparent: true,
+            backgroundColor: '#000000',
+            useContentSize: true,
             webPreferences: {
                 preload: preloadPath,
                 contextIsolation: true,
@@ -40,20 +51,26 @@ export class ElectronLiveViewManager implements LiveViewManager {
         const indexFile = path.join(this._basePath, 'live_view_index.html')
         window.loadFile(indexFile);
 
-        ///*
+        /*
         window.webContents.on('did-finish-load', () => {
             console.log('Renderer process loaded HTML');
             window.webContents.openDevTools();
         });
-        //*/
+        */
 
         window.on('ready-to-show', () => {
+            window.webContents.send(LiveViewRendererKeys.setWindowIndex, windowIndex);
             window.setAlwaysOnTop(true, 'screen-saver');
             window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: false });
             window.setFullScreenable(false);
             window.showInactive();
         });
 
+        this._setWindowPosition(window, windowWidth, windowHeight);
+        return window;
+    }
+
+    private _setWindowPosition(window: BrowserWindow, windowWidth: number, windowHeight: number) {
         const primaryDisplay = screen.getPrimaryDisplay();
         const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
         const x = screenWidth - windowWidth - PADDING;
@@ -62,8 +79,6 @@ export class ElectronLiveViewManager implements LiveViewManager {
         // window 1920 1048 450 400 1460 -20
 
         window.setPosition(x, y);
-
-        return window;
     }
 
     setFetchTimer(interval: number, fetcher: () => void): void {
@@ -78,7 +93,7 @@ export class ElectronLiveViewManager implements LiveViewManager {
 
     private async _addLiveViewWindows(numWindows: number): Promise<void> {
         while (this._activeFloatingWindows.length < numWindows) {
-            this._activeFloatingWindows.push(await this._createLiveViewWindow());
+            this._activeFloatingWindows.push(await this._createLiveViewWindow(this._activeFloatingWindows.length));
         }
 
         // Add some sleep to allow render processes to initialize

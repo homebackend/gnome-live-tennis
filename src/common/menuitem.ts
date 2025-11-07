@@ -1,4 +1,4 @@
-import { StyleKeys } from "../electron/style_keys.js";
+import { StyleKeys } from "./style_keys.js";
 import { Alignment, Renderer } from "./renderer.js";
 import { TennisEvent, TennisMatch, TennisTeam } from "./types.js";
 

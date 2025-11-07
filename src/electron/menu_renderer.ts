@@ -5,7 +5,7 @@ import { Settings } from '../common/settings.js';
 import { TennisEvent, TennisMatch } from '../common/types.js';
 import { ElectronCheckedMenuItem, ElectronMatchMenuItem, ElectronPopupSubMenuItem } from './menuitem.js';
 import { ElectronRenderer } from './renderer.js';
-import { StyleKeys } from './style_keys.js';
+import { StyleKeys } from '../common/style_keys.js';
 
 declare global {
     interface Window {

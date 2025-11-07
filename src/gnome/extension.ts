@@ -18,7 +18,7 @@ import { GnomeSettings } from './settings.js';
 import { LiveViewManager, LiveViewUpdater } from '../common/live_view_updater.js';
 import { GnomeApiHandler } from './api.js';
 import { GCheckedMenuItem } from './menuItem.js';
-import { StyleKeys } from '../electron/style_keys.js';
+import { StyleKeys } from '../common/style_keys.js';
 
 const ICON_SIZE = 22;
 

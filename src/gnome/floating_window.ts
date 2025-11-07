@@ -10,7 +10,7 @@ import { TennisMatch } from '../common/types.js';
 import { Settings } from '../common/settings.js';
 import { LiveViewRendererCommon } from '../common/live_view_renderer.js';
 import { GnomeRenderer } from './renderer.js';
-import { StyleKeys } from '../electron/style_keys.js';
+import { StyleKeys } from '../common/style_keys.js';
 
 const PADDING = 10;
 

@@ -4,7 +4,7 @@ import St from "gi://St";
 
 import { Alignment, ContainerProperties, ImageProperties, Renderer, SeparatorPropeties, TextProperties } from "../common/renderer.js";
 import { loadWebImage } from "./image_loader.js";
-import { StyleKeys } from "../electron/style_keys.js";
+import { StyleKeys } from "../common/style_keys.js";
 
 export class GnomeRenderer extends Renderer<St.BoxLayout, St.BoxLayout, St.BoxLayout> {
     protected uuid: string;

@@ -1,5 +1,5 @@
 import { Alignment, ContainerItemProperties, ContainerProperties, ImageProperties, Renderer, SeparatorPropeties, TextProperties } from "../common/renderer.js";
-import { StyleKeys } from "./style_keys.js";
+import { StyleKeys } from "../common/style_keys.js";
 
 export class ElectronRenderer extends Renderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement> {
     openURL(url: string): void {

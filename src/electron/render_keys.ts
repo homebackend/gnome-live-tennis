@@ -24,8 +24,10 @@ export const MenuRenderKeys = {
 export const LiveViewRendererKeys = {
     log: MenuRenderKeys.log,
     basePath: MenuRenderKeys.basePath,
+    resizeToFitContents: 'resize-to-fit-contents',
     updateLiveViewContent: 'update-live-view-content',
     setLiveViewContentsEmpty: 'set-live-view-contents-empty',
+    setWindowIndex: 'set-window-index',
 };
 
 export const PreferenceRenderKeys = {

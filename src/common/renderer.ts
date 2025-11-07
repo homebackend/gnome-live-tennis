@@ -1,4 +1,4 @@
-import { StyleKeys } from "../electron/style_keys.js";
+import { StyleKeys } from "./style_keys.js";
 
 export enum Alignment {
     Begin,

@@ -3,7 +3,7 @@ import { Runner } from "../common/runner.js";
 import { Settings } from "../common/settings.js";
 import { TennisEvent, TennisMatch } from "../common/types.js";
 import * as path from 'path';
-import { MenuRenderKeys } from "../common/render_keys.js";
+import { MenuRenderKeys } from "./render_keys.js";
 
 export class ElectronRunner extends Runner {
     private _eventIds = new Set<string>();

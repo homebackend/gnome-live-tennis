@@ -2,7 +2,7 @@
 import { app, ipcMain } from 'electron';
 import { ElectronRunner } from './runner.js';
 import { ElectronSettings } from './settings.js';
-import { MenuRenderKeys } from '../common/render_keys.js';
+import { MenuRenderKeys } from './render_keys.js';
 import { ElectronLiveViewManager } from './live_view_manager.js';
 import { ApiHandlers, LiveViewUpdater } from '../common/live_view_updater.js';
 import { AxiosApiHandler, CurlApiHandler } from './api.js';

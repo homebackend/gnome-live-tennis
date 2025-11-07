@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
-import { PreferenceRenderKeys } from '../common/render_keys.js';
+import { PreferenceRenderKeys } from './render_keys.js';
 
 
 export class PrefsManager {

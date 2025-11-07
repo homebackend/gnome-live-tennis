@@ -1,21 +1,25 @@
 import { LiveViewRendererCommon } from "../common/live_view_renderer.js";
 import { TennisMatch } from "../common/types.js";
 import { ElectronRenderer } from "./renderer.js";
-import { StyleKeys } from "./style_keys.js";
+import { StyleKeys } from "../common/style_keys.js";
 
 declare global {
     interface Window {
         electronAPILiveView: {
             log(log: string[]): void;
             basePath(): Promise<string>;
+            resizeToFitContents: (windowIndex: number, width: number, height: number) => void;
             onUpdateLiveViewContent: (callback: (match: TennisMatch) => void) => void;
             onSetLiveViewContentsEmpty: (callback: () => void) => void;
+            onSetWindowIndex: (callback: (windowIndex: number) => void) => void;
         }
     }
 }
 
+var windowIndex: number | undefined;
+
 class LiveViewRenderer extends LiveViewRendererCommon<HTMLDivElement, HTMLSpanElement, HTMLImageElement> {
-    updateLiveViewContent(match: TennisMatch): void {
+    async updateLiveViewContent(match: TennisMatch): Promise<void> {
         this._clearContent();
         const root = document.getElementById('root');
         if (!root) {
@@ -36,8 +40,11 @@ class LiveViewRenderer extends LiveViewRendererCommon<HTMLDivElement, HTMLSpanEl
             className: StyleKeys.LiveViewMainBox,
         });
         this.renderer.addContainersToContainer(topBox, mainDiv);
-        
+
         this.createMainWindow(mainDiv, match);
+
+        // Give some time for content to adjust
+        setTimeout(resizeWindowToFitContent, 50);
     }
 
     setLiveViewContentsEmpty(): void {
@@ -54,13 +61,28 @@ class LiveViewRenderer extends LiveViewRendererCommon<HTMLDivElement, HTMLSpanEl
     }
 }
 
+function resizeWindowToFitContent() {
+    if (windowIndex !== undefined) {
+        const content = document.getElementById('root');
+        if (content) {
+            const width = content.scrollWidth;
+            const height = content.scrollHeight;
+
+            window.electronAPILiveView.resizeToFitContents(windowIndex, width, height);
+        }
+    }
+}
+
 async function renderLiveView() {
-    console.log('insider renderLiveView');
     const basePath = await window.electronAPILiveView.basePath();
     const liveViewRenderer = new LiveViewRenderer(basePath, new ElectronRenderer(basePath, window.electronAPILiveView.log));
 
     window.electronAPILiveView.onUpdateLiveViewContent((match: TennisMatch) => liveViewRenderer.updateLiveViewContent(match));
     window.electronAPILiveView.onSetLiveViewContentsEmpty(() => liveViewRenderer.setLiveViewContentsEmpty());
+    window.electronAPILiveView.onSetWindowIndex(i => {
+        windowIndex = i;
+        console.log('Index set to: ', windowIndex);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', renderLiveView);

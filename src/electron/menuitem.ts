@@ -2,7 +2,7 @@ import { CheckedMenuItem, CheckedMenuItemProperties, MatchMenuItem, MatchMenuIte
 import { Renderer } from "../common/renderer.js";
 import { TennisMatch } from "../common/types.js";
 import { ElectronRenderer } from "./renderer.js";
-import { StyleKeys } from "./style_keys.js";
+import { StyleKeys } from "../common/style_keys.js";
 
 abstract class MenuItemRenderer extends MatchMenuItemRenderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement> {
     protected addCheckmark(div: HTMLDivElement, isVisible: boolean, toggleHandler: ((value: boolean) => void) | undefined): HTMLSpanElement {

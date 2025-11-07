@@ -158,7 +158,6 @@ export class LiveViewUpdater {
 
     private async _cycleMatches(matchesData: TennisMatch[]) {
         const cycle = async () => {
-            this._log(['inside cycle']);
             const selectedMatches = await this._getSelectedMatches(matchesData);
             if (await this._shouldHideLiveView(selectedMatches)) {
                 this._manager.hideLiveViews();
