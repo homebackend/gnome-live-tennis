@@ -43,9 +43,10 @@ export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupS
         if (properties.url) {
             this.addImageToContainer(eventElement, { src: properties.url, alt: properties.event.type, height: 20 });
         }
-        this.addTextToContainer(eventElement, { text: properties.text, className: StyleKeys.NoWrapText });
+        this.addTextToContainer(eventElement, { text: properties.text, className: StyleKeys.NoWrapText, xExpand: true });
+        const indicator = this.addTextToContainer(eventElement, { text: '▶', className: StyleKeys.MainMenuEventIndicator });
 
-        const menuContainer = this.createContainer({ /* className: StyleKeys.MainMenuMatchesSubmenu, */ xExpand: true });
+        const menuContainer = this.createContainer({ xExpand: true });
         menuContainer.style.display = 'none'; // Hide matches on start
         const wrapper = this.createContainer({ vertical: true, xExpand: true });
         this.addContainersToContainer(wrapper, [eventElement, menuContainer]);
@@ -59,7 +60,13 @@ export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupS
             }
 
             // Toggle this sub menus display
-            menuContainer.style.display = currentDisplay === 'none' ? 'block' : 'none';
+            if (currentDisplay === 'none') {
+                menuContainer.style.display = 'block';
+                indicator.textContent = '▼';
+            } else {
+                menuContainer.style.display = 'none';
+                indicator.textContent = '▶';
+            }
         });
 
         return [wrapper, menuContainer];

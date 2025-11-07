@@ -32,6 +32,7 @@ export const StyleKeys = {
     MainMenuMatchesSubmenu: 'matches-submenu',
     MainMenuMatchItem: 'match-item',
     MainMenuCheckMark: 'menu-checkmark',
+    MainMenuEventIndicator: 'menu-event-indicator',
     MainMenuMatchStatusLive: 'match-status-live-menu',
     MainMenuMatchStatusFinished: 'match-status-finished-menu',
     MainMenuPlayerImage: 'player-image-menu',

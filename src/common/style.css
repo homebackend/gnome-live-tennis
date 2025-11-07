@@ -241,6 +241,10 @@ img {
     background-color: var(--menu-item-bg-hover);
 }
 
+.menu-event-indicator {
+    font-size: 10px;
+}
+
 .matches-submenu {
     margin-left: 15px;
     border-left: 1px solid #ccc;
