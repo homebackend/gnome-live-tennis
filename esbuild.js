@@ -2,17 +2,6 @@
 import { build } from "esbuild";
 import { type } from "os";
 
-/*
-await build({
-  entryPoints: ["src/extension.ts", "src/prefs.ts"],
-  outdir: "dist/",
-  bundle: true,
-  target: "firefox115",
-  format: "esm",
-  external: ["gi://*", "resource://*"], // Exclude GJS and Shell imports
-});
-*/
-
 const commonBuildOptions = {
   bundle: true,
   format: 'esm',
@@ -20,7 +9,7 @@ const commonBuildOptions = {
   outdir: 'dist',
   platform: 'node',
   logLevel: 'verbose',
-  target: ['node22'], // Or a more recent Node.js version, like 'es2022' for modern runtimes
+  target: ['node22'],
 };
 
 async function buildElectron() {
@@ -65,7 +54,7 @@ async function buildGnome() {
     ...commonBuildOptions,
     entryPoints: ['src/gnome/schema.ts'],
   });
-  
+
   console.log('GNOME extension build complete.');
 }
 
