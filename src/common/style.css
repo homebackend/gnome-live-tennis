@@ -25,6 +25,14 @@ div {
     box-sizing: border-box;
 }
 
+a {
+    -webkit-app-region: no-drag;
+}
+
+img {
+    -webkit-app-region: no-drag;
+}
+
 .no-wrap-text {
     white-space: nowrap;
     /*overflow: hidden;
@@ -168,6 +176,7 @@ div {
 
 .small-text-label {
     font-size: 10px;
+    padding: 0px 5px;
 }
 
 .main-box {

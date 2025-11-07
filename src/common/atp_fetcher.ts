@@ -12,14 +12,20 @@ export class AtpFetcher {
     }
 
     private _get_player_data(p: any): TennisPlayer {
+        const id = p["PlayerId"];
+        const firstName = p["PlayerFirstName"];
+        const lastName = p["PlayerLastName"];
+        const slug = `${firstName.toLowerCase()}-${lastName.toLowerCase()}`;
         return {
             id: p["PlayerId"],
             countryCode: p["PlayerCountry"],
             country: p["PlayerCountryName"],
-            firstName: p["PlayerFirstName"],
-            lastName: p["PlayerLastName"],
+            firstName: firstName,
+            lastName: lastName,
             headUrl: `https://www.atptour.com/-/media/alias/player-headshot/${p["PlayerId"]}`,
             displayName: `${p["PlayerFirstName"]} ${p["PlayerLastName"]}`,
+            slug: slug,
+            url: `https://www.atptour.com/en/players/${slug}/${id}/overview`
         };
     }
 
@@ -139,9 +145,12 @@ export class AtpFetcher {
                     const matches: TennisMatch[] = [];
                     const matchMapping: { [key: string]: TennisMatch } = {};
 
+                    const id = e["EventId"];
+                    const name = e["EventTitle"];
+
                     const event: TennisEvent = {
                         year: e["EventYear"],
-                        id: String(e["EventId"]),
+                        id: String(id),
                         title: e["EventTitle"],
                         countryCode: e["EventCountryCode"],
                         country: e["EventCountry"],
@@ -156,7 +165,7 @@ export class AtpFetcher {
                         matches: matches,
                         matchMapping: matchMapping,
                         eventTypeUrl: this._get_event_type_url(tour, e["EventType"]),
-                        name: e["EventTitle"],
+                        name: name,
                         surface: "",
                         indoor: false,
                         singlesDrawSize: -1,
@@ -164,7 +173,8 @@ export class AtpFetcher {
                         prizeMoney: -1,
                         prizeMoneyCurrency: "",
                         displayPrizeMoney: "",
-                        status: ""
+                        status: "",
+                        url: `https://www.atptour.com/en/tournaments/${name.toLowerCase()}/${id}/overview`,
                     };
 
                     tennisEvents.push(event);
@@ -173,10 +183,11 @@ export class AtpFetcher {
                         const matchType = m['Type'];
                         const team1 = this._get_atp_team_data(m['PlayerTeam'], matchType);
                         const team2 = this._get_atp_team_data(m['OpponentTeam'], matchType);
+                        const isDoubles = m['IsDoubles'];
 
                         const match: TennisMatch = {
                             id: m['MatchId'],
-                            isDoubles: m['IsDoubles'],
+                            isDoubles: isDoubles,
                             roundName: m['RoundName'],
                             courtName: m['CourtName'],
                             courtId: m['CourtId'],
@@ -198,7 +209,8 @@ export class AtpFetcher {
                             displayStatus: this._get_match_display_status(m['MatchStatus']),
                             displayScore: this._formatSetScores(team1.setScores, team2.setScores),
                             roundId: m['RoundName'],
-                            matchTimeStamp: ""
+                            matchTimeStamp: "",
+                            h2hUrl: isDoubles ? '' : `https://www.atptour.com/en/players/atp-head-2-head/${team1.players[0].slug}-vs-${team2.players[0].slug}/${team1.players[0].id}/${team2.players[0].id}`,
                         };
                         matches.push(match);
                         matchMapping[m['MatchId']] = match;

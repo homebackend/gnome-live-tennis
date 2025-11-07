@@ -32,7 +32,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
         this.renderer.addSeparatorToContainer(eventHeader, { vertical: true });
 
         const eventDescription = this.renderer.createContainer({ vertical: true });
-        this.renderer.addTextToContainer(eventDescription, { text: match.event.title, className: StyleKeys.LiveViewEventText });
+        this.renderer.addTextToContainer(eventDescription, { text: match.event.title, className: StyleKeys.LiveViewEventText, link: match.event.url });
         const locationBox = this.renderer.createContainer();
         this.renderer.addTextToContainer(locationBox, { text: `${match.event.city}, ${match.event.country}`, className: StyleKeys.LiveViewEventText });
         if (event.countryCode) {
@@ -66,9 +66,10 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
     private _addMatchHeader(box: T, match: TennisMatch) {
         // Match Header (Quarterfinals, etc.)
         const matchHeader = this.renderer.createContainer({ className: StyleKeys.LiveViewMatchHeaderBox, xExpand: true });
-        this.renderer.addTextToContainer(matchHeader, { 
-            text: `${match.roundName}`, 
-            className: `${StyleKeys.LiveViewMatchHeaderLabel} ${StyleKeys.LiveViewRoundLabel}` });
+        this.renderer.addTextToContainer(matchHeader, {
+            text: `${match.roundName}`,
+            className: `${StyleKeys.LiveViewMatchHeaderLabel} ${StyleKeys.LiveViewRoundLabel}`
+        });
         this.renderer.addTextToContainer(matchHeader, {
             text: match.displayStatus,
             className: `${StyleKeys.LiveViewMatchHeaderLabel} ${StyleKeys.LiveViewMatchStatus}${match.displayStatus.toLowerCase()}`,
@@ -123,7 +124,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
                 text: name,
                 isMarkup: true,
                 className: StyleKeys.LiveViewPlayerName,
-                link: `https://www.atptour.com/en/players/${p.firstName.toLowerCase()}-${p.lastName.toLowerCase()}/${p.id}/overview`,
+                link: p.url,
             });
 
             this.renderer.addContainersToContainer(playerInfoBox, playerRow);
@@ -164,27 +165,39 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
         });
     }
 
-    private _addMatchScoreRow(box: T, match: TennisMatch, team: TennisTeam, scoreAlignment: Alignment) {
+    private _addMatchScoreRow(box: T, match: TennisMatch, team: TennisTeam, server: number, scoreAlignment: Alignment) {
         const row = this.renderer.createContainer({ className: StyleKeys.LiveViewMatchContentBox, xAlign: Alignment.Begin, yAlign: scoreAlignment });
         this._addTeam(team, match.isDoubles, row);
-        this._addScore(team, scoreAlignment, StyleKeys.LiveViewGameScoreBoxTop, match.server == 0, row);
+        this._addScore(team, scoreAlignment, StyleKeys.LiveViewGameScoreBoxTop, match.server == server, row);
         this.renderer.addContainersToContainer(box, row);
     }
 
     private _addMatchScoreRows(box: T, match: TennisMatch) {
-        this._addMatchScoreRow(box, match, match.team1, Alignment.End);
+        this._addMatchScoreRow(box, match, match.team1, 0, Alignment.End);
         this.renderer.addSeparatorToContainer(box, {});
-        this._addMatchScoreRow(box, match, match.team2, Alignment.Begin);
+        this._addMatchScoreRow(box, match, match.team2, 1, Alignment.Begin);
     }
 
     private _addExtrasRows(box: T, match: TennisMatch) {
-        if (match.umpireLastName && match.umpireFirstName) {
-            const row = this.renderer.createContainer();
-            this.renderer.addTextToContainer(row, {
-                text: `Ump: ${match.umpireFirstName} ${match.umpireLastName}`,
+        if (match.h2hUrl || match.umpireFirstName || match.umpireLastName) {
+            const row = this.renderer.createContainer({
                 xExpand: true,
-                className: StyleKeys.LiveViewSmallTextLabel,
             });
+
+            if (match.h2hUrl) {
+                this.renderer.addTextToContainer(row, {
+                    text: 'Head 2 Head',
+                    link: match.h2hUrl,
+                    className: StyleKeys.LiveViewSmallTextLabel,
+                });
+            }
+
+            if (match.umpireLastName && match.umpireFirstName) {
+                this.renderer.addTextToContainer(row, {
+                    text: `Ump: ${match.umpireFirstName} ${match.umpireLastName}`,
+                    className: StyleKeys.LiveViewSmallTextLabel,
+                });
+            }
 
             this.renderer.addContainersToContainer(box, row);
         }

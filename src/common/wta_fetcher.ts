@@ -34,14 +34,19 @@ export class WtaFetcher {
     _get_player(p: any, suffix: string): TennisPlayer {
         const firstName: string = p[`PlayerNameFirst${suffix}`] || 'TBD';
         const lastName: string = p[`PlayerNameLast${suffix}`] || 'TBD';
+        const id = p[`PlayerID${suffix}`];
+        const slug = `${firstName.toLowerCase()}-${lastName.toLowerCase()}`;
+        const url = firstName != 'TBD' && lastName != 'TBD' ? `https://www.wtatennis.com/players/${id}/${slug}` : '';
         return {
-            id: p[`PlayerID${suffix}`],
+            id: id,
             countryCode: p[`PlayerCountry${suffix}`],
             country: p[`PlayerCountry${suffix}`],
             firstName: firstName,
             lastName: lastName,
             headUrl: '',
             displayName: `${firstName} ${lastName}`,
+            url: url,
+            slug: slug,
         };
     }
 
@@ -210,6 +215,7 @@ export class WtaFetcher {
                         displayName: `${team1.displayName} vs ${team2.displayName}`,
                         displayStatus: this._get_match_status(m['MatchState']),
                         displayScore: m['ScoreString'],
+                        h2hUrl: isDoubles ? '' : `https://www.wtatennis.com/head-to-head/${team1.players[0].id}/${team2.players[0].id}`,
                     };
 
                     event.matches.push(tennisMatch);
@@ -227,10 +233,13 @@ export class WtaFetcher {
         }
 
         const e = events[index];
+        const year = e['year'];
+        const id = e['tournamentGroup']['id'];
+        const name = e['tournamentGroup']['name'];
         const event: TennisEvent = {
-            year: e['year'],
-            id: String(e['tournamentGroup']['id']),
-            name: e['tournamentGroup']['name'],
+            year: year,
+            id: String(id),
+            name: name,
             title: e['title'],
             countryCode: '',
             country: e['country'],
@@ -253,6 +262,7 @@ export class WtaFetcher {
             matches: [],
             matchMapping: {},
             eventTypeUrl: this._get_event_type_url(e['level']),
+            url: `https://www.wtatennis.com/tournaments/${id}/${name.toLowerCase().replace(' ', '-')}/${year}`,
         }
 
         tennisEvents.push(event);
