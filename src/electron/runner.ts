@@ -52,7 +52,7 @@ export class ElectronRunner extends Runner {
             console.log('Renderer process loaded HTML');
             this._customMenu!.webContents.openDevTools();
         });
-         */
+        */
     }
 
     private _setupTray(): void {

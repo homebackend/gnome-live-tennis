@@ -104,26 +104,27 @@ export class GnomeRenderer extends Renderer<St.BoxLayout, St.BoxLayout, St.BoxLa
 
     addTextToContainer(container: St.BoxLayout, textProperties: TextProperties): St.BoxLayout {
         const labelProperties: Partial<St.Label.ConstructorProps> = textProperties.isMarkup ? {} : { text: textProperties.text };
-        if (textProperties.className) {
-            labelProperties.style_class = textProperties.className;
-        }
-        if (textProperties.xAlign) {
-            labelProperties.x_align = this._getAlignment(textProperties.xAlign);
-        }
-        if (textProperties.yAlign) {
-            labelProperties.y_align = this._getAlignment(textProperties.yAlign);
-        }
-        if (textProperties.xExpand) {
-            labelProperties.x_expand = textProperties.xExpand;
-        }
-        if (textProperties.yExpand) {
-            labelProperties.y_expand = textProperties.yExpand;
-        }
+        if (textProperties.className) { labelProperties.style_class = textProperties.className; }
+        if (textProperties.xAlign) { labelProperties.x_align = this._getAlignment(textProperties.xAlign); }
+        if (textProperties.yAlign) { labelProperties.y_align = this._getAlignment(textProperties.yAlign); }
+        if (textProperties.textAlign) { labelProperties.x_align = this._getAlignment(textProperties.textAlign); }
+        if (textProperties.xExpand) { labelProperties.x_expand = textProperties.xExpand; }
+        if (textProperties.yExpand) { labelProperties.y_expand = textProperties.yExpand; }
 
-        const box = new St.BoxLayout();
+        let style = '';
+        if (textProperties.paddingLeft) { style += `padding-left: ${textProperties.paddingLeft};`; }
+        if (textProperties.paddingRight) { style += `padding-right: ${textProperties.paddingRight};`; }
+        if (style) { labelProperties.style = style; }
+
+        const boxProperties: Partial<St.BoxLayout.ConstructorProps> = {};
+        if (textProperties.xExpand) { boxProperties.x_expand = textProperties.xExpand; }
+        if (textProperties.yExpand) { boxProperties.y_expand = textProperties.yExpand; }
+
+        console.log(labelProperties, style);
+
+        const box = new St.BoxLayout(boxProperties);
         const label = new St.Label(labelProperties);
         label.clutter_text.set_markup(textProperties.text);
-
         if (textProperties.link) {
             const button = new St.Button({
                 reactive: true,
@@ -150,12 +151,20 @@ export class GnomeRenderer extends Renderer<St.BoxLayout, St.BoxLayout, St.BoxLa
             const properties: Partial<St.Icon.ConstructorProps> = {
                 gicon: gicon
             };
+            let style = '';
             if (imageProperties.iconSize) { properties.icon_size = imageProperties.iconSize; }
             if (imageProperties.height) { properties.height = imageProperties.height; }
             if (imageProperties.width) { properties.width = imageProperties.width; }
+            if (imageProperties.paddingLeft) { style += `padding-left: ${imageProperties.paddingLeft};`; }
+            if (imageProperties.paddingRight) { style += `padding-right: ${imageProperties.paddingRight};`; }
+            if (imageProperties.className) { properties.styleClass = imageProperties.className; }
+
+            if (style) {
+                properties.style = style;
+            }
             box.add_child(new St.Icon(properties));
         } else {
-            loadWebImage(imageProperties.src, this.uuid, box, imageProperties.iconSize ?? -1, this.log);
+            loadWebImage(imageProperties.src, this.uuid, box, imageProperties.iconSize ?? imageProperties.height ?? -1, this.log);
         }
 
         return box;

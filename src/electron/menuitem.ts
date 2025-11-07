@@ -12,13 +12,16 @@ abstract class MenuItemRenderer extends MatchMenuItemRenderer<HTMLDivElement, HT
             visibility: isVisible ? 'visible' : 'hidden',
         });
         this.r.addOnClickHandler(element, () => {
-            if (element.style.visibility === 'hidden') {
-                element.style.visibility = 'visible';
-            } else {
-                element.style.visibility = 'hidden';
-            }
-            if (toggleHandler) {
-                toggleHandler(element.style.visibility === 'visible');
+            const parent = element.parentElement;
+            if (parent) {
+                if (parent.style.visibility === 'hidden') {
+                    parent.style.visibility = 'visible';
+                } else {
+                    parent.style.visibility = 'hidden';
+                }
+                if (toggleHandler) {
+                    toggleHandler(parent.style.visibility === 'visible');
+                }
             }
         });
 

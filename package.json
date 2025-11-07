@@ -1,6 +1,6 @@
 {
   "name": "gnome-live-tennis",
-  "version": "2.2.2",
+  "version": "3.0.0",
   "description": "Gnome Extension to show live tennis data",
   "homepage": "https://github.com/homebackend/gnome-live-tennis#readme",
   "bugs": {
@@ -19,7 +19,7 @@
     "start": "npm run start:electron",
     "start:electron": "npm run build && ./run-electron.sh",
     "prettify": "prettier --write dist/extension.js dist/prefs.js",
-    "generate:schemas": "npm run build && node dist/schema.js",
+    "generate:schemas": "npm run build && mkdir -p dist/schemas && node dist/schema.js",
     "compile:schemas": "npm run generate:schemas && glib-compile-schemas dist/schemas/",
     "package": "./package.sh",
     "deploy": "./deploy.sh",

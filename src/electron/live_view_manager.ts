@@ -19,7 +19,6 @@ export class ElectronLiveViewManager implements LiveViewManager {
         this._settings = settings;
 
         ipcMain.on(LiveViewRendererKeys.resizeToFitContents, async (event, windowIndex: number, width: number, height: number) => {
-            console.log('resize-window', windowIndex, width, height);
             if (windowIndex < this._activeFloatingWindows.length) {
                 const window = this._activeFloatingWindows[windowIndex];
                 const windowWidth = await this._settings.getInt('live-window-size-x');

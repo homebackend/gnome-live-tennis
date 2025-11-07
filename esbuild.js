@@ -8,7 +8,7 @@ const commonBuildOptions = {
   sourcemap: true,
   outdir: 'dist',
   platform: 'node',
-  logLevel: 'verbose',
+  //logLevel: 'verbose',
   target: ['node22'],
 };
 

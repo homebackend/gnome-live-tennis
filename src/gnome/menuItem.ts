@@ -74,7 +74,7 @@ export const GMatchMenuItem = GObject.registerClass({
         super._init({ reactive: true });
 
         this._clickHandler = constructProperties?.clickHandler;
-        this._container = new St.BoxLayout();
+        this._container = new St.BoxLayout({ x_expand: true });
 
         this._match = constructProperties?.match;
         this._checked = constructProperties?.checked ?? false;
@@ -89,10 +89,10 @@ export const GMatchMenuItem = GObject.registerClass({
     }
 
     private _updateMenu() {
-        if (this._container) {
+        if (this._container && this._match) {
             this._container.remove_all_children();
 
-            this._renderer!.updateMatchData(this._container, this.match);
+            this._renderer!.updateMatchData(this._container, this._match);
         }
     }
 

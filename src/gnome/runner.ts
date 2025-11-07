@@ -11,7 +11,8 @@ const ICON_SIZE = 22;
 
 export interface MenuHandler {
     uuid(): string;
-    setupBaseMenu(iconPath: string): void /*[refreshItem: PopupMenu.PopupMenuItem, refreshLabel: St.Label, settingsItem: PopupMenu.PopupMenuItem]*/;
+    setupBaseMenu(iconPath: string): Promise<void>;
+    triggerFetch(): void;
     addEventMenuItem(menuItem: PopupMenu.PopupSubMenuMenuItem, position: number): void;
     addMenuSeparator(): void;
     addItemToMenu(item: typeof GCheckedMenuItem): void;
@@ -31,13 +32,17 @@ export class GnomeRunner extends MenuRendererCommon<St.BoxLayout, St.BoxLayout, 
             GnomePopupSubMenuItem, GnomeCheckedMenuItem, GnomeMatchMenuItem,
         );
         this._extension = extension;
+        this._initRunner();
+    }
 
-        this._extension.setupBaseMenu(this.getIconPath());
-        this.setupBaseMenu();
+    private async _initRunner() {
+        await this._extension.setupBaseMenu(this.getIconPath());
+        await this.setupBaseMenu();
+        this._extension.triggerFetch();
     }
 
     addEventMenuItemToMenu(item: PopupMenu.PopupSubMenuMenuItem, position: number): void {
-        this._extension.addEventMenuItem(item, position);
+        this._extension.addEventMenuItem(item.menu, position);
     }
 
     setLastRefrestTimeText(text: string): void {
@@ -60,5 +65,8 @@ export class GnomeRunner extends MenuRendererCommon<St.BoxLayout, St.BoxLayout, 
 
     addSettingsItem(): void {
         this._extension.addSettingsItem();
+    }
+
+    setupAdditionalMenuItems(): void {
     }
 };

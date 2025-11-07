@@ -61,10 +61,10 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
             const url = p.headUrl;
             if (url) {
                 this.r.addImageToContainer(matchDataElement, {
-                    src: url, alt: p.displayName,
+                    src: url,
+                    alt: p.displayName,
                     className: StyleKeys.MainMenuPlayerImage,
                     height: MatchMenuItemRenderer.ImageHeight,
-                    paddingLeft: MatchMenuItemRenderer.ImagePadding,
                     paddingRight: MatchMenuItemRenderer.ImagePadding,
                 });
             }
@@ -81,16 +81,14 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
         this.r.addTextToContainer(matchDataElement, {
             text: team.displayName,
             className: StyleKeys.NoWrapText,
-            paddingLeft: MatchMenuItemRenderer.TextPadding,
             paddingRight: MatchMenuItemRenderer.TextPadding,
         });
     }
 
-    updateMatchData(/*matchId: string, */matchDataElement: T, match: TennisMatch) {
+    updateMatchData(matchDataElement: T, match: TennisMatch) {
         this._addTeam(matchDataElement, match.team1);
         this.r.addTextToContainer(matchDataElement, {
             text: 'vs',
-            paddingLeft: MatchMenuItemRenderer.TextPadding,
             paddingRight: MatchMenuItemRenderer.TextPadding,
         });
         this._addTeam(matchDataElement, match.team2);
@@ -99,7 +97,7 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
             this.r.addTextToContainer(matchDataElement, {
                 text: 'LIVE',
                 className: StyleKeys.MainMenuMatchStatusLive,
-                paddingLeft: MatchMenuItemRenderer.TextPadding,
+                paddingRight: MatchMenuItemRenderer.TextPadding,
             });
         }
 
@@ -109,7 +107,6 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
                 className: `${StyleKeys.NoWrapText} ${match.isLive ? StyleKeys.MainMenuMatchStatusLive : StyleKeys.MainMenuMatchStatusFinished}`,
                 xExpand: true,
                 textAlign: Alignment.End,
-                paddingRight: '10px',
             });
         }
     }

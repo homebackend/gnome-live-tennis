@@ -82,11 +82,11 @@ export abstract class Renderer<T, TextType, ImageType> {
         const flagPath = `${this.basePath}/flags/${countryCode.toLowerCase()}.svg`;
         return this.addImageToContainer(container, {
             src: flagPath,
+            isLocal: true,
             alt: countryCode,
             title: countryCode,
             className: className,
             iconSize: iconSize,
-            paddingLeft: padding,
             paddingRight: padding,
         });
     }

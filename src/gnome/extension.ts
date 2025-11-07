@@ -42,7 +42,7 @@ class LiveScoreButton extends PanelMenu.Button implements MenuHandler {
         this.runner = new GnomeRunner(this, log, this._settings, extensionPath);
     }
 
-    setupBaseMenu(iconPath: string): void  {
+    async setupBaseMenu(iconPath: string): Promise<void> {
         const gicon = Gio.icon_new_for_string(iconPath);
 
         this.add_child(new St.Icon({
@@ -50,6 +50,10 @@ class LiveScoreButton extends PanelMenu.Button implements MenuHandler {
             style_class: `${StyleKeys.GnomeSystemStatusIcon} ${StyleKeys.GnomePanelButton}`,
             icon_size: ICON_SIZE
         }));
+    }
+
+    triggerFetch() {
+        this.emit('manual-refresh');
     }
 
     uuid(): string {
@@ -206,8 +210,6 @@ export default class LiveScoreExtension extends Extension implements LiveViewMan
         ['live-window-size-x', 'live-window-size-y'].forEach(k => settings.connect(`changed::${k}`, () => this._recreateUI()))
 
         Main.panel.addToStatusArea(this.uuid, this._panelButton);
-
-        this._updater.fetchMatchData();
     }
 
     disable() {
