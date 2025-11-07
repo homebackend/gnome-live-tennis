@@ -11,6 +11,7 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, CI, MI,
     private _MConstructor: new (properties: MatchMenuItemProperties, renderer: Renderer<T, TT, IT>) => M;
     protected _renderer: Renderer<T, TT, IT>;
     private _settings: Settings;
+    private _uuid?: string;
 
     private _tournamentHeaders: Map<string, E> = new Map();
     private _eventAutoItems: Map<string, C> = new Map();
@@ -21,11 +22,13 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, CI, MI,
         EConstructor: new (properties: PopubSubMenuItemProperties) => E,
         CConstructor: new (properties: CheckedMenuItemProperties, renderer: Renderer<T, TT, IT>) => C,
         MConstructor: new (properties: MatchMenuItemProperties, renderer: Renderer<T, TT, IT>) => M,
+        uuid?: string,
     ) {
         super(log, settings, basePath);
 
         this._renderer = renderer;
         this._settings = settings;
+        this._uuid = uuid;
         this._EConstructor = EConstructor;
         this._CConstructor = CConstructor;
         this._MConstructor = MConstructor;
@@ -50,6 +53,7 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, CI, MI,
 
     addEventMenuItem(event: TennisEvent, text: string, position: number, url: string | undefined, isAuto: boolean): void {
         const submenuItem = new this._EConstructor({
+            uuid: this._uuid,
             basePath: this.basePath,
             log: this.log,
             event: event,

@@ -21,7 +21,8 @@ export interface MenuHandler {
 }
 
 
-export class GnomeRunner extends MenuRendererCommon<St.BoxLayout, St.BoxLayout, St.BoxLayout, PopupMenu.PopupSubMenuMenuItem, typeof GCheckedMenuItem, typeof GMatchMenuItem,
+export class GnomeRunner extends MenuRendererCommon<St.BoxLayout, St.BoxLayout, St.BoxLayout,
+    PopupMenu.PopupSubMenuMenuItem, typeof GCheckedMenuItem, typeof GMatchMenuItem,
     GnomePopupSubMenuItem, GnomeCheckedMenuItem, GnomeMatchMenuItem> {
     private _extension: MenuHandler;
     private _refreshLabel?: St.Label;
@@ -29,7 +30,7 @@ export class GnomeRunner extends MenuRendererCommon<St.BoxLayout, St.BoxLayout, 
     constructor(extension: MenuHandler, log: (logs: string[]) => void, settings: Settings, basePath: string) {
         const renderer = new GnomeRenderer(extension.uuid(), basePath, log)
         super(log, settings, basePath, renderer,
-            GnomePopupSubMenuItem, GnomeCheckedMenuItem, GnomeMatchMenuItem,
+            GnomePopupSubMenuItem, GnomeCheckedMenuItem, GnomeMatchMenuItem, extension.uuid(),
         );
         this._extension = extension;
         this._initRunner();
