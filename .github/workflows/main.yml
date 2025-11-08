@@ -45,7 +45,7 @@ jobs:
             release/*.deb
             release/*.rpm
             release/*.AppImage
-            dist-gnome/live-tennis.zip # Include the gnome package here
+            dist-gnome/live-tennis.zip
 
   # Job 2: Build for Arch Linux (.pkg.tar.zst package)
   build-arch:
@@ -129,6 +129,6 @@ jobs:
             artifacts/linux-packages-deb-rpm-appimage/*.deb
             artifacts/linux-packages-deb-rpm-appimage/*.rpm
             artifacts/linux-packages-deb-rpm-appimage/*.AppImage
-            artifacts/linux-packages-deb-rpm-appimage/dist-gnome/*.zip
-            artifacts/linux-packages-arch/*.pkg.tar.zst
+            artifacts/linux-packages-deb-rpm-appimage/*.zip
+            artifacts/linux-packages-arch/*.pacman
             artifacts/windows-installer/*.exe
