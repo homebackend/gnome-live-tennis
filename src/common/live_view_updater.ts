@@ -96,10 +96,12 @@ export class LiveViewUpdater {
                     this._currentMatchesData = matchesData;
                     await this._updateFloatingWindows(this._currentMatchesData);
                     this._runner.setLastRefreshTime(Date.now());
+
+                    const interval = await this._settings!.getInt('update-interval');
+                    this._manager.setFetchTimer(interval, this.fetchMatchData.bind(this));
                 },
             );
 
-            this._manager.setFetchTimer(await this._settings!.getInt('update-interval'), () => this.fetchMatchData());
         } catch (e) {
             this._log(['Error during data fetch', String(e)]);
             if (e instanceof Error) {

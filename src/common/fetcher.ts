@@ -200,8 +200,10 @@ export class LiveTennis {
             this._process_wta.bind(this),
         ];
 
+        let allGood: boolean = true;
         let count = 0;
-        const myDoneCallback = async (allGood: boolean) => {
+        const myDoneCallback = async (good: boolean) => {
+            if (!good) allGood = false;
             count += 1;
             if (count == tourHandlers.length) {
                 this._log(['Query processing done']);

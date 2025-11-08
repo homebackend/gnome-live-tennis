@@ -54,7 +54,7 @@ export const schema: FullSchema = {
     },
     update_interval: {
         type: 'number',
-        default: 1500,
+        default: 15,
         summary: 'Data update interval',
         description: 'The interval in seconds at which to fetch new match data.',
     },

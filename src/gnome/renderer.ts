@@ -120,8 +120,6 @@ export class GnomeRenderer extends Renderer<St.BoxLayout, St.BoxLayout, St.BoxLa
         if (textProperties.xExpand) { boxProperties.x_expand = textProperties.xExpand; }
         if (textProperties.yExpand) { boxProperties.y_expand = textProperties.yExpand; }
 
-        console.log(labelProperties, style);
-
         const box = new St.BoxLayout(boxProperties);
         const label = new St.Label(labelProperties);
         label.clutter_text.set_markup(textProperties.text);
