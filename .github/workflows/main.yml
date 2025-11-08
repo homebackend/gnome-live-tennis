@@ -60,7 +60,7 @@ jobs:
       - name: Install system dependencies (Arch Linux)
         run: |
           pacman -Syu --noconfirm git nodejs npm base-devel
-          pacman -S --needed libxcrypt-compat
+          pacman -S --noconfirm --needed libxcrypt-compat
         
       - name: Get version from package.json
         id: package-version-arch
