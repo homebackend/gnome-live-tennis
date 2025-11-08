@@ -1,73 +1,132 @@
-name: CI/CD Release
+name: CI/CD Release (DEB, RPM, Arch, Windows, Gnome)
 
-# Trigger the workflow on pushes to the main branch
-# only when the package.json file has been updated.
 on:
   push:
     branches:
       - main
     paths:
       - 'package.json'
-      - '.github/workflows/main.yml'
-  # This event allows you to run the workflow manually from the Actions tab.
+      - '.github/workflows/*.yml'
   workflow_dispatch:
 
 jobs:
-  build-and-release:
+  # Job 1: Build for Debian (.deb), RPM (.rpm), and AppImage
+  build-deb-rpm-appimage:
     runs-on: ubuntu-latest
-    steps:    
-      # Check out the repository code so the workflow can access it.
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Enable 32-bit architecture
-        run: sudo dpkg --add-architecture i386
-
-      - name: Download and add WineHQ repository key
+      - name: Install system dependencies (Ubuntu/Debian/RPM/AppImage prerequisites)
         run: |
-          wget -nc https://dl.winehq.org/wine-builds/winehq.key
-          sudo apt-key add winehq.key
+          sudo apt update
+          sudo apt install -y --no-install-recommends \
+            libgconf-2-4 libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
+            libexpat1 libfontconfig1 libgcc1 libgdk-pixbuf2.0-0 libglib2.0-0 \
+            libgtk2.0-0 libipc-glib-perl liblzma5 libnss3 libpango1.0-0 libstdc++6 \
+            libx11-6 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 \
+            libxi6 libxrandr2 libxrender1 libxtst6 zlib1g rpm \
+            squashfs-tools
 
-      - name: Add WineHQ repository
-        run: |
-          # Determine Ubuntu version dynamically for the correct repository
-          UBUNTU_VERSION=$(lsb_release -cs)
-          sudo add-apt-repository "deb https://dl.winehq.org/wine-builds/ubuntu/ ${UBUNTU_VERSION} main"
-
-      - name: Update package lists
-        run: sudo apt update
-
-      - name: Install Wine stable
-        run: sudo apt install --install-recommends winehq-stable
-
-      # Set up the Node.js environment using the specified LTS version.
       - name: Setup Node.js LTS 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      # Get the version from package.json to use in the release name and tag.
+      - name: Get version from package.json
+        id: package-version-deb-rpm
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies (NodeJS)
+        run: npm install
+
+      # Re-added: Run your custom command to build the GNOME shell extension package
+      - name: Create GNOME shell extension package
+        run: npm run package:gnome
+        # Ensure this script places the ZIP file in 'dist-gnome/live-tennis.zip' as per your original plan
+
+      - name: Create Desktop package builds (DEB, RPM, AppImage)
+        run: npx electron-builder --linux deb rpm AppImage
+
+      - name: Upload Linux artifacts (DEB, RPM, AppImage, Gnome ZIP)
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages-deb-rpm-appimage
+          path: |
+            dist/*.deb
+            dist/*.rpm
+            dist/*.AppImage
+            dist-gnome/live-tennis.zip # Include the gnome package here
+
+  # Job 2: Build for Arch Linux (.pkg.tar.zst package)
+  build-arch:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      options: --user root
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies (Arch Linux)
+        run: |
+          pacman -Syu --noconfirm git nodejs npm base-devel
+
+      - name: Get version from package.json
+        id: package-version-arch
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      
+      - name: Install dependencies and build Arch package
+        run: npm install && npx electron-builder --linux pacman
+
+      - name: Upload Arch package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages-arch
+          path: "dist/*.pkg.tar.zst"
+
+  # Job 3: Build for Windows (.exe installer)
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js LTS 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies and build Windows .exe
+        run: npm install && npx electron-builder --win
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: "dist/*.exe"
+
+  # Job 4: Create GitHub Release (depends on all builds finishing)
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [build-deb-rpm-appimage, build-arch, build-windows]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Get version from package.json
         id: package-version
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+        
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
 
-      # Install dependencies for your project.
-      - name: Install dependencies
-        run: npm install
-
-      # Run your custom command to build the zip file.
-      - name: Create GNOME shell extension package
-        run: npm run package:gnome
-
-      - name: Create Desktop package builds
-        run: npm run dist:electron
-
-      # Create a new GitHub release and upload the zip file.
-      - name: Create GitHub Release
-        id: create_release
+      - name: Create GitHub Release and Upload Files
         uses: softprops/action-gh-release@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # The secret is provided automatically.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ steps.package-version.outputs.VERSION }}
           name: Release v${{ steps.package-version.outputs.VERSION }}
@@ -77,5 +136,9 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            dist-gnome/live-tennis.zip
-            release/live-tennis*
+            artifacts/linux-packages-deb-rpm-appimage/*.deb
+            artifacts/linux-packages-deb-rpm-appimage/*.rpm
+            artifacts/linux-packages-deb-rpm-appimage/*.AppImage
+            artifacts/linux-packages-deb-rpm-appimage/dist-gnome/*.zip
+            artifacts/linux-packages-arch/*.pkg.tar.zst
+            artifacts/windows-installer/*.exe
