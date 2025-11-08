@@ -112,7 +112,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ./release-assets
-          merge-multiple-artifacts: true
 
       - name: List downloaded files (Linux/macOS runners)
         if: runner.os != 'Windows'
@@ -131,9 +130,10 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            release-assets/*.deb
-            release-assets/*.rpm
-            release-assets/*.AppImage
-            release-assets/*.zip
-            release-assets/*.pacman
-            release-assets/*.exe
+            artifacts/linux-packages-deb-rpm-appimage/release/*.deb
+            artifacts/linux-packages-deb-rpm-appimage/release/*.rpm
+            artifacts/linux-packages-deb-rpm-appimage/release/*.AppImage
+            artifacts/linux-packages-deb-rpm-appimage/dist-gnome/*.zip
+            artifacts/linux-packages-deb-rpm-appimage/*.zip
+            artifacts/linux-packages-arch/*.pacman
+            artifacts/windows-installer/*.exe
