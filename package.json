@@ -25,7 +25,7 @@
     "prettify": "prettier --write dist-gnome/extension.js dist-gnome/prefs.js",
     "package:gnome": "npm run clean:gnome && npm run build && cd dist-gnome && zip -qr live-tennis.zip extension.js prefs.js style.css metadata.json icons flags schemas",
     "package:electron": "npm run build && electron-builder --dir",
-    "dist:electron": "npm run build && electron-builder -wl",
+    "dist:electron": "npm run build && electron-builder -wl --publish never",
     "deploy:gnome": "./deploy.sh",
     "clean": "npm run clean:electron && npm run clean:gnome",
     "clean:electron": "rm -rf dist release",
