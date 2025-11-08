@@ -15,10 +15,30 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
-    steps:
+    steps:    
       # Check out the repository code so the workflow can access it.
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Enable 32-bit architecture
+        run: sudo dpkg --add-architecture i386
+
+      - name: Download and add WineHQ repository key
+        run: |
+          wget -nc https://dl.winehq.org/wine-builds/winehq.key
+          sudo apt-key add winehq.key
+
+      - name: Add WineHQ repository
+        run: |
+          # Determine Ubuntu version dynamically for the correct repository
+          UBUNTU_VERSION=$(lsb_release -cs)
+          sudo add-apt-repository "deb https://dl.winehq.org/wine-builds/ubuntu/ ${UBUNTU_VERSION} main"
+
+      - name: Update package lists
+        run: sudo apt update
+
+      - name: Install Wine stable
+        run: sudo apt install --install-recommends winehq-stable
 
       # Set up the Node.js environment using the specified LTS version.
       - name: Setup Node.js LTS 22
