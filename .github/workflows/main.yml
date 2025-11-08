@@ -113,10 +113,6 @@ jobs:
         with:
           path: ./artifacts
 
-      - name: List downloaded files (Linux/macOS runners)
-        if: runner.os != 'Windows'
-        run: ls -R .
-
       - name: Create GitHub Release and Upload Files
         uses: softprops/action-gh-release@v2
         env:
