@@ -78,8 +78,7 @@
       "icon": "assets/icons/linux/256x256.png",
       "target": [
         "AppImage",
-        "deb",
-        "pacman"
+        "deb"
       ]
     },
     "deb": {
