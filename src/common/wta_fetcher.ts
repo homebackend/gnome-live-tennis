@@ -1,19 +1,15 @@
-import Soup from "gi://Soup";
-import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types";
-import { stat } from "gi://GLib";
+//import Soup from "gi://Soup";
+import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
+import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api.js";
 
 export class WtaFetcher {
     private static wta_all_events_url_template = 'https://api.wtatennis.com/tennis/tournaments/?page=0&pageSize=20&excludeLevels=ITF&from={from-date}&to={to-date}';
     private static wta_event_url_template = 'https://api.wtatennis.com/tennis/tournaments/{event-id}/{year}/matches?from={from-date}&to={to-date}';
 
-    private _httpSession: Soup.Session | undefined;
-    private _build_req: (url: string) => Soup.Message;
-    private _data_fetcher: (session: Soup.Session, msg: Soup.Message, handler: (json_data: any) => any) => void;
+    private _apiHandler: ApiHandler;
 
-    constructor(build_req: (url: string) => Soup.Message, data_fetcher: (session: Soup.Session, msg: Soup.Message, handler: (json_data: any) => any) => void) {
-        this._httpSession = undefined;
-        this._build_req = build_req;
-        this._data_fetcher = data_fetcher;
+    constructor(apiHandler: ApiHandler) {
+        this._apiHandler = apiHandler;
     }
 
     _replace_from_to_date(template: string) {
@@ -38,14 +34,19 @@ export class WtaFetcher {
     _get_player(p: any, suffix: string): TennisPlayer {
         const firstName: string = p[`PlayerNameFirst${suffix}`] || 'TBD';
         const lastName: string = p[`PlayerNameLast${suffix}`] || 'TBD';
+        const id = p[`PlayerID${suffix}`];
+        const slug = `${firstName.toLowerCase()}-${lastName.toLowerCase()}`;
+        const url = firstName != 'TBD' && lastName != 'TBD' ? `https://www.wtatennis.com/players/${id}/${slug}` : '';
         return {
-            id: p[`PlayerID${suffix}`],
+            id: id,
             countryCode: p[`PlayerCountry${suffix}`],
             country: p[`PlayerCountry${suffix}`],
             firstName: firstName,
             lastName: lastName,
             headUrl: '',
             displayName: `${firstName} ${lastName}`,
+            url: url,
+            slug: slug,
         };
     }
 
@@ -181,49 +182,49 @@ export class WtaFetcher {
 
     _fetch_event_data(event: TennisEvent, events: any[], index: number, tennisEvents: TennisEvent[],
         callback: (tennisEvents: TennisEvent[]) => void) {
-        this._httpSession = new Soup.Session();
-        const msg = this._build_req(this._get_event_url(event.id, event.year));
-        this._data_fetcher(this._httpSession, msg, json_data => {
-            this._httpSession = undefined;
 
-            json_data['matches'].forEach((m: any) => {
-                const team1 = this._get_team_data(m, m['DrawMatchType'], 'A', 'B');
-                const team2 = this._get_team_data(m, m['DrawMatchType'], 'B', 'A');
-                const isDoubles = m['DrawMatchType'] !== 'S';
+        this._apiHandler.fetchJson(this._get_event_url(event.id, event.year),
+            HttpMethods.GET, ApiCommonHeaders, (jsonData => {
+                jsonData['matches'].forEach((m: any) => {
+                    const team1 = this._get_team_data(m, m['DrawMatchType'], 'A', 'B');
+                    const team2 = this._get_team_data(m, m['DrawMatchType'], 'B', 'A');
+                    const isDoubles = m['DrawMatchType'] !== 'S';
 
-                const tennisMatch: TennisMatch = {
-                    id: m['MatchID'],
-                    isDoubles: isDoubles,
-                    roundId: m['RoundID'],
-                    roundName: this._get_round_name(event, m['DrawMatchType'], m['DrawLevelType'], m['RoundID'], m['MatchState']),
-                    courtName: m['CourtName'],
-                    courtId: m['CourtID'],
-                    matchTotalTime: m['MatchTimeTotal'],
-                    matchTimeStamp: m['MatchTimeStamp'],
-                    matchStateReasonMessage: "",
-                    message: m['FreeText'],
-                    server: m['Serve'] == 'A' ? 0 : m['Serve'] == 'B' ? 1 : -1,
-                    winnerId: -1,
-                    umpireFirstName: "",
-                    umpireLastName: "",
-                    lastUpdate: "",
-                    team1: team1,
-                    team2: team2,
-                    event: event,
-                    status: m['MatchState'],
-                    hasFinished: m['MatchState'] == 'F',
-                    isLive: m['MatchState'] == 'P',
-                    displayName: `${team1.displayName} vs ${team2.displayName}`,
-                    displayStatus: this._get_match_status(m['MatchState']),
-                    displayScore: m['ScoreString'],
-                };
+                    const tennisMatch: TennisMatch = {
+                        id: m['MatchID'],
+                        isDoubles: isDoubles,
+                        roundId: m['RoundID'],
+                        roundName: this._get_round_name(event, m['DrawMatchType'], m['DrawLevelType'], m['RoundID'], m['MatchState']),
+                        courtName: m['CourtName'],
+                        courtId: m['CourtID'],
+                        matchTotalTime: m['MatchTimeTotal'],
+                        matchTimeStamp: m['MatchTimeStamp'],
+                        matchStateReasonMessage: "",
+                        message: m['FreeText'],
+                        server: m['Serve'] == 'A' ? 0 : m['Serve'] == 'B' ? 1 : -1,
+                        winnerId: -1,
+                        umpireFirstName: "",
+                        umpireLastName: "",
+                        lastUpdate: "",
+                        team1: team1,
+                        team2: team2,
+                        event: event,
+                        status: m['MatchState'],
+                        hasFinished: m['MatchState'] == 'F',
+                        isLive: m['MatchState'] == 'P',
+                        displayName: `${team1.displayName} vs ${team2.displayName}`,
+                        displayStatus: this._get_match_status(m['MatchState']),
+                        displayScore: m['ScoreString'],
+                        h2hUrl: isDoubles ? '' : `https://www.wtatennis.com/head-to-head/${team1.players[0].id}/${team2.players[0].id}`,
+                    };
 
-                event.matches.push(tennisMatch);
-                event.matchMapping[tennisMatch.id] = tennisMatch;
-            });
+                    event.matches.push(tennisMatch);
+                    event.matchMapping[tennisMatch.id] = tennisMatch;
+                });
 
-            this._process_event(events, index + 1, tennisEvents, callback);
-        });
+                this._process_event(events, index + 1, tennisEvents, callback);
+            }),
+        );
     }
 
     _process_event(events: any[], index: number, tennisEvents: TennisEvent[], callback: (tennisEvents: TennisEvent[]) => void) {
@@ -232,10 +233,13 @@ export class WtaFetcher {
         }
 
         const e = events[index];
+        const year = e['year'];
+        const id = e['tournamentGroup']['id'];
+        const name = e['tournamentGroup']['name'];
         const event: TennisEvent = {
-            year: e['year'],
-            id: String(e['tournamentGroup']['id']),
-            name: e['tournamentGroup']['name'],
+            year: year,
+            id: String(id),
+            name: name,
             title: e['title'],
             countryCode: '',
             country: e['country'],
@@ -258,6 +262,7 @@ export class WtaFetcher {
             matches: [],
             matchMapping: {},
             eventTypeUrl: this._get_event_type_url(e['level']),
+            url: `https://www.wtatennis.com/tournaments/${id}/${name.toLowerCase().replace(' ', '-')}/${year}`,
         }
 
         tennisEvents.push(event);
@@ -265,25 +270,17 @@ export class WtaFetcher {
     }
 
     fetchData(callback: (tennisEvents: TennisEvent[] | undefined) => void) {
-        this._httpSession = new Soup.Session();
-        const msg = this._build_req(this._get_all_events_url());
         const tennisEvents: TennisEvent[] = [];
-
-        this._data_fetcher(this._httpSession, msg, jsonData => {
-            this._httpSession = undefined;
-
+        this._apiHandler.fetchJson(this._get_all_events_url(), HttpMethods.GET, ApiCommonHeaders, (jsonData => {
             if (jsonData == null) {
                 return callback(undefined);
             }
 
             this._process_event(jsonData['content'], 0, tennisEvents, callback);
-        });
+        }));
     }
 
     disable() {
-        if (this._httpSession) {
-            this._httpSession.abort();
-            this._httpSession = undefined;
-        }
+        this._apiHandler.abort();
     }
 }

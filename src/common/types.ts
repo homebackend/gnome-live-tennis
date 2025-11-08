@@ -7,6 +7,8 @@ export interface TennisPlayer {
     lastName: string;
     headUrl: string | undefined;
     displayName: string;
+    slug: string;
+    url: string;
 }
 
 export interface TennisSetScore {
@@ -49,6 +51,7 @@ export interface TennisMatch {
     displayName: string;
     displayStatus: string;
     displayScore: string;
+    h2hUrl: string,
 }
 
 export interface TennisEvent {
@@ -77,4 +80,5 @@ export interface TennisEvent {
     matches: TennisMatch[];
     matchMapping: { [key: string]: TennisMatch };
     eventTypeUrl: string | undefined;
+    url: string;
 }

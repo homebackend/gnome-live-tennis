@@ -81,6 +81,8 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+dist-gnome
+release
 
 # Gatsby files
 .cache/
@@ -139,5 +141,5 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 
-src/schemas/gschemas.compiled
-
+src/schemas/*
+run

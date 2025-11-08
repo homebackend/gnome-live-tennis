@@ -36,8 +36,11 @@ jobs:
         run: npm install
 
       # Run your custom command to build the zip file.
-      - name: Run package script
-        run: npm run package
+      - name: Create GNOME shell extension package
+        run: npm run package:gnome
+
+      - name: Create Desktop package builds
+        run: npm run dist:electron
 
       # Create a new GitHub release and upload the zip file.
       - name: Create GitHub Release
@@ -54,4 +57,5 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            dist/*.zip
+            dist-gnome/live-tennis.zip
+            release/live-tennis*
