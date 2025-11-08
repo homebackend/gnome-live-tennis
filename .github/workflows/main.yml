@@ -46,7 +46,7 @@ jobs:
         # Ensure this script places the ZIP file in 'dist-gnome/live-tennis.zip' as per your original plan
 
       - name: Create Desktop package builds (DEB, RPM, AppImage)
-        run: npm run build && npx electron-builder --linux deb rpm AppImage
+        run: npm run build && npx electron-builder --linux deb rpm AppImage --publish never
 
       - name: Upload Linux artifacts (DEB, RPM, AppImage, Gnome ZIP)
         uses: actions/upload-artifact@v4
@@ -77,7 +77,7 @@ jobs:
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
       
       - name: Install dependencies and build Arch package
-        run: npm install && npm run build && npx electron-builder --linux pacman
+        run: npm install && npm run build && npx electron-builder --linux pacman --publish never
 
       - name: Upload Arch package artifact
         uses: actions/upload-artifact@v4
@@ -98,7 +98,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies and build Windows .exe
-        run: npm install && npm run build && npx electron-builder --win
+        run: npm install && npm run build && npx electron-builder --win --publish never
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
