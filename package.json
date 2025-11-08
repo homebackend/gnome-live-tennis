@@ -1,7 +1,7 @@
 {
-  "name": "gnome-live-tennis",
+  "name": "live-tennis",
   "version": "3.0.0",
-  "description": "Gnome Extension to show live tennis data",
+  "description": "Application to show live ATP and WTA tennis match scores and data",
   "homepage": "https://github.com/homebackend/gnome-live-tennis#readme",
   "bugs": {
     "url": "https://github.com/homebackend/gnome-live-tennis/issues"
@@ -11,19 +11,25 @@
     "url": "git+https://github.com/homebackend/gnome-live-tennis.git"
   },
   "license": "GPL-3.0-or-later",
-  "author": "neerajcd@gmail.com",
+  "author": {
+    "name": "neerajcd@gmail.com",
+    "email": "neerajcd@gmail.com",
+    "url": "https://github.com/homebackend/gnome-live-tennis"
+  },
   "type": "module",
-  "main": "run/main.cjs",
+  "main": "dist/main.cjs",
   "scripts": {
     "build": "node esbuild.js",
     "start": "npm run start:electron",
-    "start:electron": "npm run build && ./run-electron.sh",
-    "prettify": "prettier --write dist/extension.js dist/prefs.js",
-    "generate:schemas": "npm run build && mkdir -p dist/schemas && node dist/schema.js",
-    "compile:schemas": "npm run generate:schemas && glib-compile-schemas dist/schemas/",
-    "package": "./package.sh",
-    "deploy": "./deploy.sh",
-    "clean": "rm -rf dist"
+    "start:electron": "npm run build && electron .",
+    "prettify": "prettier --write dist-gnome/extension.js dist-gnome/prefs.js",
+    "package:gnome": "npm run clean:gnome && npm run build && cd dist-gnome && zip -qr live-tennis.zip extension.js prefs.js style.css metadata.json icons flags schemas",
+    "package:electron": "npm run build && electron-builder --dir",
+    "dist:electron": "npm run build && electron-builder -wl",
+    "deploy:gnome": "./deploy.sh",
+    "clean": "npm run clean:electron && npm run clean:gnome",
+    "clean:electron": "rm -rf dist release",
+    "clean:gnome": "rm -rf dist-gnome"
   },
   "devDependencies": {
     "@girs/adw-1": "^1.8.0-4.0.0-beta.36",
@@ -39,15 +45,60 @@
     "@girs/soup-3.0": "^3.6.5-4.0.0-beta.36",
     "@girs/st-16": "^16.0.0-4.0.0-beta.38",
     "@types/electron": "^1.4.38",
-    "electron": "^38.4.0",
+    "electron": "^38.6.0",
+    "electron-builder": "^26.0.12",
     "esbuild": "^0.25.10",
+    "fs-extra": "^11.3.2",
     "prettier": "^3.6.2",
     "sslkeylog": "^0.2.2",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "xml-js": "^1.6.11"
   },
   "dependencies": {
     "axios": "^1.12.2",
     "electron-store": "^11.0.2"
+  },
+  "build": {
+    "appId": "live-tennis-neerajcd@gmail.com",
+    "productName": "live-tennis",
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "icon": "assets/icons/win/icon.ico",
+      "target": "nsis"
+    },
+    "linux": {
+      "category": "Utility",
+      "icon": "assets/icons/linux/256x256.png",
+      "target": [
+        "AppImage",
+        "deb",
+        "pacman"
+      ]
+    },
+    "deb": {
+      "depends": [
+        "gtk3",
+        "curl"
+      ]
+    },
+    "rpm": {
+      "depends": [
+        "gtk3",
+        "curl"
+      ]
+    },
+    "pacman": {
+      "depends": [
+        "gtk3",
+        "curl"
+      ]
+    }
   }
 }

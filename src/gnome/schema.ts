@@ -62,4 +62,4 @@ async function toSchemaXml(path: string, schemaId: string, schemaPath: string): 
     }
 }
 
-toSchemaXml('dist/schemas/org.gnome.shell.extensions.live-tennis.gschema.xml', 'org.gnome.shell.extensions.live-tennis', '/org/gnome/shell/extensions/live-tennis/');
+toSchemaXml('dist-gnome/schemas/org.gnome.shell.extensions.live-tennis.gschema.xml', 'org.gnome.shell.extensions.live-tennis', '/org/gnome/shell/extensions/live-tennis/');
