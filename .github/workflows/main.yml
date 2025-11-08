@@ -108,10 +108,11 @@ jobs:
         id: package-version
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
         
-      - name: Download all artifacts
+      - name: Download all artifacts into a single directory
         uses: actions/download-artifact@v4
         with:
-          path: ./artifacts
+          path: ./release-assets
+          merge-multiple-artifacts: true
 
       - name: Create GitHub Release and Upload Files
         uses: softprops/action-gh-release@v2
@@ -126,9 +127,9 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            artifacts/linux-packages-deb-rpm-appimage/*.deb
-            artifacts/linux-packages-deb-rpm-appimage/*.rpm
-            artifacts/linux-packages-deb-rpm-appimage/*.AppImage
-            artifacts/linux-packages-deb-rpm-appimage/*.zip
-            artifacts/linux-packages-arch/*.pacman
-            artifacts/windows-installer/*.exe
+            release-assets/*.deb
+            release-assets/*.rpm
+            release-assets/*.AppImage
+            release-assets/*.zip
+            release-assets/*.pacman
+            release-assets/*.exe
