@@ -73,7 +73,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-packages-arch
-          path: "release/*.pkg.tar.zst"
+          path: "release/*.pacman"
 
   # Job 3: Build for Windows (.exe installer)
   build-windows:
