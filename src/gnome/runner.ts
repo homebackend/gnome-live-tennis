@@ -4,7 +4,7 @@ import * as PopupMenu from "resource:///org/gnome/shell/ui/popupMenu.js";
 
 import { Settings } from "../common/settings.js";
 import { MenuRendererCommon } from "../common/menu_renderer.js";
-import { GCheckedMenuItem, GMatchMenuItem, GnomeCheckedMenuItem, GnomeMatchMenuItem, GnomePopupSubMenuItem } from "./menuItem.js";
+import { GCheckedMenuItem, GMatchMenuItem, GnomeCheckedMenuItem, GnomeLinkMenuItem, GnomeMatchMenuItem, GnomePopupSubMenuItem } from "./menuItem.js";
 import { GnomeRenderer } from "./renderer.js";
 
 const ICON_SIZE = 22;
@@ -22,15 +22,15 @@ export interface MenuHandler {
 
 
 export class GnomeRunner extends MenuRendererCommon<St.BoxLayout, St.BoxLayout, St.BoxLayout,
-    PopupMenu.PopupSubMenuMenuItem, typeof GCheckedMenuItem, typeof GMatchMenuItem,
-    GnomePopupSubMenuItem, GnomeCheckedMenuItem, GnomeMatchMenuItem> {
+    PopupMenu.PopupSubMenuMenuItem, PopupMenu.PopupMenuItem, typeof GCheckedMenuItem, typeof GMatchMenuItem,
+    GnomePopupSubMenuItem, GnomeLinkMenuItem, GnomeCheckedMenuItem, GnomeMatchMenuItem> {
     private _extension: MenuHandler;
     private _refreshLabel?: St.Label;
 
     constructor(extension: MenuHandler, log: (logs: string[]) => void, settings: Settings, basePath: string) {
         const renderer = new GnomeRenderer(extension.uuid(), basePath, log)
         super(log, settings, basePath, renderer,
-            GnomePopupSubMenuItem, GnomeCheckedMenuItem, GnomeMatchMenuItem, extension.uuid(),
+            GnomePopupSubMenuItem, GnomeLinkMenuItem, GnomeCheckedMenuItem, GnomeMatchMenuItem, extension.uuid(),
         );
         this._extension = extension;
         this._initRunner();

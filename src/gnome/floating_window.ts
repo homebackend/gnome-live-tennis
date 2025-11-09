@@ -132,7 +132,9 @@ export class FloatingScoreWindow extends LiveViewRendererCommon<St.BoxLayout, St
     }
 
     hide() {
-        this._windowActor.hide();
+        if (this._windowActor) {
+            this._windowActor.hide();
+        }
     }
 
     destroy() {

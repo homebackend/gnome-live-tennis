@@ -1,4 +1,4 @@
-import { CheckedMenuItem, CheckedMenuItemProperties, MatchMenuItem, MatchMenuItemProperties, MatchMenuItemRenderer, MenuItem, PopubSubMenuItemProperties, PopupSubMenuItem } from "../common/menuitem.js";
+import { CheckedMenuItem, CheckedMenuItemProperties, LinkMenuItemProperties, MatchMenuItem, MatchMenuItemProperties, MatchMenuItemRenderer, MenuItem, PopubSubMenuItemProperties, PopupSubMenuItem } from "../common/menuitem.js";
 import { Renderer } from "../common/renderer.js";
 import { TennisMatch } from "../common/types.js";
 import { ElectronRenderer } from "./renderer.js";
@@ -86,6 +86,32 @@ export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupS
 
     destroy(): void {
         this._menu.innerHTML = '';
+    }
+}
+
+export class ElectronLinkMenuItem extends ElectronRenderer implements MenuItem<HTMLDivElement> {
+    protected _item: HTMLDivElement;
+
+    constructor(properties: LinkMenuItemProperties) {
+        super(properties.basePath, properties.log);
+        this._item = this.createContainer({ xExpand: true, className: StyleKeys.MainMenuMatchItem });
+        properties.menuUrls.forEach(menuUrl => this.addTextToContainer(this._item, {
+            text: menuUrl.title,
+            link: menuUrl.url,
+            paddingRight: '5px',
+        }));
+    }
+
+    get item(): HTMLDivElement {
+        return this._item;
+    }
+
+    connect(action: string, handler: () => void): void {
+        this._item.addEventListener(action, handler);
+    }
+
+    destroy(): void {
+        this._item.innerHTML = '';
     }
 }
 

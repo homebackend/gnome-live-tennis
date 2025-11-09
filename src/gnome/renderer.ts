@@ -8,11 +8,20 @@ import { StyleKeys } from "../common/style_keys.js";
 
 export class GnomeRenderer extends Renderer<St.BoxLayout, St.BoxLayout, St.BoxLayout> {
     protected uuid: string;
-    private openConnections: Map<St.Widget, number> = new Map();
+    private _openConnections: Map<St.Widget, number[]> = new Map();
 
     constructor(uuid: string, basePath: string, log: (logs: string[]) => void) {
         super(basePath, log);
         this.uuid = uuid;
+    }
+
+    private _addConnection(key: St.Widget, value: number) {
+        const existingArray = this._openConnections.get(key);
+        if (existingArray) {
+            existingArray.push(value);
+        } else {
+            this._openConnections.set(key, [value]);
+        }
     }
 
     openURL(url: string): void {
@@ -128,10 +137,11 @@ export class GnomeRenderer extends Renderer<St.BoxLayout, St.BoxLayout, St.BoxLa
                 reactive: true,
                 can_focus: true,
                 track_hover: true,
+                style_class: StyleKeys.MainMenuLinkButton,
             });
             button.set_child(label);
             const id = button.connect('button-press-event', this.openURL.bind(this, textProperties.link));
-            this.openConnections.set(button, id);
+            this._addConnection(button, id);
             box.add_child(button);
         } else {
             box.add_child(label);
@@ -173,11 +183,11 @@ export class GnomeRenderer extends Renderer<St.BoxLayout, St.BoxLayout, St.BoxLa
             'button-press-event',
             handler,
         );
-        this.openConnections.set(element, id);
+        this._addConnection(element, id);
     }
 
     destroy(): void {
-        this.openConnections.forEach((id, widget) => widget.disconnect(id));
+        this._openConnections.forEach((ids, widget) => ids.forEach(id => widget.disconnect(id)));
     }
 
 }

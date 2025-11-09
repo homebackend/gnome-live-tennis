@@ -38,4 +38,5 @@ export const StyleKeys = {
     MainMenuPlayerImage: 'player-image-menu',
     MainMenuPlayerFlag: 'player-flag-menu',
     MainMenuRefreshLabel: 'livescore-refresh-label',
+    MainMenuLinkButton: 'link-button',
 };

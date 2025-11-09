@@ -3,9 +3,11 @@ import GObject from 'gi://GObject';
 import St from 'gi://St'
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import { TennisMatch } from '../common/types.js';
-import { CheckedMenuItem, CheckedMenuItemProperties, MatchMenuItem, MatchMenuItemProperties, MatchMenuItemRenderer, MenuItem, PopubSubMenuItemProperties, PopupSubMenuItem } from '../common/menuitem.js';
+import { CheckedMenuItem, CheckedMenuItemProperties, LinkMenuItemProperties, MatchMenuItem, MatchMenuItemProperties, MatchMenuItemRenderer, MenuItem, PopubSubMenuItemProperties, PopupSubMenuItem } from '../common/menuitem.js';
 import { loadPopupMenuGicon } from './image_loader.js';
 import { Renderer } from '../common/renderer.js';
+import { GnomeRenderer } from './renderer.js';
+import { StyleKeys } from '../common/style_keys.js';
 
 
 export const GCheckedMenuItem = GObject.registerClass({
@@ -152,6 +154,36 @@ export class GnomePopupSubMenuItem implements PopupSubMenuItem<PopupMenu.PopupSu
 
     destroy(): void {
         this._menu.destroy();
+    }
+}
+
+export class GnomeLinkMenuItem extends GnomeRenderer implements MenuItem<PopupMenu.PopupMenuItem> {
+    private _item: PopupMenu.PopupMenuItem;
+
+    constructor(properties: LinkMenuItemProperties) {
+        super(properties.uuid!, properties.basePath, properties.log);
+
+        this._item = new PopupMenu.PopupMenuItem('', { reactive: true });
+        const container = this.createContainer({ xExpand: true, className: StyleKeys.MainMenuMatchItem });
+        this._item.actor.add_child(container);
+
+        properties.menuUrls.forEach(menuUrl => this.addTextToContainer(container, {
+            text: menuUrl.title,
+            link: menuUrl.url,
+            paddingRight: '5px',
+        }));
+    }
+
+    get item(): PopupMenu.PopupMenuItem {
+        return this._item;
+    }
+
+    connect(action: string, handler: () => void): void {
+        throw new Error('Method not implemented.');
+    }
+
+    destroy(): void {
+        super.destroy();
     }
 }
 

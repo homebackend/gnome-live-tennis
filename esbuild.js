@@ -17,11 +17,11 @@ const commonBuildOptions = {
   target: ['node22'],
 };
 
-async function copyCommonAssets(outDir) {
+async function copyCommonAssets(outDir, cssTargetName) {
   const cwd = process.cwd();
   await fs.copy(path.join(cwd, 'assets', 'icons'), path.join(outDir, 'icons'));
   await fs.copy(path.join(cwd, 'assets', 'flags'), path.join(outDir, 'flags'));
-  await fs.copy(path.join(cwd, 'src', 'common', 'style.css'), path.join(outDir, 'style.css'));
+  await fs.copy(path.join(cwd, 'src', 'common', 'style.css'), path.join(outDir, cssTargetName));
 }
 
 async function buildElectron() {
@@ -49,14 +49,14 @@ async function buildElectron() {
   });
 
   try {
-    await copyCommonAssets(outDir);
+    await copyCommonAssets(outDir, 'style.css');
     await fs.copy(path.join(process.cwd(), 'src', 'electron'), outDir, {
       filter: (src, dest) => {
         if (fs.statSync(src).isDirectory()) {
           return true;
         }
 
-        return src.endsWith('.html');
+        return src.endsWith('.html') || src.endsWith('.css');
       }
     });
 
@@ -101,7 +101,7 @@ async function buildGnome() {
     process.exit(1);
   }
 
-  await copyCommonAssets(distDir);
+  await copyCommonAssets(distDir, 'stylesheet.css');
   await fs.copy(path.join(process.cwd(), 'src', 'gnome', 'metadata.json'), path.join(distDir, 'metadata.json'));
 
   console.log('GNOME extension build complete.');

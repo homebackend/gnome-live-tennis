@@ -147,6 +147,11 @@ export class AtpFetcher {
 
                     const id = e["EventId"];
                     const name = e["EventTitle"];
+                    const url = `https://www.atptour.com/en/tournaments/${name.toLowerCase()}/${id}/overview`;
+                    const resultUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/results`;
+                    const drawUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/draws`;
+                    const scheduleUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/daily-schedule`;
+                    const seedsUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/top-seeds`;
 
                     const event: TennisEvent = {
                         year: e["EventYear"],
@@ -174,7 +179,23 @@ export class AtpFetcher {
                         prizeMoneyCurrency: "",
                         displayPrizeMoney: "",
                         status: "",
-                        url: `https://www.atptour.com/en/tournaments/${name.toLowerCase()}/${id}/overview`,
+                        url: url,
+                        menuUrls: [{
+                            title: 'Overview',
+                            url: url,
+                        }, {
+                            title: 'Results',
+                            url: resultUrl,
+                        }, {
+                            title: 'Draw',
+                            url: drawUrl,
+                        }, {
+                            title: 'Schedule',
+                            url: scheduleUrl,
+                        }, {
+                            title: 'Seeds',
+                            url: seedsUrl,
+                        }],
                     };
 
                     tennisEvents.push(event);

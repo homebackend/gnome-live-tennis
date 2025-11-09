@@ -1,6 +1,6 @@
 import { StyleKeys } from "./style_keys.js";
 import { Alignment, Renderer } from "./renderer.js";
-import { TennisEvent, TennisMatch, TennisTeam } from "./types.js";
+import { MenuUrl, TennisEvent, TennisMatch, TennisTeam } from "./types.js";
 
 export interface PopubSubMenuItemProperties {
     basePath: string;
@@ -10,6 +10,13 @@ export interface PopubSubMenuItemProperties {
     url?: string;
     uuid?: string;
     clickHandler?: () => void;
+}
+
+export interface LinkMenuItemProperties {
+    basePath: string;
+    uuid?: string;
+    log: (logs: string[]) => void;
+    menuUrls: MenuUrl[];
 }
 
 export interface CheckedMenuItemProperties {

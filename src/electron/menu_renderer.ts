@@ -3,7 +3,7 @@ import { MenuRendererCommon } from '../common/menu_renderer.js';
 import { Alignment } from '../common/renderer.js';
 import { Settings } from '../common/settings.js';
 import { TennisEvent, TennisMatch } from '../common/types.js';
-import { ElectronCheckedMenuItem, ElectronMatchMenuItem, ElectronPopupSubMenuItem } from './menuitem.js';
+import { ElectronCheckedMenuItem, ElectronLinkMenuItem, ElectronMatchMenuItem, ElectronPopupSubMenuItem } from './menuitem.js';
 import { ElectronRenderer } from './renderer.js';
 import { StyleKeys } from '../common/style_keys.js';
 
@@ -62,15 +62,15 @@ class MainWindowSettings implements Settings {
     }
 }
 
-class MenuRenderer extends MenuRendererCommon<HTMLDivElement, HTMLSpanElement, HTMLImageElement, HTMLDivElement, HTMLDivElement, HTMLDivElement,
-    ElectronPopupSubMenuItem, ElectronCheckedMenuItem, ElectronMatchMenuItem> {
+class MenuRenderer extends MenuRendererCommon<HTMLDivElement, HTMLSpanElement, HTMLImageElement, HTMLDivElement, HTMLDivElement, HTMLDivElement, HTMLDivElement,
+    ElectronPopupSubMenuItem, ElectronLinkMenuItem, ElectronCheckedMenuItem, ElectronMatchMenuItem> {
     private _eventDiv: HTMLDivElement;
     private _othersDiv: HTMLDivElement;
     private _refreshTimeSpan?: HTMLSpanElement;
 
     constructor(basePath: string, renderer: ElectronRenderer) {
         super(window.electronAPIMenu.log, new MainWindowSettings(), basePath,
-            renderer, ElectronPopupSubMenuItem, ElectronCheckedMenuItem, ElectronMatchMenuItem);
+            renderer, ElectronPopupSubMenuItem, ElectronLinkMenuItem, ElectronCheckedMenuItem, ElectronMatchMenuItem);
 
         const root = document.getElementById('root');
         if (!root) {

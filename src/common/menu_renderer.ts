@@ -1,12 +1,13 @@
-import { CheckedMenuItem, CheckedMenuItemProperties, MatchMenuItem, MatchMenuItemProperties, PopubSubMenuItemProperties, PopupSubMenuItem } from "./menuitem.js";
+import { CheckedMenuItem, CheckedMenuItemProperties, LinkMenuItemProperties, MatchMenuItem, MatchMenuItemProperties, MenuItem, PopubSubMenuItemProperties, PopupSubMenuItem } from "./menuitem.js";
 import { Renderer } from "./renderer.js";
 import { Runner } from "./runner.js";
 import { Settings } from "./settings.js";
 import { TennisEvent, TennisMatch } from "./types.js";
 
-export abstract class MenuRendererCommon<T, TT, IT, PI, CI, MI,
-    E extends PopupSubMenuItem<PI, CI | MI>, C extends CheckedMenuItem<CI>, M extends MatchMenuItem<MI>> extends Runner {
+export abstract class MenuRendererCommon<T, TT, IT, PI, LI, CI, MI, E extends PopupSubMenuItem<PI, LI | CI | MI>,
+    L extends MenuItem<LI>, C extends CheckedMenuItem<CI>, M extends MatchMenuItem<MI>> extends Runner {
     private _EConstructor: new (properties: PopubSubMenuItemProperties) => E;
+    private _LConstructor: new (properties: LinkMenuItemProperties) => L;
     private _CConstructor: new (properties: CheckedMenuItemProperties, renderer: Renderer<T, TT, IT>) => C;
     private _MConstructor: new (properties: MatchMenuItemProperties, renderer: Renderer<T, TT, IT>) => M;
     protected _renderer: Renderer<T, TT, IT>;
@@ -14,12 +15,14 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, CI, MI,
     private _uuid?: string;
 
     private _tournamentHeaders: Map<string, E> = new Map();
+    private _eventLinkItems: Map<String, L> = new Map();
     private _eventAutoItems: Map<string, C> = new Map();
     private _matchesMenuItems: Map<string, M> = new Map();
 
     constructor(log: (logs: string[]) => void, settings: Settings, basePath: string,
         renderer: Renderer<T, TT, IT>,
         EConstructor: new (properties: PopubSubMenuItemProperties) => E,
+        LConstructor: new (properties: LinkMenuItemProperties) => L,
         CConstructor: new (properties: CheckedMenuItemProperties, renderer: Renderer<T, TT, IT>) => C,
         MConstructor: new (properties: MatchMenuItemProperties, renderer: Renderer<T, TT, IT>) => M,
         uuid?: string,
@@ -30,6 +33,7 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, CI, MI,
         this._settings = settings;
         this._uuid = uuid;
         this._EConstructor = EConstructor;
+        this._LConstructor = LConstructor;
         this._CConstructor = CConstructor;
         this._MConstructor = MConstructor;
     }
@@ -63,6 +67,15 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, CI, MI,
         });
         this.addEventMenuItemToMenu(submenuItem, position);
         this._tournamentHeaders.set(event.id, submenuItem);
+
+        const linkItem = new this._LConstructor({
+            basePath: this.basePath,
+            log: this.log,
+            uuid: this._uuid,
+            menuUrls: event.menuUrls,
+        });
+        submenuItem.addMenuItem(linkItem);
+        this._eventLinkItems.set(event.id, linkItem);
 
         const autoItem = new this._CConstructor({
             text: 'Auto add new matches',
@@ -109,6 +122,12 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, CI, MI,
     }
 
     removeEventMenuItem(event: TennisEvent): void {
+        const linkItem = this._eventLinkItems.get(event.id);
+        if (linkItem) {
+            linkItem.destroy();
+            this._eventLinkItems.delete(event.id);
+        }
+
         const autoItem = this._eventAutoItems.get(event.id);
         if (autoItem) {
             autoItem.destroy();

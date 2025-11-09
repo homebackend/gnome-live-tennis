@@ -54,6 +54,11 @@ export interface TennisMatch {
     h2hUrl: string,
 }
 
+export interface MenuUrl {
+    title: string;
+    url: string;
+};
+
 export interface TennisEvent {
     id: string;
     year: number;
@@ -81,4 +86,5 @@ export interface TennisEvent {
     matchMapping: { [key: string]: TennisMatch };
     eventTypeUrl: string | undefined;
     url: string;
+    menuUrls: MenuUrl[];
 }

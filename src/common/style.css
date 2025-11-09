@@ -1,37 +1,26 @@
-:root {
-    --bg-color: #ffffff;
-    --text-color: #000000;
-    /* This hint helps browsers render default UI elements correctly */
-    color-scheme: light dark;
-    --menu-item-bg-normal: #F0F0F0;
-    --menu-item-bg-hover: #E0E0E0;
-    --menu-item-text: #000000;
+/* GNOME specific */
+
+.link-button {
+    background-color: #555;
+    border: 1px solid #333;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    padding: 5px 10px;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
 }
 
-/* Apply changes when the system theme is detected as dark */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-color: #1e1e1e;
-        /* Darker background */
-        --text-color: #ffffff;
-        /* White text */
-        --menu-item-bg-normal: #333333;
-        --menu-item-bg-hover: #444444;
-        --menu-item-text: #FFFFFF;
-    }
+.link-button:hover {
+    background-color: #666;
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.4);
 }
 
-div {
-    box-sizing: border-box;
+.link-button:active {
+    background-color: #444;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-a {
-    -webkit-app-region: no-drag;
-}
-
-img {
-    -webkit-app-region: no-drag;
-}
+/* End GNOME specific */
 
 .no-wrap-text {
     white-space: nowrap;
@@ -208,13 +197,6 @@ img {
 
 /* Main Menu */
 
-.main-menu-body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    transition: background-color 0.3s, color 0.3s;
-    /* Smooth transition */
-}
-
 .menu-checkmark {
     color: green;
     font-weight: bold;
@@ -228,19 +210,6 @@ img {
     color: aqua;
 }
 
-.tournament-item {
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 4px;
-    background-color: var(--menu-item-bg-normal);
-    color: var(--menu-item-text);
-    padding: 10px;
-}
-
-.tournament-item:hover {
-    background-color: var(--menu-item-bg-hover);
-}
-
 .menu-event-indicator {
     font-size: 10px;
     font-family: monospace;
@@ -250,18 +219,6 @@ img {
     margin-left: 15px;
     border-left: 1px solid #ccc;
     padding-left: 10px;
-}
-
-.match-item {
-    cursor: pointer;
-    border-radius: 4px;
-    background-color: var(--menu-item-bg-normal);
-    color: var(--menu-item-text);
-    padding: 10px;
-}
-
-.match-item:hover {
-    background-color: var(--menu-item-bg-hover);
 }
 
 .livescore-refresh-label {

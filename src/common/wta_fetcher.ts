@@ -236,6 +236,7 @@ export class WtaFetcher {
         const year = e['year'];
         const id = e['tournamentGroup']['id'];
         const name = e['tournamentGroup']['name'];
+        const url = `https://www.wtatennis.com/tournaments/${id}/${name.toLowerCase().replace(' ', '-')}/${year}`;
         const event: TennisEvent = {
             year: year,
             id: String(id),
@@ -262,7 +263,11 @@ export class WtaFetcher {
             matches: [],
             matchMapping: {},
             eventTypeUrl: this._get_event_type_url(e['level']),
-            url: `https://www.wtatennis.com/tournaments/${id}/${name.toLowerCase().replace(' ', '-')}/${year}`,
+            url: url,
+            menuUrls: [{
+                title: 'Overview',
+                url: url,
+            }],
         }
 
         tennisEvents.push(event);
