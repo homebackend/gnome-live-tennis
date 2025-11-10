@@ -68,7 +68,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
         const matchHeader = this.renderer.createContainer({ className: StyleKeys.LiveViewMatchHeaderBox, xExpand: true });
         this.renderer.addTextToContainer(matchHeader, {
             text: `${match.roundName}`,
-            className: `${StyleKeys.LiveViewMatchHeaderLabel} ${StyleKeys.LiveViewRoundLabel}`
+            className: `${StyleKeys.NoWrapText} ${StyleKeys.LiveViewMatchHeaderLabel} ${StyleKeys.LiveViewRoundLabel}`
         });
         this.renderer.addTextToContainer(matchHeader, {
             text: match.displayStatus,
@@ -77,7 +77,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
         });
         this.renderer.addTextToContainer(matchHeader, {
             text: match.courtName ?? '',
-            className: StyleKeys.LiveViewMatchHeaderLabel,
+            className: `${StyleKeys.NoWrapText} ${StyleKeys.LiveViewMatchHeaderLabel}`,
             yAlign: Alignment.Begin,
         });
         this.renderer.addTextToContainer(matchHeader, {
