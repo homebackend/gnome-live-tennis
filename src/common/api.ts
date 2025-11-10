@@ -1,3 +1,5 @@
+import { TennisEvent } from "./types.js";
+
 export enum HttpMethods {
     GET = "GET",
     POST = "POST",
@@ -10,7 +12,17 @@ export const ApiCommonHeaders = new Map<string, string>([
     ["Accept", "application/json"],
 ]);
 
+export interface ApiRequest {
+    url: string;
+    method: HttpMethods;
+    headers?: Map<string, string>,
+    cookies?: Map<string, string>,
+    payload?: Map<string, any>,
+    responseCookies?: string[],
+}
+
 export interface ApiHandler {
-    fetchJson(url: string, method: HttpMethods, headers: Map<string, string>, handler: (jsonData: any) => any): void;
+    fetchString(request: ApiRequest): Promise<[any, Map<string, string> | undefined]>;
+    fetchJson(request: ApiRequest): Promise<[any, Map<string, string> | undefined]>;
     abort(): void;
 };

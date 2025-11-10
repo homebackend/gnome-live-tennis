@@ -55,22 +55,25 @@ export class LiveViewUpdater {
             const eventIds: Set<String> = new Set();
             const matchesData: TennisMatch[] = [];
 
-            this._liveTennis!.query(
-                async (r: QueryResponseType, e: TennisEvent) => {
-                    if (r === QueryResponseType.AddTournament) {
-                        if (e.title) {
-                            eventIds.add(e.id);
-                            await this._runner.addEvent(e);
-                        } else {
-                            this._log(['Skipping event having null title', e.id]);
-                        }
-                    } else if (r === QueryResponseType.UpdateTournament) {
+            const generator = this._liveTennis.query();
+
+            let result = await generator.next();
+
+            while (!result.done) {
+                const [r, e, m] = result.value;
+
+                if (r === QueryResponseType.AddTournament) {
+                    if (e.title) {
                         eventIds.add(e.id);
-                    } else if (r === QueryResponseType.DeleteTournament) {
-                        await this._runner.removeEvent(e);
+                        await this._runner.addEvent(e);
+                    } else {
+                        this._log(['Skipping event having null title', e.id]);
                     }
-                },
-                async (r: QueryResponseType, e: TennisEvent, m: TennisMatch) => {
+                } else if (r === QueryResponseType.UpdateTournament) {
+                    eventIds.add(e.id);
+                } else if (r === QueryResponseType.DeleteTournament) {
+                    await this._runner.removeEvent(e);
+                } else if (m) {
                     const matchId = this._runner.uniqMatchId(e, m);
                     if (r === QueryResponseType.AddMatch) {
                         (m as any).eventId = e.id;
@@ -85,23 +88,24 @@ export class LiveViewUpdater {
                     } else if (r === QueryResponseType.DeleteMatch) {
                         await this._runner.removeMatch(e, m);
                     }
-                },
-                async (allGood: boolean) => {
-                    if (allGood) {
-                        // Only remove stale entries if API call(s) were success
-                        await this._runner.filterAutoEvents(id => eventIds.has(id));
-                        await this._runner.filterLiveViewMatches(id => matchIds.has(id));
-                    }
+                }
 
-                    this._currentMatchesData = matchesData;
-                    await this._updateFloatingWindows(this._currentMatchesData);
-                    this._runner.setLastRefreshTime(Date.now());
+                result = await generator.next();
+            }
 
-                    const interval = await this._settings!.getInt('update-interval');
-                    this._manager.setFetchTimer(interval, this.fetchMatchData.bind(this));
-                },
-            );
+            const allGood = result.value;
+            if (allGood) {
+                // Only remove stale entries if API call(s) were success
+                await this._runner.filterAutoEvents(id => eventIds.has(id));
+                await this._runner.filterLiveViewMatches(id => matchIds.has(id));
+            }
 
+            this._currentMatchesData = matchesData;
+            await this._updateFloatingWindows(this._currentMatchesData);
+            this._runner.setLastRefreshTime(Date.now());
+
+            const interval = await this._settings!.getInt('update-interval');
+            this._manager.setFetchTimer(interval, this.fetchMatchData.bind(this));
         } catch (e) {
             this._log(['Error during data fetch', String(e)]);
             if (e instanceof Error) {

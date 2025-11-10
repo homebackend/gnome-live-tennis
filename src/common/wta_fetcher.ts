@@ -1,8 +1,8 @@
-//import Soup from "gi://Soup";
 import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
 import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api.js";
+import { Fetcher, FetcherProperties } from "./fetcher.js";
 
-export class WtaFetcher {
+export class WtaFetcher implements Fetcher {
     private static wta_all_events_url_template = 'https://api.wtatennis.com/tennis/tournaments/?page=0&pageSize=20&excludeLevels=ITF&from={from-date}&to={to-date}';
     private static wta_event_url_template = 'https://api.wtatennis.com/tennis/tournaments/{event-id}/{year}/matches?from={from-date}&to={to-date}';
 
@@ -180,59 +180,58 @@ export class WtaFetcher {
         return formatter.format(prizeMoney);
     }
 
-    _fetch_event_data(event: TennisEvent, events: any[], index: number, tennisEvents: TennisEvent[],
-        callback: (tennisEvents: TennisEvent[]) => void) {
+    private async _fetch_event_data(event: TennisEvent): Promise<TennisMatch[] | undefined> {
+        const [jsonData] = await this._apiHandler.fetchJson({
+            url: this._get_event_url(event.id, event.year),
+            method: HttpMethods.GET,
+            headers: ApiCommonHeaders
+        });
 
-        this._apiHandler.fetchJson(this._get_event_url(event.id, event.year),
-            HttpMethods.GET, ApiCommonHeaders, (jsonData => {
-                jsonData['matches'].forEach((m: any) => {
-                    const team1 = this._get_team_data(m, m['DrawMatchType'], 'A', 'B');
-                    const team2 = this._get_team_data(m, m['DrawMatchType'], 'B', 'A');
-                    const isDoubles = m['DrawMatchType'] !== 'S';
-
-                    const tennisMatch: TennisMatch = {
-                        id: m['MatchID'],
-                        isDoubles: isDoubles,
-                        roundId: m['RoundID'],
-                        roundName: this._get_round_name(event, m['DrawMatchType'], m['DrawLevelType'], m['RoundID'], m['MatchState']),
-                        courtName: m['CourtName'],
-                        courtId: m['CourtID'],
-                        matchTotalTime: m['MatchTimeTotal'],
-                        matchTimeStamp: m['MatchTimeStamp'],
-                        matchStateReasonMessage: "",
-                        message: m['FreeText'],
-                        server: m['Serve'] == 'A' ? 0 : m['Serve'] == 'B' ? 1 : -1,
-                        winnerId: -1,
-                        umpireFirstName: "",
-                        umpireLastName: "",
-                        lastUpdate: "",
-                        team1: team1,
-                        team2: team2,
-                        event: event,
-                        status: m['MatchState'],
-                        hasFinished: m['MatchState'] == 'F',
-                        isLive: m['MatchState'] == 'P',
-                        displayName: `${team1.displayName} vs ${team2.displayName}`,
-                        displayStatus: this._get_match_status(m['MatchState']),
-                        displayScore: m['ScoreString'],
-                        h2hUrl: isDoubles ? '' : `https://www.wtatennis.com/head-to-head/${team1.players[0].id}/${team2.players[0].id}`,
-                    };
-
-                    event.matches.push(tennisMatch);
-                    event.matchMapping[tennisMatch.id] = tennisMatch;
-                });
-
-                this._process_event(events, index + 1, tennisEvents, callback);
-            }),
-        );
-    }
-
-    _process_event(events: any[], index: number, tennisEvents: TennisEvent[], callback: (tennisEvents: TennisEvent[]) => void) {
-        if (index == events.length) {
-            return callback(tennisEvents);
+        if (!jsonData) {
+            return undefined;
         }
 
-        const e = events[index];
+        const tennisMatches: TennisMatch[] = [];
+        jsonData['matches'].forEach((m: any) => {
+            const team1 = this._get_team_data(m, m['DrawMatchType'], 'A', 'B');
+            const team2 = this._get_team_data(m, m['DrawMatchType'], 'B', 'A');
+            const isDoubles = m['DrawMatchType'] !== 'S';
+
+            const tennisMatch: TennisMatch = {
+                id: m['MatchID'],
+                isDoubles: isDoubles,
+                roundId: m['RoundID'],
+                roundName: this._get_round_name(event, m['DrawMatchType'], m['DrawLevelType'], m['RoundID'], m['MatchState']),
+                courtName: m['CourtName'],
+                courtId: m['CourtID'],
+                matchTotalTime: m['MatchTimeTotal'],
+                matchTimeStamp: m['MatchTimeStamp'],
+                matchStateReasonMessage: "",
+                message: m['FreeText'],
+                server: m['Serve'] == 'A' ? 0 : m['Serve'] == 'B' ? 1 : -1,
+                winnerId: -1,
+                umpireFirstName: "",
+                umpireLastName: "",
+                lastUpdate: "",
+                team1: team1,
+                team2: team2,
+                event: event,
+                status: m['MatchState'],
+                hasFinished: m['MatchState'] == 'F',
+                isLive: m['MatchState'] == 'P',
+                displayName: `${team1.displayName} vs ${team2.displayName}`,
+                displayStatus: this._get_match_status(m['MatchState']),
+                displayScore: m['ScoreString'],
+                h2hUrl: isDoubles ? '' : `https://www.wtatennis.com/head-to-head/${team1.players[0].id}/${team2.players[0].id}`,
+            };
+
+            tennisMatches.push(tennisMatch);
+        });
+
+        return tennisMatches;
+    }
+
+    private async _process_event(e: any): Promise<TennisEvent | undefined> {
         const year = e['year'];
         const id = e['tournamentGroup']['id'];
         const name = e['tournamentGroup']['name'];
@@ -270,19 +269,46 @@ export class WtaFetcher {
             }],
         }
 
-        tennisEvents.push(event);
-        this._fetch_event_data(event, events, index, tennisEvents, callback);
+        const tennisMatches = await this._fetch_event_data(event);
+        if (!tennisMatches) {
+            return undefined;
+        }
+
+        tennisMatches.forEach(tennisMatch => {
+            event.matches.push(tennisMatch);
+            event.matchMapping[tennisMatch.id] = tennisMatch;
+        });
+
+        return event;
     }
 
-    fetchData(callback: (tennisEvents: TennisEvent[] | undefined) => void) {
+    private async _process_events(events: any[]): Promise<TennisEvent[] | undefined> {
         const tennisEvents: TennisEvent[] = [];
-        this._apiHandler.fetchJson(this._get_all_events_url(), HttpMethods.GET, ApiCommonHeaders, (jsonData => {
-            if (jsonData == null) {
-                return callback(undefined);
-            }
 
-            this._process_event(jsonData['content'], 0, tennisEvents, callback);
+        await Promise.all(events.map(async event => {
+            const tennisEvent = await this._process_event(event);
+            if (tennisEvent) {
+                tennisEvents.push(tennisEvent);
+            } else {
+                return undefined;
+            }
         }));
+
+        return tennisEvents;
+    }
+
+    async fetchData(properties: FetcherProperties): Promise<TennisEvent[] | undefined> {
+        const [jsonData] = await this._apiHandler.fetchJson({
+            url: this._get_all_events_url(),
+            method: HttpMethods.GET,
+            headers: ApiCommonHeaders,
+        });
+
+        if (!jsonData) {
+            return undefined;
+        }
+
+        return await this._process_events(jsonData['content']);
     }
 
     disable() {

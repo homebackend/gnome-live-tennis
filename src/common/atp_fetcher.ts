@@ -1,7 +1,12 @@
 import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
 import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api.js";
+import { Fetcher, FetcherProperties } from "./fetcher.js";
 
-export class AtpFetcher {
+export interface AtpFetcherProperties extends FetcherProperties {
+    tour: string;
+}
+
+export class AtpFetcher implements Fetcher {
     private static atp_url = 'https://app.atptour.com/api/v2/gateway/livematches/website?scoringTournamentLevel=tour';
     private static atp_challenger_url = 'https://app.atptour.com/api/v2/gateway/livematches/website?scoringTournamentLevel=challenger';
 
@@ -131,116 +136,121 @@ export class AtpFetcher {
         return status;
     }
 
-    fetchData(tour: string, callback: (tennisEvents: TennisEvent[] | undefined) => void) {
+    private _getEvents(properties: AtpFetcherProperties, jsonData: any): TennisEvent[] {
         const tennisEvents: TennisEvent[] = [];
-        this._apiHandler.fetchJson(
-            tour == 'ATP' ? AtpFetcher.atp_url : AtpFetcher.atp_challenger_url,
-            HttpMethods.GET, ApiCommonHeaders, (jsonData) => {
-                if (jsonData == null) {
-                    return callback(undefined);
-                }
+        const jsonEvents = jsonData['Data']['LiveMatchesTournamentsOrdered'];
+        jsonEvents.forEach((e: any) => {
+            const matches: TennisMatch[] = [];
+            const matchMapping: { [key: string]: TennisMatch } = {};
 
-                const jsonEvents = jsonData['Data']['LiveMatchesTournamentsOrdered'];
-                jsonEvents.forEach((e: any) => {
-                    const matches: TennisMatch[] = [];
-                    const matchMapping: { [key: string]: TennisMatch } = {};
+            const id = e["EventId"];
+            const name = e["EventTitle"];
+            const url = `https://www.atptour.com/en/tournaments/${name.toLowerCase()}/${id}/overview`;
+            const resultUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/results`;
+            const drawUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/draws`;
+            const scheduleUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/daily-schedule`;
+            const seedsUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/top-seeds`;
 
-                    const id = e["EventId"];
-                    const name = e["EventTitle"];
-                    const url = `https://www.atptour.com/en/tournaments/${name.toLowerCase()}/${id}/overview`;
-                    const resultUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/results`;
-                    const drawUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/draws`;
-                    const scheduleUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/daily-schedule`;
-                    const seedsUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/top-seeds`;
+            const event: TennisEvent = {
+                year: e["EventYear"],
+                id: String(id),
+                title: e["EventTitle"],
+                countryCode: e["EventCountryCode"],
+                country: e["EventCountry"],
+                location: e["EventLocation"],
+                city: e["EventCity"],
+                startDate: e["EventStartDate"],
+                endDate: e["EventEndDate"],
+                type: e["EventType"],
+                displayType: this._get_display_type(properties.tour, e["EventType"]),
+                isLive: e["IsLive"],
+                tour: properties.tour,
+                matches: matches,
+                matchMapping: matchMapping,
+                eventTypeUrl: this._get_event_type_url(properties.tour, e["EventType"]),
+                name: name,
+                surface: "",
+                indoor: false,
+                singlesDrawSize: -1,
+                doublesDrawSize: -1,
+                prizeMoney: -1,
+                prizeMoneyCurrency: "",
+                displayPrizeMoney: "",
+                status: "",
+                url: url,
+                menuUrls: [{
+                    title: 'Overview',
+                    url: url,
+                }, {
+                    title: 'Results',
+                    url: resultUrl,
+                }, {
+                    title: 'Draw',
+                    url: drawUrl,
+                }, {
+                    title: 'Schedule',
+                    url: scheduleUrl,
+                }, {
+                    title: 'Seeds',
+                    url: seedsUrl,
+                }],
+            };
 
-                    const event: TennisEvent = {
-                        year: e["EventYear"],
-                        id: String(id),
-                        title: e["EventTitle"],
-                        countryCode: e["EventCountryCode"],
-                        country: e["EventCountry"],
-                        location: e["EventLocation"],
-                        city: e["EventCity"],
-                        startDate: e["EventStartDate"],
-                        endDate: e["EventEndDate"],
-                        type: e["EventType"],
-                        displayType: this._get_display_type(tour, e["EventType"]),
-                        isLive: e["IsLive"],
-                        tour: tour,
-                        matches: matches,
-                        matchMapping: matchMapping,
-                        eventTypeUrl: this._get_event_type_url(tour, e["EventType"]),
-                        name: name,
-                        surface: "",
-                        indoor: false,
-                        singlesDrawSize: -1,
-                        doublesDrawSize: -1,
-                        prizeMoney: -1,
-                        prizeMoneyCurrency: "",
-                        displayPrizeMoney: "",
-                        status: "",
-                        url: url,
-                        menuUrls: [{
-                            title: 'Overview',
-                            url: url,
-                        }, {
-                            title: 'Results',
-                            url: resultUrl,
-                        }, {
-                            title: 'Draw',
-                            url: drawUrl,
-                        }, {
-                            title: 'Schedule',
-                            url: scheduleUrl,
-                        }, {
-                            title: 'Seeds',
-                            url: seedsUrl,
-                        }],
-                    };
+            tennisEvents.push(event);
 
-                    tennisEvents.push(event);
+            e['LiveMatches'].forEach((m: any) => {
+                const matchType = m['Type'];
+                const team1 = this._get_atp_team_data(m['PlayerTeam'], matchType);
+                const team2 = this._get_atp_team_data(m['OpponentTeam'], matchType);
+                const isDoubles = m['IsDoubles'];
 
-                    e['LiveMatches'].forEach((m: any) => {
-                        const matchType = m['Type'];
-                        const team1 = this._get_atp_team_data(m['PlayerTeam'], matchType);
-                        const team2 = this._get_atp_team_data(m['OpponentTeam'], matchType);
-                        const isDoubles = m['IsDoubles'];
+                const match: TennisMatch = {
+                    id: m['MatchId'],
+                    isDoubles: isDoubles,
+                    roundName: m['RoundName'],
+                    courtName: m['CourtName'],
+                    courtId: m['CourtId'],
+                    matchTotalTime: m['MatchTimeTotal'],
+                    matchStateReasonMessage: m['MatchStateReasonMessage'],
+                    message: m['ExtendedMessage'],
+                    status: m['MatchStatus'],
+                    server: m['ServerTeam'],
+                    winnerId: m['WinningPlayerId'],
+                    umpireFirstName: m['UmpireFirstName'],
+                    umpireLastName: m['UmpireLastName'],
+                    lastUpdate: m['LastUpdated'],
+                    team1: team1,
+                    team2: team2,
+                    event: event,
+                    hasFinished: m['MatchStatus'] == 'F',
+                    isLive: m['MatchStatus'] == 'P',
+                    displayName: `${team1.displayName} vs ${team2.displayName}`,
+                    displayStatus: this._get_match_display_status(m['MatchStatus']),
+                    displayScore: this._formatSetScores(team1.setScores, team2.setScores),
+                    roundId: m['RoundName'],
+                    matchTimeStamp: "",
+                    h2hUrl: isDoubles ? '' : `https://www.atptour.com/en/players/atp-head-2-head/${team1.players[0].slug}-vs-${team2.players[0].slug}/${team1.players[0].id}/${team2.players[0].id}`,
+                };
+                matches.push(match);
+                matchMapping[m['MatchId']] = match;
+            });
+        });
 
-                        const match: TennisMatch = {
-                            id: m['MatchId'],
-                            isDoubles: isDoubles,
-                            roundName: m['RoundName'],
-                            courtName: m['CourtName'],
-                            courtId: m['CourtId'],
-                            matchTotalTime: m['MatchTimeTotal'],
-                            matchStateReasonMessage: m['MatchStateReasonMessage'],
-                            message: m['ExtendedMessage'],
-                            status: m['MatchStatus'],
-                            server: m['ServerTeam'],
-                            winnerId: m['WinningPlayerId'],
-                            umpireFirstName: m['UmpireFirstName'],
-                            umpireLastName: m['UmpireLastName'],
-                            lastUpdate: m['LastUpdated'],
-                            team1: team1,
-                            team2: team2,
-                            event: event,
-                            hasFinished: m['MatchStatus'] == 'F',
-                            isLive: m['MatchStatus'] == 'P',
-                            displayName: `${team1.displayName} vs ${team2.displayName}`,
-                            displayStatus: this._get_match_display_status(m['MatchStatus']),
-                            displayScore: this._formatSetScores(team1.setScores, team2.setScores),
-                            roundId: m['RoundName'],
-                            matchTimeStamp: "",
-                            h2hUrl: isDoubles ? '' : `https://www.atptour.com/en/players/atp-head-2-head/${team1.players[0].slug}-vs-${team2.players[0].slug}/${team1.players[0].id}/${team2.players[0].id}`,
-                        };
-                        matches.push(match);
-                        matchMapping[m['MatchId']] = match;
-                    });
-                });
+        return tennisEvents;
+    }
 
-                callback(tennisEvents);
-            },
-        );
+    async fetchData(properties: AtpFetcherProperties): Promise<TennisEvent[] | undefined> {
+        const [jsonData] = await this._apiHandler.fetchJson({
+            url: properties.tour == 'ATP' ? AtpFetcher.atp_url : AtpFetcher.atp_challenger_url,
+            method: HttpMethods.GET,
+            headers: ApiCommonHeaders,
+        });
+
+        if (!jsonData) {
+            return undefined;
+        }
+
+        return this._getEvents(properties, jsonData);
     }
 
     disable() {

@@ -85,3 +85,25 @@ export class SortedStringList {
         return [...this.data];
     }
 }
+
+export function generateUUIDv4(): string {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+export function getDomainFromUrl(url_string: string): string {
+    try {
+        const url_object = new URL(url_string);
+        return url_object.hostname;
+    } catch (error) {
+        console.error("Invalid URL provided:", error);
+        return '';
+    }
+}
+
