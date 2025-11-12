@@ -92,13 +92,12 @@ export const GMatchMenuItem = GObject.registerClass({
             console.log('No children')
             return;
         }
-        const container = children[2];
+        const container = children[1];
         container.remove_all_children();
         renderer.updateMatchData(container, match);
     }
 
     setMatch(match: TennisMatch, renderer: MatchMenuItemRenderer<St.BoxLayout, St.BoxLayout, St.BoxLayout>) {
-        console.log('inside setMatch');
         this._updateMenu(match, renderer);
     }
 
