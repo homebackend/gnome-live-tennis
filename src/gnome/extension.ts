@@ -135,12 +135,21 @@ export default class LiveScoreExtension extends Extension implements LiveViewMan
         return _activeFloatingWindows.length;
     }
 
-    async setLiveViewCount(numWindows: number): Promise<void> {
+    private async _addLiveViewWindows(numWindows: number): Promise<void> {
         while (_activeFloatingWindows.length < numWindows) {
             _activeFloatingWindows.push(new FloatingScoreWindow(_activeFloatingWindows.length, this.path, this.uuid, this._log.bind(this), this._settings!));
         }
-        while (_activeFloatingWindows.length > numWindows) {
-            _activeFloatingWindows.pop()?.destroy();
+
+        return new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    async setLiveViewCount(numWindows: number): Promise<void> {
+        if (_activeFloatingWindows.length < numWindows) {
+            await this._addLiveViewWindows(numWindows);
+        } else {
+            while (_activeFloatingWindows.length > numWindows) {
+                _activeFloatingWindows.pop()?.destroy();
+            }
         }
     }
 
