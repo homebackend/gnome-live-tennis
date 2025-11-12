@@ -1,6 +1,6 @@
 {
   "name": "live-tennis",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Application to show live ATP and WTA tennis match scores and data",
   "homepage": "https://github.com/homebackend/gnome-live-tennis#readme",
   "bugs": {
@@ -23,7 +23,7 @@
     "start": "npm run start:electron",
     "start:electron": "npm run build && electron .",
     "prettify": "prettier --write dist-gnome/extension.js dist-gnome/prefs.js",
-    "package:gnome": "npm run clean:gnome && npm run build && cd dist-gnome && zip -qr live-tennis.zip extension.js prefs.js style.css metadata.json icons flags schemas",
+    "package:gnome": "npm run clean:gnome && npm run build && cd dist-gnome && zip -qr live-tennis-gnome-extension.zip extension.js prefs.js stylesheet.css metadata.json icons flags schemas",
     "package:electron": "npm run build && electron-builder --dir",
     "dist:electron": "npm run build && electron-builder -wl --publish never",
     "deploy:gnome": "./deploy.sh",
