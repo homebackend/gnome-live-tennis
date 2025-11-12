@@ -45,7 +45,7 @@ jobs:
             release/*.deb
             release/*.rpm
             release/*.AppImage
-            dist-gnome/live-tennis.zip
+            dist-gnome/*.zip
 
   # Job 2: Build for Arch Linux (.pkg.tar.zst package)
   build-arch:
