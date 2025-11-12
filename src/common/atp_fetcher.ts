@@ -62,7 +62,7 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
             players: players,
             entryType: t['EntryType'],
             seed: t['Seed'],
-            gameScore: t['GameScore'],
+            gameScore: String(t['GameScore']),
             setScores: this._get_set_scores(t),
             displayName: players.map(p => p.lastName).join('/'),
         };

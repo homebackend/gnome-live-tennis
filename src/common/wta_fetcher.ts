@@ -83,7 +83,7 @@ export class WtaFetcher implements Fetcher {
             players: players,
             entryType: t[`EntryType${team}`],
             seed: t[`Seed${team}`],
-            gameScore: t[`Point${team}`],
+            gameScore: String(t[`Point${team}`]),
             setScores: this._get_set_scores(t, team, other),
             displayName: players.map(p => p.lastName || 'TBD').join('/'),
         };

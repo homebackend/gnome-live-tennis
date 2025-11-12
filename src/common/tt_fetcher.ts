@@ -119,11 +119,11 @@ export class TTFetcher extends FetcherCommon implements Fetcher {
     private _getTeam(): TennisTeam {
         return {
             players: [this._getPlayer()],
-            entryType: "",
-            seed: "",
-            gameScore: 0,
+            entryType: '',
+            seed: '',
+            gameScore: '',
             setScores: [],
-            displayName: ""
+            displayName: '',
         };
     }
 
@@ -226,7 +226,7 @@ export class TTFetcher extends FetcherCommon implements Fetcher {
                             currentTeam.setScores.unshift(fetcher._getSetScrore(text.trim()));
                             break;
                         case ParsePosition.GameScore:
-                            currentTeam.gameScore = +text.trim();
+                            currentTeam.gameScore = text.trim();
                             break;
                         case ParsePosition.PlayerName:
                             const name = text.trim();

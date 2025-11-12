@@ -146,7 +146,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
         this.renderer.addContainersToContainer(row, serviceBox);
 
         this.renderer.addTextToContainer(row, {
-            text: team.gameScore != null ? String(team.gameScore) : '',
+            text: team.gameScore != null ? team.gameScore : '',
             className: StyleKeys.LiveViewGameScoreBox,
             yAlign: alignment,
         });
@@ -212,7 +212,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
             return [''];
         }
 
-        return scores.filter(s => s.score).map(s => {
+        return scores.filter(s => s.score >= 0).map(s => {
             let scoreString = `${s.score}`;
             if (s.tiebrake) {
                 scoreString += `<sup>${s.tiebrake}</sup>`;

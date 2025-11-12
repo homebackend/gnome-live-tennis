@@ -21,7 +21,7 @@ export interface TennisTeam {
     players: TennisPlayer[];
     entryType: string;
     seed: string;
-    gameScore: number;
+    gameScore: string;
     setScores: TennisSetScore[];
     displayName: string;
 }
