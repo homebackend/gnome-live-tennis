@@ -336,6 +336,11 @@ export class TTFetcher extends FetcherCommon implements Fetcher {
             payload: data,
         });
 
+        if (!response) {
+            this._log(['Empty response']);
+            return undefined;
+        }
+
         const events = await this._parseHtml(response['matchs']['html']);
 
         return events;

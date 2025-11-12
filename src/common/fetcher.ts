@@ -38,7 +38,7 @@ export abstract class FetcherCommon {
             const score1 = team1Scores[i].score;
             const score2 = team2Scores[i].score;
 
-            if (!score1 || !score2) {
+            if (score1 === undefined || score1 === null || score2 === undefined || score2 === null) {
                 continue;
             }
 
