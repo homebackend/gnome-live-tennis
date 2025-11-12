@@ -16,7 +16,6 @@ const PADDING = 10;
 
 export class FloatingScoreWindow extends LiveViewRendererCommon<St.BoxLayout, St.BoxLayout, St.BoxLayout> {
     private _runner: GnomeRenderer;
-    private _log: (logs: string[]) => void;
     private _settings: Settings;
     private _windowActor?: St.Widget;
     private _windowIndex: number;
@@ -26,10 +25,9 @@ export class FloatingScoreWindow extends LiveViewRendererCommon<St.BoxLayout, St
 
     constructor(windowIndex: number, extensionPath: string, uuid: string, log: (logs: string[]) => void, settings: Settings) {
         const runner = new GnomeRenderer(uuid, extensionPath, log)
-        super(extensionPath, runner);
+        super(extensionPath, log, runner);
         this._runner = runner;
         this._windowIndex = windowIndex;
-        this._log = log;
         this._settings = settings;
 
         this._setupWindow();

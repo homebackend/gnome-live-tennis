@@ -183,7 +183,7 @@ export abstract class Runner {
     }
 
     async removeMatch(event: TennisEvent, match: TennisMatch) {
-        this.log(['Removinging match', event.title, match.displayName]);
+        this.log(['Removinging match', event.title, match.displayName, match.id]);
 
         const matchId = this.uniqMatchId(event, match);
         await this.filterLiveViewMatches(id => id !== matchId);

@@ -75,7 +75,8 @@ function resizeWindowToFitContent() {
 
 async function renderLiveView() {
     const basePath = await window.electronAPILiveView.basePath();
-    const liveViewRenderer = new LiveViewRenderer(basePath, new ElectronRenderer(basePath, window.electronAPILiveView.log));
+    const renderer = new ElectronRenderer(basePath, window.electronAPILiveView.log);
+    const liveViewRenderer = new LiveViewRenderer(basePath, window.electronAPILiveView.log, renderer);
 
     window.electronAPILiveView.onUpdateLiveViewContent((match: TennisMatch) => liveViewRenderer.updateLiveViewContent(match));
     window.electronAPILiveView.onSetLiveViewContentsEmpty(() => liveViewRenderer.setLiveViewContentsEmpty());

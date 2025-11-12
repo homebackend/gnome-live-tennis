@@ -5,9 +5,11 @@ import { TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.j
 export abstract class LiveViewRendererCommon<T, TT, IT> {
     protected basePath: string;
     protected renderer: Renderer<T, TT, IT>;
+    protected log: (logs: string[]) => void;
 
-    constructor(basePath: string, renderer: Renderer<T, TT, IT>) {
+    constructor(basePath: string, log: (logs: string[]) => void, renderer: Renderer<T, TT, IT>) {
         this.basePath = basePath;
+        this.log = log;
         this.renderer = renderer;
     }
 
@@ -212,7 +214,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
             return [''];
         }
 
-        return scores.filter(s => s.score >= 0).map(s => {
+        return scores.filter(s => s && s.score != null && s.score >= 0).map(s => {
             let scoreString = `${s.score}`;
             if (s.tiebrake) {
                 scoreString += `<sup>${s.tiebrake}</sup>`;
