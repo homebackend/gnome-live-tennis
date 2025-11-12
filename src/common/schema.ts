@@ -1,5 +1,6 @@
 export interface Schema {
     enabled: boolean;
+    autostart: boolean;
     auto_hide_no_live_matches: boolean;
     only_show_live_matches: boolean;
     update_interval: number;
@@ -20,9 +21,16 @@ export interface Schema {
     enable_debug_logging: boolean;
 }
 
+export enum SettingApplicability {
+    All,
+    GnomeShellExtension,
+    ElectronTrayApp,
+}
+
 interface FullSchemaItem {
     type: string;
     default?: any;
+    applicability?: SettingApplicability,
     items?: { type: string, enum?: string },
     summary?: string;
     description?: string;
@@ -35,6 +43,13 @@ export interface FullSchema {
 }
 
 export const schema: FullSchema = {
+    autostart: {
+        type: 'boolean',
+        default: true,
+        applicability: SettingApplicability.ElectronTrayApp,
+        summary: 'Start Live Tennis Automatically',
+        description: 'Whether to start Live Tennis automatically with your desktop.',
+    },
     enabled: {
         type: 'boolean',
         default: false,
@@ -186,6 +201,10 @@ export const prefs: PrefSchema[] = [{
     title: 'Live View Match Selection',
     description: 'Control how Live View match selection works.',
     properties: ['auto_select_live_matches', 'auto_select_country_codes', 'auto_select_player_names'],
+}, {
+    title: 'Application Options',
+    description: 'Control how Live View Application works.',
+    properties: ['autostart'],
 }, {
     title: 'Developer Options',
     description: 'Control developer mode used to debug this extension.',

@@ -7,7 +7,36 @@ import { ElectronLiveViewManager } from './live_view_manager.js';
 import { ApiHandlers, LiveViewUpdater } from '../common/live_view_updater.js';
 import { AxiosApiHandler, CurlApiHandler } from './api.js';
 import { PrefsManager } from './prefs_manager.js';
+import { Settings } from '../common/settings.js';
+import AutoLaunch from 'auto-launch';
 
+async function addAutostartIfApplicable(log: (logs: string[]) => void, settings: Settings) {
+    try {
+        const autostart = await settings.getBoolean('autostart');
+        const appPath = app.getPath('exe');
+
+        let autoLaunch = new AutoLaunch({
+            name: 'live-tennis', // Name should match your app's name in package.json
+            path: appPath,
+        });
+
+        const isEnabled = await autoLaunch.isEnabled();
+        if (autostart && !isEnabled) {
+            await autoLaunch.enable();
+            log(['Enabled autostart for', appPath])
+        }
+
+        if (!autostart && isEnabled) {
+            await autoLaunch.disable();
+            log(['Diabled autostart'])
+        }
+    } catch (err) {
+        log(['Error while configuring autostart']);
+        if (err instanceof Error) {
+            log(['Error', err.message]);
+        }
+    }
+}
 
 app.whenReady().then(() => {
     const settings = new ElectronSettings();
@@ -20,6 +49,8 @@ app.whenReady().then(() => {
             }
         }
 
+        addAutostartIfApplicable(log, settings);
+
         const apiHandlers: ApiHandlers = {
             atp: new CurlApiHandler(log),
             wta: new AxiosApiHandler(log),
@@ -29,7 +60,11 @@ app.whenReady().then(() => {
         const manager = new ElectronLiveViewManager(__dirname, settings);
         const updater = new LiveViewUpdater(runner, manager, apiHandlers, settings, log);
 
-        function redrawLiveView(key: string) {
+        function handleSettingChange(key: string) {
+            if (key === 'autostart') {
+                return addAutostartIfApplicable(log, settings);
+            }
+
             ['enabled', 'num-windows', 'selected-matches', 'auto-view-new-matches',
                 'match-display-duration', 'enable-atp', 'enable-wta', 'enable-atp-challenger',
                 'auto-hide-no-live-matches']
@@ -50,17 +85,17 @@ app.whenReady().then(() => {
         ipcMain.handle(MenuRenderKeys.getSettingBoolean, async (_, key: string) => await settings.getBoolean(key));
         ipcMain.on(MenuRenderKeys.setSettingBoolean, async (_, key: string, value: boolean) => {
             await settings.setBoolean(key, value);
-            redrawLiveView(key);
+            handleSettingChange(key);
         });
         ipcMain.handle(MenuRenderKeys.getSettingInt, async (_, key: string) => await settings.getInt(key));
         ipcMain.on(MenuRenderKeys.setSettingInt, async (_, key: string, value: number) => {
             await settings.setInt(key, value);
-            redrawLiveView(key);
+            handleSettingChange(key);
         });
         ipcMain.handle(MenuRenderKeys.getSettingStrV, async (_, key: string) => await settings.getStrv(key));
         ipcMain.on(MenuRenderKeys.setSettingStrv, async (_, key: string, value: string[]) => {
             await settings.setStrv(key, value);
-            redrawLiveView(key);
+            handleSettingChange(key);
         });
 
         ipcMain.on(MenuRenderKeys.log, (_, logs: string[]) => log(logs));
