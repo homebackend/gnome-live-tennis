@@ -32,13 +32,14 @@ abstract class MenuItemRenderer extends MatchMenuItemRenderer<HTMLDivElement, HT
 export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupSubMenuItem<HTMLDivElement, HTMLDivElement> {
     private _menu: HTMLDivElement;
     private _menuContainer: HTMLDivElement;
+    private _menuIndicator: HTMLSpanElement;
 
     constructor(properties: PopubSubMenuItemProperties) {
         super(properties.basePath, properties.log);
-        [this._menu, this._menuContainer] = this._setup(properties);
+        [this._menu, this._menuContainer, this._menuIndicator] = this._setup(properties);
     }
 
-    private _setup(properties: PopubSubMenuItemProperties): [HTMLDivElement, HTMLDivElement] {
+    private _setup(properties: PopubSubMenuItemProperties): [HTMLDivElement, HTMLDivElement, HTMLSpanElement] {
         const eventElement = this.createContainer({ className: StyleKeys.MainMenuTournamentItem, xExpand: true });
         if (properties.url) {
             this.addImageToContainer(eventElement, { src: properties.url, alt: properties.event.type, height: 20 });
@@ -69,7 +70,7 @@ export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupS
             }
         });
 
-        return [wrapper, menuContainer];
+        return [wrapper, menuContainer, indicator];
     }
 
     get menu(): HTMLDivElement {
@@ -82,6 +83,7 @@ export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupS
 
     hide(): void {
         this._menuContainer.style.display = 'none';
+        this._menuIndicator.textContent = '▶';
     }
 
     destroy(): void {
