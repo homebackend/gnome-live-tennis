@@ -1,18 +1,19 @@
 import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
 import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api.js";
-import { Fetcher, FetcherProperties } from "./fetcher.js";
+import { Fetcher, FetcherCommon, FetcherProperties } from "./fetcher.js";
 
 export interface AtpFetcherProperties extends FetcherProperties {
     tour: string;
 }
 
-export class AtpFetcher implements Fetcher {
+export class AtpFetcher extends FetcherCommon implements Fetcher {
     private static atp_url = 'https://app.atptour.com/api/v2/gateway/livematches/website?scoringTournamentLevel=tour';
     private static atp_challenger_url = 'https://app.atptour.com/api/v2/gateway/livematches/website?scoringTournamentLevel=challenger';
 
     private _apiHandler: ApiHandler;
 
     constructor(apiHandler: ApiHandler) {
+        super();
         this._apiHandler = apiHandler;
     }
 
@@ -49,34 +50,6 @@ export class AtpFetcher implements Fetcher {
         });
         return scores;
     };
-
-    private _formatSetScores(team1Scores: TennisSetScore[], team2Scores: TennisSetScore[]): string {
-        if (!team1Scores || !team2Scores || team1Scores.length === 0 || team2Scores.length === 0) {
-            return '';
-        }
-
-        const scores: string[] = [];
-        for (let i = 0; i < team1Scores.length && i < team2Scores.length; i++) {
-            const score1 = team1Scores[i].score;
-            const score2 = team2Scores[i].score;
-
-            if (!score1 || !score2) {
-                continue;
-            }
-
-            let scoreString = `${score1}-${score2}`;
-
-            const tiebreak1 = team1Scores[i].tiebrake;
-            const tiebreak2 = team2Scores[i].tiebrake;
-            if (tiebreak1 || tiebreak2) {
-                const tiebreakScore = tiebreak1 || tiebreak2;
-                scoreString += `(${tiebreakScore})`;
-            }
-
-            scores.push(scoreString);
-        }
-        return scores.join(', ');
-    }
 
     private _get_atp_team_data(t: any, matchType: string): TennisTeam {
         const players: TennisPlayer[] = [];

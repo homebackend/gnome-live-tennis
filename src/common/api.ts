@@ -1,5 +1,3 @@
-import { TennisEvent } from "./types.js";
-
 export enum HttpMethods {
     GET = "GET",
     POST = "POST",
@@ -22,7 +20,7 @@ export interface ApiRequest {
 }
 
 export interface ApiHandler {
-    fetchString(request: ApiRequest): Promise<[any, Map<string, string> | undefined]>;
+    fetchString(request: ApiRequest): Promise<[string, Map<string, string> | undefined]>;
     fetchJson(request: ApiRequest): Promise<[any, Map<string, string> | undefined]>;
     abort(): void;
 };

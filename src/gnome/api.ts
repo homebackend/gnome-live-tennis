@@ -1,20 +1,16 @@
 import Soup from "gi://Soup";
 import GLib from "gi://GLib";
-import { ApiHandler, ApiRequest } from "../common/api.js";
-import { getDomainFromUrl } from "../common/util.js";
 import Gio from "gi://Gio";
+import { ApiHandler, ApiRequest } from "../common/api.js";
 
 export class GnomeApiHandler implements ApiHandler {
     private _log: (logs: string[]) => void;
-    private _cookieJar: Soup.CookieJar;
     private _httpSession: Soup.Session | undefined;
 
     constructor(log: (logs: string[]) => void) {
         this._log = log;
-        this._cookieJar = new Soup.CookieJar();
         this._httpSession = new Soup.Session();
         this._httpSession.timeout = 60000;
-        this._httpSession.add_feature(this._cookieJar as any);
     }
 
     private _fetch(request: ApiRequest): Promise<[any, Map<string, string> | undefined]> {
@@ -26,13 +22,18 @@ export class GnomeApiHandler implements ApiHandler {
         }
 
         if (request.cookies) {
-            request.cookies.forEach((value, key) => {
-                const domain = getDomainFromUrl(request.url);
-                if (domain) {
-                    const newCookie = new Soup.Cookie(key, value, domain, '/', 1209600);
-                    this._cookieJar.add_cookie(newCookie);
-                }
-            });
+            const cookieString = Array.from(request.cookies.entries())
+                .map(([key, value]) => `${key}=${value}`)
+                .join('; ');
+            msg.request_headers.append('Cookie', cookieString);
+        }
+
+        if (request.payload) {
+            const payload = Array.from(request.payload.entries()).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(JSON.stringify(value))}`).join('&');
+            const encoder = new TextEncoder();
+            const payloadUint8Array = encoder.encode(payload);
+            const bytes = new GLib.Bytes(payloadUint8Array);
+            msg.set_request_body_from_bytes('application/x-www-form-urlencoded', bytes);
         }
 
         const cancellable = new Gio.Cancellable();

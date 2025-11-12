@@ -15,10 +15,11 @@ import { TennisMatch } from '../common/types.js';
 import { MenuHandler, GnomeRunner } from './runner.js';
 import { Settings } from '../common/settings.js';
 import { GnomeSettings } from './settings.js';
-import { LiveViewManager, LiveViewUpdater } from '../common/live_view_updater.js';
+import { ApiHandlers, LiveViewManager, LiveViewUpdater } from '../common/live_view_updater.js';
 import { GnomeApiHandler } from './api.js';
 import { GCheckedMenuItem } from './menuItem.js';
 import { StyleKeys } from '../common/style_keys.js';
+import { CurlApiHandler } from '../common/api.js';
 
 const ICON_SIZE = 22;
 

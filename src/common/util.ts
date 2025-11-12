@@ -96,14 +96,3 @@ export function generateUUIDv4(): string {
         return v.toString(16);
     });
 }
-
-export function getDomainFromUrl(url_string: string): string {
-    try {
-        const url_object = new URL(url_string);
-        return url_object.hostname;
-    } catch (error) {
-        console.error("Invalid URL provided:", error);
-        return '';
-    }
-}
-

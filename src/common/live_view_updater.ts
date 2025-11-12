@@ -5,6 +5,7 @@ import { TennisEvent, TennisMatch } from "./types.js";
 import { AtpFetcher } from "./atp_fetcher.js";
 import { ApiHandler } from "./api.js";
 import { WtaFetcher } from "./wta_fetcher.js";
+import { TTFetcher } from "./tt_fetcher.js";
 
 export interface LiveViewManager {
     setFetchTimer(interval: number, fetcher: () => void): void;
@@ -23,6 +24,7 @@ export interface LiveViewManager {
 export interface ApiHandlers {
     atp: ApiHandler,
     wta: ApiHandler,
+    tt: ApiHandler,
 }
 
 export class LiveViewUpdater {
@@ -41,7 +43,8 @@ export class LiveViewUpdater {
         this._log = log;
         const atpFetcher = new AtpFetcher('atp' in apiHandlers ? apiHandlers.atp : apiHandlers);
         const wtaFetcher = new WtaFetcher('wta' in apiHandlers ? apiHandlers.wta : apiHandlers);
-        this._liveTennis = new LiveTennis(log, settings, atpFetcher, wtaFetcher);
+        const ttFetcher = new TTFetcher('tt' in apiHandlers ? apiHandlers.tt : apiHandlers, log);
+        this._liveTennis = new LiveTennis(log, settings, atpFetcher, wtaFetcher, ttFetcher);
     }
 
     disable() {

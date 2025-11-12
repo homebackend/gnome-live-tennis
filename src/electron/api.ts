@@ -68,7 +68,6 @@ export class AxiosApiHandler implements ApiHandler {
                     return [null, responseCookies];
                 }
 
-                this._log(['Received response']);
                 return [response.data, responseCookies];
             } else {
                 this._log([`Remote server error: ${response.status}`, JSON.stringify(response.data)]);
@@ -94,7 +93,7 @@ export class AxiosApiHandler implements ApiHandler {
         }
     }
 
-    public async fetchString(request: ApiRequest): Promise<[any, Map<string, string> | undefined]> {
+    public async fetchString(request: ApiRequest): Promise<[string, Map<string, string> | undefined]> {
         return this._fetch(request);
     }
 
@@ -154,6 +153,16 @@ export class CurlApiHandler implements ApiHandler {
 
             for (const key in headers) {
                 curlArgs.push('-H', `${key}: ${headers[key]}`);
+            }
+
+            if (request.payload) {
+                const dataArray: string[] = [];
+                request.payload.forEach((value, key) => {
+                    dataArray.push(`${key}=${encodeURIComponent(JSON.stringify(value))}`)
+                });
+                const payloadString = dataArray.join('&');
+
+                curlArgs.push('--data-raw', payloadString);
             }
 
             curlArgs.push('-i', '-L', '--silent');

@@ -1,9 +1,10 @@
 // src/fetcher.ts
 
-import { TennisEvent, TennisMatch } from "./types.js";
+import { TennisEvent, TennisMatch, TennisSetScore } from "./types.js";
 import { AtpFetcher } from "./atp_fetcher.js";
 import { WtaFetcher } from "./wta_fetcher.js";
 import { Settings } from "./settings.js";
+import { TTFetcher } from "./tt_fetcher.js";
 
 type StringToTennisEventMap = {
     [key: string]: TennisEvent
@@ -26,6 +27,36 @@ export interface Fetcher {
     disable(): void;
 }
 
+export abstract class FetcherCommon {
+    protected _formatSetScores(team1Scores: TennisSetScore[], team2Scores: TennisSetScore[]): string {
+        if (!team1Scores || !team2Scores || team1Scores.length === 0 || team2Scores.length === 0) {
+            return '';
+        }
+
+        const scores: string[] = [];
+        for (let i = 0; i < team1Scores.length && i < team2Scores.length; i++) {
+            const score1 = team1Scores[i].score;
+            const score2 = team2Scores[i].score;
+
+            if (!score1 || !score2) {
+                continue;
+            }
+
+            let scoreString = `${score1}-${score2}`;
+
+            const tiebreak1 = team1Scores[i].tiebrake;
+            const tiebreak2 = team2Scores[i].tiebrake;
+            if (tiebreak1 || tiebreak2) {
+                const tiebreakScore = tiebreak1 || tiebreak2;
+                scoreString += `(${tiebreakScore})`;
+            }
+
+            scores.push(scoreString);
+        }
+        return scores.join(', ');
+    }
+}
+
 interface TourData {
     settingKey: string,
     fetcher: () => Promise<TennisEvent[] | undefined>,
@@ -35,32 +66,36 @@ interface TourData {
 }
 
 export class LiveTennis {
-    private _tourData: TourData[] = [];
+    private _tourData: TourData[];
     private _log: (logs: string[]) => void;
-    private _settings: Settings/*Gio.Settings*/;
+    private _settings: Settings;
 
-    constructor(log: (logs: string[]) => void, settings: Settings, atp_fetcher: AtpFetcher, wta_fetcher: WtaFetcher) {
-        this._tourData.push({
+    constructor(log: (logs: string[]) => void, settings: Settings, atp_fetcher: AtpFetcher, wta_fetcher: WtaFetcher, tt_fetcher: TTFetcher) {
+        this._tourData = [{
             settingKey: 'atp',
             fetcher: atp_fetcher.fetchData.bind(atp_fetcher, { tour: 'ATP' }),
             lock: false,
             eventMap: {},
             disabler: atp_fetcher.disable.bind(atp_fetcher),
-        });
-        this._tourData.push({
+        }, {
             settingKey: 'atp-challenger',
             fetcher: atp_fetcher.fetchData.bind(atp_fetcher, { tour: 'ATP-Challenger' }),
             lock: false,
             eventMap: {},
             disabler: atp_fetcher.disable.bind(atp_fetcher),
-        });
-        this._tourData.push({
+        }, {
             settingKey: 'wta',
             fetcher: wta_fetcher.fetchData.bind(wta_fetcher, {}),
             lock: false,
             eventMap: {},
             disabler: wta_fetcher.disable.bind(wta_fetcher),
-        });
+        }, {
+            settingKey: 'tennis-temple',
+            fetcher: tt_fetcher.fetchData.bind(tt_fetcher, {}),
+            lock: false,
+            eventMap: {},
+            disabler: tt_fetcher.disable.bind(tt_fetcher),
+        }];
 
         this._log = log;
         this._settings = settings;

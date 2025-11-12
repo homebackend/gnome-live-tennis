@@ -14,6 +14,7 @@ export interface Schema {
     enable_atp: boolean;
     enable_wta: boolean;
     enable_atp_challenger: boolean;
+    enable_tennis_temple: boolean;
     live_window_size_x: number;
     live_window_size_y: number;
     enable_debug_logging: boolean;
@@ -91,7 +92,7 @@ export const schema: FullSchema = {
     auto_select_live_matches: {
         type: 'boolean',
         default: false,
-        summary: 'Auto select live matchs',
+        summary: 'Auto select live matches',
         description: 'Whether to automatically select matches currently in progress.',
     },
     auto_select_country_codes: {
@@ -137,6 +138,12 @@ export const schema: FullSchema = {
         summary: 'Enable ATP Challenger tour',
         description: 'Process events and matches from ATP Challenger tour.',
     },
+    enable_tennis_temple: {
+        type: 'boolean',
+        default: false,
+        summary: 'Enable Tennis Temple',
+        description: 'Process events and matches as provided by tennistemple.com.',
+    },
     live_window_size_x: {
         type: 'number',
         default: 450,
@@ -170,7 +177,7 @@ export interface PrefSchema {
 export const prefs: PrefSchema[] = [{
     title: 'Enable tours',
     description: 'Control which tours are enabled and processed.',
-    properties: ['enable_atp', 'enable_wta', 'enable_atp_challenger'],
+    properties: ['enable_atp', 'enable_wta', 'enable_atp_challenger', 'enable_tennis_temple'],
 }, {
     title: 'Live Score Window',
     description: 'Control Live Score Window behaviour',
