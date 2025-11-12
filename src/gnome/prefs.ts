@@ -103,6 +103,7 @@ export default class LiveScorePreferences extends ExtensionPreferences {
         this._addCheckBoxSettingRow(tourGroup, 'enable-atp', settings, schema);
         this._addCheckBoxSettingRow(tourGroup, 'enable-wta', settings, schema);
         this._addCheckBoxSettingRow(tourGroup, 'enable-atp-challenger', settings, schema);
+        this._addCheckBoxSettingRow(tourGroup, 'enable-tennis-temple', settings, schema);
     }
 
     private _addLiveViewSettings(page: Adw.PreferencesPage, settings: Gio.Settings, schema: Gio.SettingsSchema) {

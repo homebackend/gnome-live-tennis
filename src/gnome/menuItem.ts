@@ -9,7 +9,6 @@ import { Renderer } from '../common/renderer.js';
 import { GnomeRenderer } from './renderer.js';
 import { StyleKeys } from '../common/style_keys.js';
 
-
 export const GCheckedMenuItem = GObject.registerClass({
 
     Signals: {
@@ -192,6 +191,9 @@ export class GnomeCheckedMenuItem implements CheckedMenuItem<typeof GCheckedMenu
 
     constructor(properties: CheckedMenuItemProperties) {
         this._item = new GCheckedMenuItem(properties);
+        if (properties.clickHandler) {
+            this.connect('toggle', () => properties.clickHandler!(this._item.checked));
+        }
     }
 
     get checked(): boolean {
@@ -219,6 +221,9 @@ export class GnomeMatchMenuItem extends MatchMenuItemRenderer<St.BoxLayout, St.B
 
         const gproperties: GMatchMenuItemProperties = { ...properties, renderer: this };
         this._item = new GMatchMenuItem(gproperties);
+        if (properties.clickHandler) {
+            this.connect('toggle', () => properties.clickHandler!(this._item.checked));
+        }
     }
 
     get checked(): boolean {

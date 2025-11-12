@@ -23,6 +23,7 @@ app.whenReady().then(() => {
         const apiHandlers: ApiHandlers = {
             atp: new CurlApiHandler(log),
             wta: new AxiosApiHandler(log),
+            tt: new CurlApiHandler(log),
         };
         const runner = new ElectronRunner(log, __dirname, settings);
         const manager = new ElectronLiveViewManager(__dirname, settings);

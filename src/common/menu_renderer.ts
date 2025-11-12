@@ -68,14 +68,16 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, LI, CI, MI, E extends Po
         this.addEventMenuItemToMenu(submenuItem, position);
         this._tournamentHeaders.set(event.id, submenuItem);
 
-        const linkItem = new this._LConstructor({
-            basePath: this.basePath,
-            log: this.log,
-            uuid: this._uuid,
-            menuUrls: event.menuUrls,
-        });
-        submenuItem.addMenuItem(linkItem);
-        this._eventLinkItems.set(event.id, linkItem);
+        if (event.menuUrls.length > 0) {
+            const linkItem = new this._LConstructor({
+                basePath: this.basePath,
+                log: this.log,
+                uuid: this._uuid,
+                menuUrls: event.menuUrls,
+            });
+            submenuItem.addMenuItem(linkItem);
+            this._eventLinkItems.set(event.id, linkItem);
+        }
 
         const autoItem = new this._CConstructor({
             text: 'Auto add new matches',

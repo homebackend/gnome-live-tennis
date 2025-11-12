@@ -86,6 +86,10 @@ export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupS
 
     destroy(): void {
         this._menu.innerHTML = '';
+        const parent = this._menu.parentElement;
+        if (parent) {
+            parent.removeChild(this._menu);
+        }
     }
 }
 
@@ -157,6 +161,10 @@ class CheckedMenuItemCommon extends MenuItemRenderer implements CheckedMenuItem<
 
     destroy(): void {
         this._item.innerHTML = '';
+        const parent = this._item.parentElement;
+        if (parent) {
+            parent.removeChild(this._item);
+        }
     }
 }
 
