@@ -64,42 +64,42 @@ export const GMatchMenuItem = GObject.registerClass({
 
 }, class GMatchMenuItem extends PopupMenu.PopupBaseMenuItem {
     private _clickHandler?: (checked: boolean) => void;
-    private _container?: St.BoxLayout;
-    private _match?: TennisMatch;
     private _checked: boolean = false;
     private _uuid?: string;
     private _log?: (logs: string[]) => void;
-    private _renderer?: MatchMenuItemRenderer<St.BoxLayout, St.BoxLayout, St.BoxLayout>;
 
     _init(constructProperties?: GMatchMenuItemProperties) {
         super._init({ reactive: true });
 
         this._clickHandler = constructProperties?.clickHandler;
-        this._container = new St.BoxLayout({ x_expand: true });
+        const container = new St.BoxLayout({ x_expand: true });
+        this.actor.add_child(container);
 
-        this._match = constructProperties?.match;
         this._checked = constructProperties?.checked ?? false;
         this._uuid = constructProperties?.uuid;
         this._log = constructProperties?.log;
-        this._renderer = constructProperties?.renderer;
 
-        this.actor.add_child(this._container);
         this._updateOrnament();
-        this._updateMenu();
+        if (constructProperties?.match && constructProperties.renderer) {
+            this._updateMenu(constructProperties?.match, constructProperties?.renderer);
+        }
         this.actor._delegate = this;
     }
 
-    private _updateMenu() {
-        if (this._container && this._match) {
-            this._container.remove_all_children();
-
-            this._renderer!.updateMatchData(this._container, this._match);
+    private _updateMenu(match: TennisMatch, renderer: MatchMenuItemRenderer<St.BoxLayout, St.BoxLayout, St.BoxLayout>) {
+        const children = this.actor.get_children();
+        if (children.length < 2) {
+            console.log('No children')
+            return;
         }
+        const container = children[2];
+        container.remove_all_children();
+        renderer.updateMatchData(container, match);
     }
 
-    set match(match: TennisMatch) {
-        this._match = match;
-        this._updateMenu();
+    setMatch(match: TennisMatch, renderer: MatchMenuItemRenderer<St.BoxLayout, St.BoxLayout, St.BoxLayout>) {
+        console.log('inside setMatch');
+        this._updateMenu(match, renderer);
     }
 
     get checked() {
@@ -243,6 +243,6 @@ export class GnomeMatchMenuItem extends MatchMenuItemRenderer<St.BoxLayout, St.B
     }
 
     set match(match: TennisMatch) {
-        this._item.match = match;
+        this._item.setMatch(match, this);
     }
 }
