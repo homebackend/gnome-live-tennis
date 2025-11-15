@@ -5,6 +5,7 @@ export const MenuRenderKeys = {
     uniqMatchId: 'uniq-match-id',
     refresh: 'refresh',
     quit: 'quit',
+    menuHidden: 'menu-hidden',
     getSettingBoolean: 'get-setting-b',
     getSettingInt: 'get-setting-i',
     getSettingStrV: 'get-setting-as',

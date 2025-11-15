@@ -46,6 +46,10 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, LI, CI, MI, E extends Po
     abstract addSettingsItem(): void;
     abstract setupAdditionalMenuItems(): void;
 
+    handleMenuHidden(): void {
+        Array.from(this._tournamentHeaders.values()).forEach(element => element.hide());
+    }
+
     updateLastRefreshTime(): void {
         const timeString = this.lastRefreshTimeDisplay();
         this.setLastRefrestTimeText(`Last Refresh: <span weight='bold'>${timeString}</span>`);

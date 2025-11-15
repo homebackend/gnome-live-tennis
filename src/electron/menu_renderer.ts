@@ -25,6 +25,7 @@ declare global {
 
             setMatchSelected: (matchId: string) => void;
 
+            onMenuHidden: (callback: () => void) => void;
             onUpdateLastRefreshTime: (callback: (time: string) => void) => void;
             onAddEventMenuItem: (callback: (event: TennisEvent, text: string, position: number, url: string | undefined, isAuto: boolean) => void) => void;
             onAddMatchMenuItem: (callback: (event: TennisEvent, match: TennisMatch, isSelected: boolean) => void) => void;
@@ -149,13 +150,13 @@ class MenuRenderer extends MenuRendererCommon<HTMLDivElement, HTMLSpanElement, H
             className: `${StyleKeys.NoWrapText} ${StyleKeys.MainMenuMatchItem}`,
         });
     }
-
 };
 
 async function renderMenu() {
     const basePath = await window.electronAPIMenu.basePath();
     const menuRenderer = new MenuRenderer(basePath, new ElectronRenderer(basePath, window.electronAPIMenu.log));
 
+    window.electronAPIMenu.onMenuHidden(() => menuRenderer.handleMenuHidden());
     window.electronAPIMenu.onUpdateLastRefreshTime((time: string) => menuRenderer.setLastRefrestTimeText(time));
     window.electronAPIMenu.onAddEventMenuItem((event: TennisEvent, text: string, position: number, url: string | undefined, isAuto: boolean) => menuRenderer.addEventMenuItem(event, text, position, url, isAuto));
     window.electronAPIMenu.onAddMatchMenuItem((event: TennisEvent, match: TennisMatch, isSelected: boolean) => menuRenderer.addMatchMenuItem(event, match, isSelected));

@@ -44,6 +44,7 @@ export class ElectronRunner extends Runner {
         this._customMenu.loadFile(path.join(this.basePath, 'menu_index.html'));
 
         this._customMenu.on('blur', () => {
+            this._customMenu.webContents.send(MenuRenderKeys.menuHidden);
             this._customMenu.hide();
         });
 
