@@ -1,6 +1,6 @@
 {
   "name": "live-tennis",
-  "version": "4.0.4",
+  "version": "4.0.5",
   "description": "Application to show live ATP and WTA tennis match scores and data",
   "homepage": "https://github.com/homebackend/gnome-live-tennis#readme",
   "bugs": {
