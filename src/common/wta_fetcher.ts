@@ -266,6 +266,21 @@ export class WtaFetcher implements Fetcher {
             menuUrls: [{
                 title: 'Overview',
                 url: url,
+            }, {
+                title: 'Scores',
+                url: `${url}/scores`,
+            }, {
+                title: 'Order of Play',
+                url: `${url}/order-of-play`,
+            }, {
+                title: 'Draws',
+                url: `${url}/draws`,
+            }, {
+                title: 'Player List',
+                url: `${url}/player-list`,
+            }, {
+                title: 'Past Winners',
+                url: `${url}/past-winners`,
             }],
         }
 
