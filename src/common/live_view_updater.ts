@@ -27,7 +27,7 @@ export interface ApiHandlers {
     tt: ApiHandler,
 }
 
-export class LiveViewUpdater {
+export class LiveViewUpdater<TF extends TTFetcher> {
     private _runner: Runner;
     private _manager: LiveViewManager;
     private _settings: Settings;
@@ -36,14 +36,17 @@ export class LiveViewUpdater {
     private _currentMatchesData: TennisMatch[] = [];
     private _log: (logs: string[]) => void;
 
-    constructor(runner: Runner, manager: LiveViewManager, apiHandlers: ApiHandler | ApiHandlers, settings: Settings, log: (logs: string[]) => void) {
+    constructor(runner: Runner, manager: LiveViewManager, apiHandlers: ApiHandler | ApiHandlers,
+        settings: Settings, log: (logs: string[]) => void,
+        TFConstructor: new (apiHandler: ApiHandler, log: (logs: string[]) => void) => TF
+    ) {
         this._runner = runner;
         this._manager = manager;
         this._settings = settings;
         this._log = log;
         const atpFetcher = new AtpFetcher('atp' in apiHandlers ? apiHandlers.atp : apiHandlers);
         const wtaFetcher = new WtaFetcher('wta' in apiHandlers ? apiHandlers.wta : apiHandlers);
-        const ttFetcher = new TTFetcher('tt' in apiHandlers ? apiHandlers.tt : apiHandlers, log);
+        const ttFetcher = new TFConstructor('tt' in apiHandlers ? apiHandlers.tt : apiHandlers, log);
         this._liveTennis = new LiveTennis(log, settings, atpFetcher, wtaFetcher, ttFetcher);
     }
 

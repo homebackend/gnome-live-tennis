@@ -15,11 +15,11 @@ import { TennisMatch } from '../common/types.js';
 import { MenuHandler, GnomeRunner } from './runner.js';
 import { Settings } from '../common/settings.js';
 import { GnomeSettings } from './settings.js';
-import { ApiHandlers, LiveViewManager, LiveViewUpdater } from '../common/live_view_updater.js';
+import { LiveViewManager, LiveViewUpdater } from '../common/live_view_updater.js';
 import { GnomeApiHandler } from './api.js';
 import { GCheckedMenuItem } from './menuItem.js';
 import { StyleKeys } from '../common/style_keys.js';
-import { CurlApiHandler } from '../common/api.js';
+import { GnomeTTFetcher } from './fetcher.js';
 
 const ICON_SIZE = 22;
 
@@ -105,7 +105,7 @@ const GObjectLiveScoreButton = GObject.registerClass({
 export default class LiveScoreExtension extends Extension implements LiveViewManager {
     private _panelButton?: LiveScoreButton;
     private _settings?: GnomeSettings;
-    private _updater?: LiveViewUpdater;
+    private _updater?: LiveViewUpdater<GnomeTTFetcher>;
     private _cycleIntervalId: NodeJS.Timeout | undefined;
 
     constructor(metadata: any) {
@@ -208,7 +208,7 @@ export default class LiveScoreExtension extends Extension implements LiveViewMan
         this._settings = new GnomeSettings(settings);
         this._panelButton = new GObjectLiveScoreButton(this._log.bind(this), this._settings, this.path, this.uuid);
         const apiHandler = new GnomeApiHandler(this._log.bind(this));
-        this._updater = new LiveViewUpdater(this._panelButton.runner, this, apiHandler, this._settings!, this._log.bind(this));
+        this._updater = new LiveViewUpdater(this._panelButton.runner, this, apiHandler, this._settings!, this._log.bind(this), GnomeTTFetcher);
 
         this._panelButton.connect('open-prefs', () => this.openPreferences());
         this._panelButton.connect('manual-refresh', () => this._updater!.fetchMatchData());

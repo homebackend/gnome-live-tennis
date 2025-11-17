@@ -9,6 +9,7 @@ import { AxiosApiHandler, CurlApiHandler } from './api.js';
 import { PrefsManager } from './prefs_manager.js';
 import { Settings } from '../common/settings.js';
 import AutoLaunch from 'auto-launch';
+import { ElectronTTFetcher } from './fetcher.js';
 
 async function addAutostartIfApplicable(log: (logs: string[]) => void, settings: Settings) {
     try {
@@ -58,7 +59,7 @@ app.whenReady().then(() => {
         };
         const runner = new ElectronRunner(log, __dirname, settings);
         const manager = new ElectronLiveViewManager(__dirname, settings);
-        const updater = new LiveViewUpdater(runner, manager, apiHandlers, settings, log);
+        const updater = new LiveViewUpdater(runner, manager, apiHandlers, settings, log, ElectronTTFetcher);
 
         function handleSettingChange(key: string) {
             if (key === 'autostart') {

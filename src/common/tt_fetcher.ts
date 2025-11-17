@@ -16,7 +16,7 @@ enum ParsePosition {
     MatchExpectedTime,
 }
 
-export class TTFetcher extends FetcherCommon implements Fetcher {
+export abstract class TTFetcher extends FetcherCommon implements Fetcher {
     private static _url = 'https://en.tennistemple.com';
     private static _responseCookies: string[] = ['PHPSESSID'];
     private static _tennisTempleId = 'b8852ab1-359d-490c-a900-77a044d2eb9d';
@@ -32,6 +32,8 @@ export class TTFetcher extends FetcherCommon implements Fetcher {
         this._log = log;
         this._apiHandler = apiHandler;
     }
+
+    protected abstract getFullUrl(relativeUrl: string, baseUrl: string): string;
 
     private async _getSessionCookies(): Promise<Map<string, string> | undefined> {
         if (this._cookies) {
@@ -165,7 +167,7 @@ export class TTFetcher extends FetcherCommon implements Fetcher {
                     if (currentTag == ParsePosition.Top) {
                         if (name === 'a') {
                             if (attribs['data-bubble']) {
-                                currentEvent = fetcher._getEvent(attribs['data-bubble'], attribs.href);
+                                currentEvent = fetcher._getEvent(attribs['data-bubble'], fetcher.getFullUrl(attribs.href, TTFetcher._url));
                             }
 
                             if (attribs.class.includes('hls_live_cont')) {
