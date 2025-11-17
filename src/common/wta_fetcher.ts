@@ -196,9 +196,10 @@ export class WtaFetcher implements Fetcher {
             const team1 = this._get_team_data(m, m['DrawMatchType'], 'A', 'B');
             const team2 = this._get_team_data(m, m['DrawMatchType'], 'B', 'A');
             const isDoubles = m['DrawMatchType'] !== 'S';
+            const mid = m['MatchID'];
 
             const tennisMatch: TennisMatch = {
-                id: m['MatchID'],
+                id: mid,
                 isDoubles: isDoubles,
                 roundId: m['RoundID'],
                 roundName: this._get_round_name(event, m['DrawMatchType'], m['DrawLevelType'], m['RoundID'], m['MatchState']),
@@ -222,6 +223,7 @@ export class WtaFetcher implements Fetcher {
                 displayName: `${team1.displayName} vs ${team2.displayName}`,
                 displayStatus: this._get_match_status(m['MatchState']),
                 displayScore: m['ScoreString'],
+                url: `${event.url}/scores/${mid}`,
                 h2hUrl: isDoubles ? '' : `https://www.wtatennis.com/head-to-head/${team1.players[0].id}/${team2.players[0].id}`,
             };
 

@@ -136,21 +136,32 @@ export class ElectronRenderer extends Renderer<HTMLDivElement, HTMLSpanElement, 
         container.appendChild(div);
     }
 
+    private _wrapLink(url: string, content: string | HTMLImageElement): HTMLAnchorElement {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        if (content instanceof HTMLImageElement) {
+            a.appendChild(content);
+        } else {
+            if (content.includes('<')) {
+                a.innerHTML = content;
+            } else {
+                a.textContent = content;
+            }
+            a.title = content;
+        }
+        a.onclick = (e) => e.stopPropagation();
+
+        return a;
+    }
+
     addTextToContainer(container: HTMLDivElement, textProperties: TextProperties): HTMLSpanElement {
         const span = document.createElement('span');
         if (textProperties.className) {
             span.className = textProperties.className;
         }
         if (textProperties.link) {
-            const a = document.createElement('a');
-            a.href = textProperties.link;
-            a.target = '_blank';
-            if (textProperties.text.includes('<')) {
-                a.innerHTML = textProperties.text;
-            } else {
-                a.textContent = textProperties.text;
-            }
-            a.title = textProperties.text;
+            const a = this._wrapLink(textProperties.link, textProperties.text);
             span.appendChild(a);
         } else {
             if (textProperties.text.includes('<')) {
@@ -193,7 +204,12 @@ export class ElectronRenderer extends Renderer<HTMLDivElement, HTMLSpanElement, 
             imageElement.className = imageProperties.className;
         }
 
-        this._createItemContainerAndAddItem(container, imageProperties, imageElement);
+        if (imageProperties.link) {
+            const a = this._wrapLink(imageProperties.link, imageElement);
+            this._createItemContainerAndAddItem(container, imageProperties, a);
+        } else {
+            this._createItemContainerAndAddItem(container, imageProperties, imageElement);
+        }
 
         return imageElement;
     }

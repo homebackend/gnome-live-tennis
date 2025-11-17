@@ -114,6 +114,7 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
             displayName: "",
             displayStatus: isLive ? 'Live' : 'Upcoming',
             displayScore: "",
+            url: event.url,
             h2hUrl: ""
         };
     }

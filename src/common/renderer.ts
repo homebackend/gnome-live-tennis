@@ -45,14 +45,15 @@ export interface TextProperties extends ContainerItemProperties {
 };
 
 export interface ImageProperties extends ContainerItemProperties {
-    src: string,
-    isLocal?: boolean,
-    className?: string,
-    iconSize?: number,
+    src: string;
+    isLocal?: boolean;
+    link?: string;
+    className?: string;
+    iconSize?: number;
     height?: number;
-    width?: number,
-    alt?: string,
-    title?: string,
+    width?: number;
+    alt?: string;
+    title?: string;
 };
 
 export abstract class Renderer<T, TextType, ImageType> {

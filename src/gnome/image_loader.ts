@@ -5,13 +5,9 @@ import GLib from 'gi://GLib';
 
 import * as PopupMenu from "resource:///org/gnome/shell/ui/popupMenu.js";
 
-function _createIcon(imageBox: St.BoxLayout, cacheFilePath: string, imageSize: number) {
-    const gicon = Gio.icon_new_for_string(cacheFilePath);
-
-    imageBox.add_child(new St.Icon({
-        gicon: gicon,
-        height: imageSize,
-    }));
+function _createIcon(imageBox: St.BoxLayout, cacheFilePath: string, properties: Partial<St.Icon.ConstructorProps>) {
+    properties.gicon = Gio.icon_new_for_string(cacheFilePath);
+    imageBox.add_child(new St.Icon(properties));
 }
 
 async function loadImage(url: string, uuid: string,
@@ -59,8 +55,8 @@ export async function loadPopupMenuGicon(url: string, uuid: string, menuitem: Po
     });
 }
 
-export async function loadWebImage(url: string, uuid: string, imageBox: St.BoxLayout, imageSize: number, log: (logs: string[]) => void): Promise<void> {
-    loadImage(url, uuid, log, (cacheFilePath: string) => _createIcon(imageBox, cacheFilePath, imageSize));
+export async function loadWebImage(url: string, uuid: string, imageBox: St.BoxLayout, properties: Partial<St.Icon.ConstructorProps>, log: (logs: string[]) => void): Promise<void> {
+    loadImage(url, uuid, log, (cacheFilePath: string) => _createIcon(imageBox, cacheFilePath, properties));
 }
 
 async function downloadImage(url: string, destinationPath: string): Promise<string> {

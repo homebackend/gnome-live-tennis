@@ -72,7 +72,7 @@ export const GMatchMenuItem = GObject.registerClass({
         super._init({ reactive: true });
 
         this._clickHandler = constructProperties?.clickHandler;
-        const container = new St.BoxLayout({ x_expand: true });
+        const container = new St.BoxLayout({ x_expand: true, y_align: Clutter.ActorAlign.CENTER });
         this.actor.add_child(container);
 
         this._checked = constructProperties?.checked ?? false;

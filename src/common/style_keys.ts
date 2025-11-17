@@ -39,4 +39,5 @@ export const StyleKeys = {
     MainMenuPlayerFlag: 'player-flag-menu',
     MainMenuRefreshLabel: 'livescore-refresh-label',
     MainMenuLinkButton: 'link-button',
+    MainMenuVerses: 'vs-style',
 };

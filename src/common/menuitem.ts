@@ -1,5 +1,5 @@
 import { StyleKeys } from "./style_keys.js";
-import { Alignment, Renderer } from "./renderer.js";
+import { Alignment, ContainerItemProperties, Renderer } from "./renderer.js";
 import { MenuUrl, TennisEvent, TennisMatch, TennisTeam } from "./types.js";
 
 export interface PopubSubMenuItemProperties {
@@ -63,42 +63,72 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
         this.r = r;
     }
 
-    private _addTeam(matchDataElement: T, team: TennisTeam) {
+    private _addTeam(matchDataElement: T, team: TennisTeam, reverse: boolean) {
+        const teamItems: (() => void)[] = [];
         team.players.forEach(p => {
             const url = p.headUrl;
             if (url) {
-                this.r.addImageToContainer(matchDataElement, {
-                    src: url,
-                    alt: p.displayName,
-                    className: StyleKeys.MainMenuPlayerImage,
-                    height: MatchMenuItemRenderer.ImageHeight,
-                    paddingRight: MatchMenuItemRenderer.ImagePadding,
-                });
+                teamItems.push(() =>
+                    this.r.addImageToContainer(matchDataElement, {
+                        src: url,
+                        alt: p.displayName,
+                        className: StyleKeys.MainMenuPlayerImage,
+                        height: MatchMenuItemRenderer.ImageHeight,
+                        paddingRight: MatchMenuItemRenderer.ImagePadding,
+                    })
+                );
             }
 
-            this.r.addFlagToContainer(
-                matchDataElement,
-                p.countryCode,
-                StyleKeys.MainMenuPlayerFlag,
-                MatchMenuItemRenderer.ImageHeight,
-                MatchMenuItemRenderer.ImagePadding
+            teamItems.push(() =>
+                this.r.addFlagToContainer(
+                    matchDataElement,
+                    p.countryCode,
+                    StyleKeys.MainMenuPlayerFlag,
+                    MatchMenuItemRenderer.ImageHeight,
+                    MatchMenuItemRenderer.ImagePadding
+                )
             );
         });
 
-        this.r.addTextToContainer(matchDataElement, {
-            text: team.displayName,
-            className: StyleKeys.NoWrapText,
-            paddingRight: MatchMenuItemRenderer.TextPadding,
-        });
+        teamItems.push(() =>
+            this.r.addTextToContainer(matchDataElement, {
+                text: team.displayName,
+                className: StyleKeys.NoWrapText,
+                paddingRight: MatchMenuItemRenderer.TextPadding,
+            })
+        );
+
+        if (reverse) {
+            teamItems.reverse();
+        }
+
+        teamItems.forEach(f => f());
     }
 
     updateMatchData(matchDataElement: T, match: TennisMatch) {
-        this._addTeam(matchDataElement, match.team1);
+        this._addTeam(matchDataElement, match.team1, false);
         this.r.addTextToContainer(matchDataElement, {
-            text: 'vs',
+            text: 'VS',
+            className: StyleKeys.MainMenuVerses,
             paddingRight: MatchMenuItemRenderer.TextPadding,
         });
-        this._addTeam(matchDataElement, match.team2);
+        this._addTeam(matchDataElement, match.team2, true);
+
+        if (match.url) {
+            this.r.addTextToContainer(matchDataElement, {
+                text: 'Stats',
+                link: match.url,
+                paddingRight: MatchMenuItemRenderer.TextPadding,
+            });
+        }
+
+        if (match.h2hUrl) {
+            this.r.addTextToContainer(matchDataElement, {
+                text: 'H2H',
+                link: match.h2hUrl,
+                paddingRight: MatchMenuItemRenderer.TextPadding,
+            });
+        }
 
         if (match.isLive) {
             this.r.addTextToContainer(matchDataElement, {

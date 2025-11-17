@@ -111,6 +111,20 @@ export class GnomeRenderer extends Renderer<St.BoxLayout, St.BoxLayout, St.BoxLa
         (Array.isArray(children) ? children : [children]).forEach(child => parent.add_child(child));
     }
 
+    private _wrapLink(link: string, content: St.Label | St.Icon): St.Button {
+        const button = new St.Button({
+            reactive: true,
+            can_focus: true,
+            track_hover: true,
+            style_class: StyleKeys.MainMenuLinkButton,
+        });
+        button.set_child(content);
+        const id = button.connect('button-press-event', this.openURL.bind(this, link));
+        this._addConnection(button, id);
+
+        return button;
+    }
+
     addTextToContainer(container: St.BoxLayout, textProperties: TextProperties): St.BoxLayout {
         const labelProperties: Partial<St.Label.ConstructorProps> = textProperties.isMarkup ? {} : { text: textProperties.text };
         if (textProperties.className) { labelProperties.style_class = textProperties.className; }
@@ -133,15 +147,7 @@ export class GnomeRenderer extends Renderer<St.BoxLayout, St.BoxLayout, St.BoxLa
         const label = new St.Label(labelProperties);
         label.clutter_text.set_markup(textProperties.text);
         if (textProperties.link) {
-            const button = new St.Button({
-                reactive: true,
-                can_focus: true,
-                track_hover: true,
-                style_class: StyleKeys.MainMenuLinkButton,
-            });
-            button.set_child(label);
-            const id = button.connect('button-press-event', this.openURL.bind(this, textProperties.link));
-            this._addConnection(button, id);
+            const button = this._wrapLink(textProperties.link, label);
             box.add_child(button);
         } else {
             box.add_child(label);
@@ -154,25 +160,35 @@ export class GnomeRenderer extends Renderer<St.BoxLayout, St.BoxLayout, St.BoxLa
     addImageToContainer(container: St.BoxLayout, imageProperties: ImageProperties): St.BoxLayout {
         const box = new St.BoxLayout();
         container.add_child(box);
-        if (imageProperties.isLocal) {
-            const gicon = Gio.icon_new_for_string(imageProperties.src);
-            const properties: Partial<St.Icon.ConstructorProps> = {
-                gicon: gicon
-            };
-            let style = '';
-            if (imageProperties.iconSize) { properties.icon_size = imageProperties.iconSize; }
-            if (imageProperties.height) { properties.height = imageProperties.height; }
-            if (imageProperties.width) { properties.width = imageProperties.width; }
-            if (imageProperties.paddingLeft) { style += `padding-left: ${imageProperties.paddingLeft};`; }
-            if (imageProperties.paddingRight) { style += `padding-right: ${imageProperties.paddingRight};`; }
-            if (imageProperties.className) { properties.styleClass = imageProperties.className; }
 
-            if (style) {
-                properties.style = style;
+        const properties: Partial<St.Icon.ConstructorProps> = {};
+        let style = '';
+        if (imageProperties.iconSize) { properties.icon_size = imageProperties.iconSize; }
+        if (imageProperties.height) { properties.height = imageProperties.height; }
+        if (imageProperties.width) { properties.width = imageProperties.width; }
+        if (imageProperties.paddingLeft) { style += `padding-left: ${imageProperties.paddingLeft};`; }
+        if (imageProperties.paddingRight) { style += `padding-right: ${imageProperties.paddingRight};`; }
+        if (imageProperties.className) { properties.styleClass = imageProperties.className; }
+
+        if (style) {
+            properties.style = style;
+        }
+
+        if (imageProperties.isLocal) {
+            properties.gicon = Gio.icon_new_for_string(imageProperties.src);
+
+            const icon = new St.Icon(properties);
+
+            if (imageProperties.link) {
+                const button = this._wrapLink(imageProperties.link, icon);
+                box.add_child(button);
+            } else {
+                box.add_child(icon);
             }
-            box.add_child(new St.Icon(properties));
+
         } else {
-            loadWebImage(imageProperties.src, this.uuid, box, imageProperties.iconSize ?? imageProperties.height ?? -1, this.log);
+            // Link not yet implemented will implement later if needed.
+            loadWebImage(imageProperties.src, this.uuid, box, properties, this.log);
         }
 
         return box;

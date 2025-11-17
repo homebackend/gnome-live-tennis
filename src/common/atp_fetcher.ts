@@ -118,6 +118,7 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
 
             const id = e["EventId"];
             const name = e["EventTitle"];
+            const year = e["EventYear"];
             const url = `https://www.atptour.com/en/tournaments/${name.toLowerCase()}/${id}/overview`;
             const resultUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/results`;
             const drawUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/draws`;
@@ -125,7 +126,7 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
             const seedsUrl = `https://www.atptour.com/en/scores/current/${name.toLowerCase()}/${id}/top-seeds`;
 
             const event: TennisEvent = {
-                year: e["EventYear"],
+                year: year,
                 id: String(id),
                 title: e["EventTitle"],
                 countryCode: e["EventCountryCode"],
@@ -176,9 +177,13 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
                 const team1 = this._get_atp_team_data(m['PlayerTeam'], matchType);
                 const team2 = this._get_atp_team_data(m['OpponentTeam'], matchType);
                 const isDoubles = m['IsDoubles'];
+                const mid = m['MatchId'];
+                const isLive = m['MatchStatus'] == 'P';
+                const hasFinished = m['MatchStatus'] == 'F';
+                const matchUrl = `https://www.atptour.com/en/scores/stats-centre/${hasFinished ? 'archive' : 'live'}/${year}/${id}/${mid}`;
 
                 const match: TennisMatch = {
-                    id: m['MatchId'],
+                    id: mid,
                     isDoubles: isDoubles,
                     roundName: m['RoundName'],
                     courtName: m['CourtName'],
@@ -195,13 +200,14 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
                     team1: team1,
                     team2: team2,
                     event: event,
-                    hasFinished: m['MatchStatus'] == 'F',
-                    isLive: m['MatchStatus'] == 'P',
+                    hasFinished: hasFinished,
+                    isLive: isLive,
                     displayName: `${team1.displayName} vs ${team2.displayName}`,
                     displayStatus: this._get_match_display_status(m['MatchStatus']),
                     displayScore: this._formatSetScores(team1.setScores, team2.setScores),
                     roundId: m['RoundName'],
                     matchTimeStamp: "",
+                    url: matchUrl,
                     h2hUrl: isDoubles ? '' : `https://www.atptour.com/en/players/atp-head-2-head/${team1.players[0].slug}-vs-${team2.players[0].slug}/${team1.players[0].id}/${team2.players[0].id}`,
                 };
                 matches.push(match);
