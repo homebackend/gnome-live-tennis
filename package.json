@@ -19,6 +19,7 @@
   "type": "module",
   "main": "dist/main.cjs",
   "scripts": {
+    "sync": "node sync.js",
     "build": "node esbuild.js",
     "start": "npm run start:electron",
     "start:electron": "npm run build && electron .",
