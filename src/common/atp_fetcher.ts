@@ -1,6 +1,6 @@
-import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
-import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api.js";
-import { Fetcher, FetcherCommon, FetcherProperties } from "./fetcher.js";
+import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types";
+import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api";
+import { Fetcher, FetcherCommon, FetcherProperties } from "./fetcher";
 
 export interface AtpFetcherProperties extends FetcherProperties {
     tour: string;
@@ -24,6 +24,7 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
         const slug = `${firstName.toLowerCase()}-${lastName.toLowerCase()}`;
         return {
             id: p["PlayerId"],
+            placeholder: false,
             countryCode: p["PlayerCountry"],
             country: p["PlayerCountryName"],
             firstName: firstName,
@@ -60,6 +61,7 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
 
         return {
             players: players,
+            placeholder: false,
             entryType: t['EntryType'],
             seed: t['Seed'],
             gameScore: String(t['GameScore']),
@@ -184,6 +186,7 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
 
                 const match: TennisMatch = {
                     id: mid,
+                    placeholder: false,
                     isDoubles: isDoubles,
                     roundName: m['RoundName'],
                     courtName: m['CourtName'],

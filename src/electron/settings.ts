@@ -1,6 +1,6 @@
 import Store, { Schema as StoreSchemaType } from 'electron-store';
-import { schema, Schema, SettingApplicability } from "../common/schema.js";
-import { Settings } from "../common/settings.js";
+import { schema, Schema, SettingApplicability } from "../common/schema";
+import { Settings } from "../common/settings";
 
 export class ElectronSettings implements Settings {
     private _store: Store<Schema>;

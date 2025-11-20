@@ -1,6 +1,6 @@
-import { Settings } from "./settings.js";
-import { TennisEvent, TennisMatch } from "./types.js";
-import { SortedStringList } from "./util.js";
+import { Settings } from "./settings";
+import { TennisEvent, TennisMatch } from "./types";
+import { SortedStringList } from "./util";
 
 export abstract class Runner {
     protected log: (logs: string[]) => void;

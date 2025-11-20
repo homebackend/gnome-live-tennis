@@ -1,6 +1,6 @@
-import { StyleKeys } from "./style_keys.js";
-import { Alignment, Renderer } from "./renderer.js";
-import { TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
+import { StyleKeys } from "./style_keys";
+import { Alignment, Renderer } from "./renderer";
+import { TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types";
 
 export abstract class LiveViewRendererCommon<T, TT, IT> {
     protected basePath: string;

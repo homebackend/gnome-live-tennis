@@ -1,8 +1,8 @@
-import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api.js";
-import { Fetcher, FetcherCommon, FetcherProperties } from "./fetcher.js";
-import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
-import { generateUUIDv4 } from "./util.js";
-import { Parser } from '../lib/htmlparser2/Parser.js';
+import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api";
+import { Fetcher, FetcherCommon, FetcherProperties } from "./fetcher";
+import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types";
+import { generateUUIDv4 } from "./util";
+import { Parser } from '../lib/htmlparser2/Parser';
 
 enum ParsePosition {
     Top,
@@ -91,6 +91,7 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
     private _getMatch(isLive: boolean, event: TennisEvent): TennisMatch {
         return {
             id: "",
+            placeholder: false,
             isDoubles: false,
             roundId: "",
             roundName: "",
@@ -122,6 +123,7 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
     private _getTeam(): TennisTeam {
         return {
             players: [this._getPlayer()],
+            placeholder: false,
             entryType: '',
             seed: '',
             gameScore: '',
@@ -133,6 +135,7 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
     private _getPlayer(): TennisPlayer {
         return {
             id: "",
+            placeholder: false,
             countryCode: "",
             country: "",
             firstName: "",
@@ -340,7 +343,7 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
         });
 
         if (!response) {
-            this._log(['Empty response']);
+            this._log(['Empty response fot tennistemple.com']);
             return undefined;
         }
 
@@ -355,5 +358,17 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
 
     disable(): void {
         this._apiHandler.abort();
+    }
+}
+
+export class NodeTTFetcher extends TTFetcher {
+    protected getFullUrl(relativeUrl: string, baseUrl: string): string {
+        try {
+            const absoluteUrl = new URL(relativeUrl, baseUrl);
+            return absoluteUrl.toString();
+        } catch (e) {
+            console.log("Failed to resolve URI with GLib");
+            return '';
+        }
     }
 }

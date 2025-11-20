@@ -1,6 +1,7 @@
 
 export interface TennisPlayer {
     id: string;
+    placeholder: boolean;
     countryCode: string;
     country: string;
     firstName: string;
@@ -19,6 +20,7 @@ export interface TennisSetScore {
 
 export interface TennisTeam {
     players: TennisPlayer[];
+    placeholder: boolean;
     entryType: string;
     seed: string;
     gameScore: string;
@@ -28,6 +30,7 @@ export interface TennisTeam {
 
 export interface TennisMatch {
     id: string;
+    placeholder: boolean;
     isDoubles: boolean;
     roundId: string;
     roundName: string;

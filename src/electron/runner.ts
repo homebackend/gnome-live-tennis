@@ -1,9 +1,9 @@
-import { BrowserWindow, ipcMain, Point, Rectangle, screen, Tray } from "electron";
-import { Runner } from "../common/runner.js";
-import { Settings } from "../common/settings.js";
-import { TennisEvent, TennisMatch } from "../common/types.js";
 import * as path from 'path';
-import { MenuRenderKeys } from "./render_keys.js";
+import { BrowserWindow, ipcMain, Point, Rectangle, screen, Tray } from "electron";
+import { Runner } from "../common/runner";
+import { Settings } from "../common/settings";
+import { TennisEvent, TennisMatch } from "../common/types";
+import { MenuRenderKeys } from "./render_keys";
 
 export class ElectronRunner extends Runner {
     private _eventIds = new Set<string>();

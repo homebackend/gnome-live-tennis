@@ -1,9 +1,9 @@
-import { BrowserWindow, ipcMain, screen } from "electron";
-import { LiveViewManager } from "../common/live_view_updater.js";
-import { TennisMatch } from "../common/types.js";
-import { LiveViewRendererKeys } from "./render_keys.js";
 import * as path from 'path';
-import { Settings } from "../common/settings.js";
+import { BrowserWindow, ipcMain, screen } from "electron";
+import { LiveViewManager } from "../common/live_view_updater";
+import { TennisMatch } from "../common/types";
+import { LiveViewRendererKeys } from "./render_keys";
+import { Settings } from "../common/settings";
 
 const PADDING = 20;
 

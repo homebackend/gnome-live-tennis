@@ -5,12 +5,11 @@ import Clutter from 'gi://Clutter';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-
-import { TennisMatch } from '../common/types.js';
-import { Settings } from '../common/settings.js';
-import { LiveViewRendererCommon } from '../common/live_view_renderer.js';
-import { GnomeRenderer } from './renderer.js';
-import { StyleKeys } from '../common/style_keys.js';
+import { TennisMatch } from '../common/types';
+import { Settings } from '../common/settings';
+import { LiveViewRendererCommon } from '../common/live_view_renderer';
+import { GnomeRenderer } from './renderer';
+import { StyleKeys } from '../common/style_keys';
 
 const PADDING = 10;
 

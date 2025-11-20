@@ -1,15 +1,16 @@
 // src/main.ts
-import { app, ipcMain } from 'electron';
-import { ElectronRunner } from './runner.js';
-import { ElectronSettings } from './settings.js';
-import { MenuRenderKeys } from './render_keys.js';
-import { ElectronLiveViewManager } from './live_view_manager.js';
-import { ApiHandlers, LiveViewUpdater } from '../common/live_view_updater.js';
-import { AxiosApiHandler, CurlApiHandler } from './api.js';
-import { PrefsManager } from './prefs_manager.js';
-import { Settings } from '../common/settings.js';
 import AutoLaunch from 'auto-launch';
-import { ElectronTTFetcher } from './fetcher.js';
+import { app, ipcMain } from 'electron';
+import { ElectronRunner } from './runner';
+import { ElectronSettings } from './settings';
+import { MenuRenderKeys } from './render_keys';
+import { ElectronLiveViewManager } from './live_view_manager';
+import { ApiHandlers, LiveViewUpdater } from '../common/live_view_updater';
+import { CurlApiHandler } from './api';
+import { PrefsManager } from './prefs_manager';
+import { Settings } from '../common/settings';
+import { NodeTTFetcher } from '../common/tt_fetcher';
+import { AxiosApiHandler } from 'src/common/app/api';
 
 async function addAutostartIfApplicable(log: (logs: string[]) => void, settings: Settings) {
     try {
@@ -59,7 +60,7 @@ app.whenReady().then(() => {
         };
         const runner = new ElectronRunner(log, __dirname, settings);
         const manager = new ElectronLiveViewManager(__dirname, settings);
-        const updater = new LiveViewUpdater(runner, manager, apiHandlers, settings, log, ElectronTTFetcher);
+        const updater = new LiveViewUpdater(runner, manager, apiHandlers, settings, log, NodeTTFetcher);
 
         function handleSettingChange(key: string) {
             if (key === 'autostart') {

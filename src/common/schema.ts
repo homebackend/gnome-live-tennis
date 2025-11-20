@@ -27,9 +27,9 @@ export enum SettingApplicability {
     ElectronTrayApp,
 }
 
-interface FullSchemaItem {
+interface FullSchemaItem<K extends keyof Schema = keyof Schema> {
     type: string;
-    default?: any;
+    default: Schema[K];
     applicability?: SettingApplicability,
     items?: { type: string, enum?: string },
     summary?: string;
@@ -38,9 +38,9 @@ interface FullSchemaItem {
     maximum?: number;
 }
 
-export interface FullSchema {
-    [key: string]: FullSchemaItem;
-}
+export type FullSchema = {
+    [key in keyof Schema]: FullSchemaItem<key>;
+};
 
 export const schema: FullSchema = {
     autostart: {

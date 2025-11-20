@@ -1,4 +1,4 @@
-import { LiveViewRendererKeys } from "./render_keys.js";
+import { LiveViewRendererKeys } from "./render_keys";
 
 import { contextBridge, ipcRenderer } from 'electron';
 

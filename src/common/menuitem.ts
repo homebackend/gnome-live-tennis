@@ -1,6 +1,6 @@
-import { StyleKeys } from "./style_keys.js";
-import { Alignment, ContainerItemProperties, Renderer } from "./renderer.js";
-import { MenuUrl, TennisEvent, TennisMatch, TennisTeam } from "./types.js";
+import { StyleKeys } from "./style_keys";
+import { Alignment, Renderer } from "./renderer";
+import { MenuUrl, TennisEvent, TennisMatch, TennisTeam } from "./types";
 
 export interface PopubSubMenuItemProperties {
     basePath: string;
@@ -40,7 +40,6 @@ export interface PopupSubMenuItem<T, U> {
 
 export interface MenuItem<T> {
     get item(): T;
-    connect(action: string, handler: () => void): void;
     destroy(): void;
 };
 
@@ -79,15 +78,17 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
                 );
             }
 
-            teamItems.push(() =>
-                this.r.addFlagToContainer(
-                    matchDataElement,
-                    p.countryCode,
-                    StyleKeys.MainMenuPlayerFlag,
-                    MatchMenuItemRenderer.ImageHeight,
-                    MatchMenuItemRenderer.ImagePadding
-                )
-            );
+            if (!p.placeholder && p.countryCode) {
+                teamItems.push(() =>
+                    this.r.addFlagToContainer(
+                        matchDataElement,
+                        p.countryCode,
+                        StyleKeys.MainMenuPlayerFlag,
+                        MatchMenuItemRenderer.ImageHeight,
+                        MatchMenuItemRenderer.ImagePadding
+                    )
+                );
+            }
         });
 
         teamItems.push(() =>
