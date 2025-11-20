@@ -76,8 +76,6 @@ class MenuRenderer extends AppMenuRenderer<HTMLDivElement, HTMLSpanElement, HTML
 
         root.appendChild(this.eventContainer);
         root.appendChild(this.otherContainer);
-
-        this.setupBaseMenu();
     }
 
     addEventMenuItemToMenu(item: ElectronPopupSubMenuItem, position: number): void {
