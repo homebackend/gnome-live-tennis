@@ -1,7 +1,7 @@
 import Soup from "gi://Soup";
 import GLib from "gi://GLib";
 import Gio from "gi://Gio";
-import { ApiHandler, ApiRequest } from "../common/api.js";
+import { ApiHandler, ApiRequest } from "../common/api";
 
 export class GnomeApiHandler implements ApiHandler {
     private _log: (logs: string[]) => void;

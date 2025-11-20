@@ -1,10 +1,14 @@
-import { StyleKeys } from "./style_keys.js";
+import { StyleKeys } from "./style_keys";
 
 export enum Alignment {
     Begin,
     Center,
     End,
 };
+
+export type JustifyContent = 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly';
+export type AlignItems = 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline';
+export type TextAlign = 'auto' | 'left' | 'right' | 'center' | 'justify';
 
 export interface ContainerProperties {
     vertical?: boolean;
@@ -13,8 +17,9 @@ export interface ContainerProperties {
     yAlign?: Alignment;
     xExpand?: boolean;
     yExpand?: boolean;
-    justifyContent?: string; // Specific to div
-    alignItems?: string; // Specific to div
+    hidden?: boolean;
+    justifyContent?: JustifyContent; // Specific to div
+    alignItems?: AlignItems; // Specific to div
 }
 
 export interface SeparatorPropeties {
@@ -32,7 +37,7 @@ export interface ContainerItemProperties {
     paddingLeft?: string;
     paddingRight?: string;
     attributes?: Map<string, string>;
-    visibility?: string;
+    visible?: boolean;
     onClick?: () => void;
 }
 
@@ -95,3 +100,6 @@ export abstract class Renderer<T, TextType, ImageType> {
     abstract addOnClickHandler(element: T | TextType | ImageType, handler: () => void): void;
     abstract destroy(): void;
 }
+
+export type SameTypedRenderer<T> = Renderer<T, T, T>;
+

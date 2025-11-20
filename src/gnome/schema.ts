@@ -1,6 +1,6 @@
 import { js2xml } from 'xml-js';
 import { promises as fs } from 'fs';
-import { schema, SettingApplicability } from '../common/schema.js';
+import { schema, SettingApplicability } from '../common/schema';
 
 function getType(valueType: string, items: { type: string } = { type: 'none' }): string {
     switch (valueType) {

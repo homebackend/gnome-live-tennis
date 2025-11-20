@@ -2,9 +2,9 @@ import Clutter from "gi://Clutter";
 import Gio from "gi://Gio";
 import St from "gi://St";
 
-import { Alignment, ContainerProperties, ImageProperties, Renderer, SeparatorPropeties, TextProperties } from "../common/renderer.js";
-import { loadWebImage } from "./image_loader.js";
-import { StyleKeys } from "../common/style_keys.js";
+import { Alignment, ContainerProperties, ImageProperties, Renderer, SeparatorPropeties, TextProperties } from "../common/renderer";
+import { loadWebImage } from "./image_loader";
+import { StyleKeys } from "../common/style_keys";
 
 export class GnomeRenderer extends Renderer<St.BoxLayout, St.BoxLayout, St.BoxLayout> {
     protected uuid: string;

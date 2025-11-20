@@ -1,13 +1,15 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St'
+
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
-import { TennisMatch } from '../common/types.js';
-import { CheckedMenuItem, CheckedMenuItemProperties, LinkMenuItemProperties, MatchMenuItem, MatchMenuItemProperties, MatchMenuItemRenderer, MenuItem, PopubSubMenuItemProperties, PopupSubMenuItem } from '../common/menuitem.js';
-import { loadPopupMenuGicon } from './image_loader.js';
-import { Renderer } from '../common/renderer.js';
-import { GnomeRenderer } from './renderer.js';
-import { StyleKeys } from '../common/style_keys.js';
+
+import { TennisMatch } from '../common/types';
+import { CheckedMenuItem, CheckedMenuItemProperties, LinkMenuItemProperties, MatchMenuItem, MatchMenuItemProperties, MatchMenuItemRenderer, MenuItem, PopubSubMenuItemProperties, PopupSubMenuItem } from '../common/menuitem';
+import { loadPopupMenuGicon } from './image_loader';
+import { Renderer } from '../common/renderer';
+import { GnomeRenderer } from './renderer';
+import { StyleKeys } from '../common/style_keys';
 
 export const GCheckedMenuItem = GObject.registerClass({
 
@@ -176,6 +178,10 @@ export class GnomeLinkMenuItem extends GnomeRenderer implements MenuItem<PopupMe
         return this._item;
     }
 
+    get generatedItem(): PopupMenu.PopupMenuItem {
+        return this._item;
+    }
+
     connect(action: string, handler: () => void): void {
         throw new Error('Method not implemented.');
     }
@@ -200,6 +206,10 @@ export class GnomeCheckedMenuItem implements CheckedMenuItem<typeof GCheckedMenu
     }
 
     get item(): typeof GCheckedMenuItem {
+        return this._item;
+    }
+
+    get generatedItem(): typeof GCheckedMenuItem {
         return this._item;
     }
 
@@ -230,6 +240,10 @@ export class GnomeMatchMenuItem extends MatchMenuItemRenderer<St.BoxLayout, St.B
     }
 
     get item(): typeof GMatchMenuItem {
+        return this._item;
+    }
+
+    get generatedItem(): typeof GMatchMenuItem {
         return this._item;
     }
 

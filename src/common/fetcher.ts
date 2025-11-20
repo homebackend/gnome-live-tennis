@@ -1,10 +1,10 @@
 // src/fetcher.ts
 
-import { TennisEvent, TennisMatch, TennisSetScore } from "./types.js";
-import { AtpFetcher } from "./atp_fetcher.js";
-import { WtaFetcher } from "./wta_fetcher.js";
-import { Settings } from "./settings.js";
-import { TTFetcher } from "./tt_fetcher.js";
+import { TennisEvent, TennisMatch, TennisSetScore } from "./types";
+import { AtpFetcher } from "./atp_fetcher";
+import { WtaFetcher } from "./wta_fetcher";
+import { Settings } from "./settings";
+import { TTFetcher } from "./tt_fetcher";
 
 type StringToTennisEventMap = {
     [key: string]: TennisEvent

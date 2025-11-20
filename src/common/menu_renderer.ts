@@ -1,8 +1,8 @@
 import { CheckedMenuItem, CheckedMenuItemProperties, LinkMenuItemProperties, MatchMenuItem, MatchMenuItemProperties, MenuItem, PopubSubMenuItemProperties, PopupSubMenuItem } from "./menuitem.js";
-import { Renderer } from "./renderer.js";
-import { Runner } from "./runner.js";
-import { Settings } from "./settings.js";
-import { TennisEvent, TennisMatch } from "./types.js";
+import { Renderer } from "./renderer";
+import { Runner } from "./runner";
+import { Settings } from "./settings";
+import { TennisEvent, TennisMatch } from "./types";
 
 export abstract class MenuRendererCommon<T, TT, IT, PI, LI, CI, MI, E extends PopupSubMenuItem<PI, LI | CI | MI>,
     L extends MenuItem<LI>, C extends CheckedMenuItem<CI>, M extends MatchMenuItem<MI>> extends Runner {

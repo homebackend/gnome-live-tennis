@@ -1,6 +1,6 @@
-import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
-import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api.js";
-import { Fetcher, FetcherProperties } from "./fetcher.js";
+import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types";
+import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api";
+import { Fetcher, FetcherProperties } from "./fetcher";
 
 export class WtaFetcher implements Fetcher {
     private static wta_all_events_url_template = 'https://api.wtatennis.com/tennis/tournaments/?page=0&pageSize=20&excludeLevels=ITF&from={from-date}&to={to-date}';
@@ -32,13 +32,15 @@ export class WtaFetcher implements Fetcher {
     }
 
     _get_player(p: any, suffix: string): TennisPlayer {
+        const placeholder = !p[`PlayerNameFirst${suffix}`] || !p[`PlayerNameLast${suffix}`];
         const firstName: string = p[`PlayerNameFirst${suffix}`] || 'TBD';
         const lastName: string = p[`PlayerNameLast${suffix}`] || 'TBD';
         const id = p[`PlayerID${suffix}`];
         const slug = `${firstName.toLowerCase()}-${lastName.toLowerCase()}`;
-        const url = firstName != 'TBD' && lastName != 'TBD' ? `https://www.wtatennis.com/players/${id}/${slug}` : '';
+        const url = !placeholder ? `https://www.wtatennis.com/players/${id}/${slug}` : '';
         return {
             id: id,
+            placeholder: placeholder,
             countryCode: p[`PlayerCountry${suffix}`],
             country: p[`PlayerCountry${suffix}`],
             firstName: firstName,
@@ -81,6 +83,7 @@ export class WtaFetcher implements Fetcher {
 
         return {
             players: players,
+            placeholder: players.some(p => p.placeholder),
             entryType: t[`EntryType${team}`],
             seed: t[`Seed${team}`],
             gameScore: String(t[`Point${team}`]),
@@ -197,9 +200,11 @@ export class WtaFetcher implements Fetcher {
             const team2 = this._get_team_data(m, m['DrawMatchType'], 'B', 'A');
             const isDoubles = m['DrawMatchType'] !== 'S';
             const mid = m['MatchID'];
+            const placeholder = team1.placeholder || team2.placeholder;
 
             const tennisMatch: TennisMatch = {
                 id: mid,
+                placeholder: placeholder,
                 isDoubles: isDoubles,
                 roundId: m['RoundID'],
                 roundName: this._get_round_name(event, m['DrawMatchType'], m['DrawLevelType'], m['RoundID'], m['MatchState']),
@@ -224,7 +229,7 @@ export class WtaFetcher implements Fetcher {
                 displayStatus: this._get_match_status(m['MatchState']),
                 displayScore: m['ScoreString'],
                 url: `${event.url}/scores/${mid}`,
-                h2hUrl: isDoubles ? '' : `https://www.wtatennis.com/head-to-head/${team1.players[0].id}/${team2.players[0].id}`,
+                h2hUrl: placeholder || isDoubles ? '' : `https://www.wtatennis.com/head-to-head/${team1.players[0].id}/${team2.players[0].id}`,
             };
 
             tennisMatches.push(tennisMatch);

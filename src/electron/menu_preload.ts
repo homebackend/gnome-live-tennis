@@ -1,5 +1,5 @@
-import { TennisEvent, TennisMatch } from "../common/types.js";
-import { MenuRenderKeys } from "./render_keys.js";
+import { TennisEvent, TennisMatch } from "../common/types";
+import { MenuRenderKeys } from "./render_keys";
 
 import { contextBridge, ipcRenderer } from 'electron';
 

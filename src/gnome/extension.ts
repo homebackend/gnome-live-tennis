@@ -8,18 +8,18 @@ import GObject from 'gi://GObject';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from "resource:///org/gnome/shell/ui/panelMenu.js";
 import * as PopupMenu from "resource:///org/gnome/shell/ui/popupMenu.js";
-
 import { Extension } from "resource:///org/gnome/shell/extensions/extension.js";
-import { FloatingScoreWindow } from './floating_window.js';
-import { TennisMatch } from '../common/types.js';
-import { MenuHandler, GnomeRunner } from './runner.js';
-import { Settings } from '../common/settings.js';
-import { GnomeSettings } from './settings.js';
-import { LiveViewManager, LiveViewUpdater } from '../common/live_view_updater.js';
-import { GnomeApiHandler } from './api.js';
-import { GCheckedMenuItem } from './menuItem.js';
-import { StyleKeys } from '../common/style_keys.js';
-import { GnomeTTFetcher } from './fetcher.js';
+
+import { FloatingScoreWindow } from './floating_window';
+import { TennisMatch } from '../common/types';
+import { MenuHandler, GnomeRunner } from './runner';
+import { Settings } from '../common/settings';
+import { GnomeSettings } from './settings';
+import { LiveViewManager, LiveViewUpdater } from '../common/live_view_updater';
+import { GnomeApiHandler } from './api';
+import { GCheckedMenuItem } from './menuItem';
+import { StyleKeys } from '../common/style_keys';
+import { GnomeTTFetcher } from './fetcher';
 
 const ICON_SIZE = 22;
 

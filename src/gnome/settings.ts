@@ -1,5 +1,6 @@
 import Gio from "gi://Gio";
-import { Settings } from "../common/settings.js";
+
+import { Settings } from "../common/settings";
 
 export class GnomeSettings implements Settings {
     private _settings: Gio.Settings;

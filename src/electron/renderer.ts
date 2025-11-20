@@ -1,49 +1,10 @@
-import { Alignment, ContainerItemProperties, ContainerProperties, ImageProperties, Renderer, SeparatorPropeties, TextProperties } from "../common/renderer.js";
-import { StyleKeys } from "../common/style_keys.js";
+import { getAlignItems, getAlignmentStyle, getJustifyContent, getTextAlignment } from "../common/app/renderer";
+import { Alignment, ContainerItemProperties, ContainerProperties, ImageProperties, Renderer, SeparatorPropeties, TextProperties } from "../common/renderer";
+import { StyleKeys } from "../common/style_keys";
 
 export class ElectronRenderer extends Renderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement> {
     openURL(url: string): void {
         throw new Error("Method not implemented.");
-    }
-
-    private _getAlignment(alignment: Alignment): string {
-        switch (alignment) {
-            case Alignment.Begin: return 'flex-start';
-            case Alignment.End: return 'flex-end';
-            case Alignment.Center: return 'center';
-        }
-    }
-
-    private _getTextAlignment(alignment: Alignment): string {
-        switch (alignment) {
-            case Alignment.Begin: return 'left';
-            case Alignment.End: return 'right';
-            case Alignment.Center: return 'center';
-        }
-    }
-
-    private _getJustifyContent(properties: ContainerProperties): string {
-        if (properties.justifyContent) {
-            return properties.justifyContent;
-        }
-
-        if (properties.vertical) {
-            return this._getAlignment(properties.yAlign ?? Alignment.Begin);
-        }
-
-        return this._getAlignment(properties.xAlign ?? Alignment.Begin)
-    }
-
-    private _getAlignItems(properties: ContainerProperties): string {
-        if (properties.alignItems) {
-            return properties.alignItems;
-        }
-
-        if (properties.vertical) {
-            return this._getAlignment(properties.xAlign ?? Alignment.Begin);
-        }
-
-        return this._getAlignment(properties.yAlign ?? Alignment.Begin);
     }
 
     createContainer(properties?: ContainerProperties): HTMLDivElement {
@@ -52,11 +13,15 @@ export class ElectronRenderer extends Renderer<HTMLDivElement, HTMLSpanElement, 
             if (properties.className) {
                 div.className = properties.className;
             }
-            div.style.display = 'flex';
+            if (properties.hidden) {
+                div.style.display = 'none';
+            } else {
+                div.style.display = 'flex';
+            }
             div.style.flexDirection = properties.vertical ? 'column' : 'row';
             div.style.flexWrap = 'nowrap';
-            div.style.justifyContent = this._getJustifyContent(properties);
-            div.style.alignItems = this._getAlignItems(properties);
+            div.style.justifyContent = getJustifyContent(properties);
+            div.style.alignItems = getAlignItems(properties);
 
             if (properties.xExpand) {
                 div.style.width = '100%';
@@ -114,10 +79,12 @@ export class ElectronRenderer extends Renderer<HTMLDivElement, HTMLSpanElement, 
             div.style.width = '100%';
         }
         if (properties.xAlign || properties.yAlign) {
-            div.style.alignItems = this._getAlignment(properties.xAlign ? properties.xAlign : properties.yAlign!);
+            div.style.alignItems = getAlignmentStyle(properties.xAlign ? properties.xAlign : properties.yAlign!);
         }
-        if (properties.visibility) {
-            div.style.visibility = properties.visibility;
+        if (properties.visible === false) {
+            div.style.visibility = 'hidden';
+        } else {
+            div.style.visibility = 'visible';
         }
         if (properties.attributes) {
             properties.attributes.forEach((value, key) => div.setAttribute(key, value));
@@ -174,7 +141,7 @@ export class ElectronRenderer extends Renderer<HTMLDivElement, HTMLSpanElement, 
             span.style.flexGrow = '10';
         }
         if (textProperties.textAlign) {
-            span.style.textAlign = this._getTextAlignment(textProperties.textAlign);
+            span.style.textAlign = getTextAlignment(textProperties.textAlign);
         }
 
         this._createItemContainerAndAddItem(container, textProperties, span);

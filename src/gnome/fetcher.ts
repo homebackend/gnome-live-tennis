@@ -1,4 +1,4 @@
-import { TTFetcher } from "../common/tt_fetcher.js";
+import { TTFetcher } from "../common/tt_fetcher";
 import GLib from "gi://GLib";
 
 export class GnomeTTFetcher extends TTFetcher {
