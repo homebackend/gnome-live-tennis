@@ -3,10 +3,11 @@
   "version": "4.0.4",
   "private": true,
   "scripts": {
+    "flags": "node src/flags_generator.js",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
-    "start": "react-native start",
+    "start": "npm run flags && react-native start",
     "test": "jest"
   },
   "dependencies": {
@@ -15,6 +16,7 @@
     "react": "19.1.1",
     "react-native": "0.82.1",
     "react-native-safe-area-context": "^5.5.2",
+    "react-native-svg": "^15.15.0",
     "react-native-uuid": "^2.0.3"
   },
   "devDependencies": {
@@ -36,6 +38,7 @@
     "prettier": "2.8.8",
     "react-native-css-transformer": "^2.0.0",
     "react-test-renderer": "19.1.1",
+    "sharp": "^0.34.5",
     "typescript": "^5.8.3"
   },
   "engines": {

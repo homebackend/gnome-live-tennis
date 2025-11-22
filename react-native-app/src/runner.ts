@@ -2,21 +2,31 @@ import { RNCheckedMenuItem, RNLinkMenuItem, RNMatchMenuItem, RNPopupSubMenuItem 
 import { ReactElementGenerator, RNElement, RNRenderer } from "./renderer";
 import { AppMenuRenderer } from '../../src/common/app/menu_renderer';
 import { Settings } from "../../src/common/settings";
-import { useState } from "react";
+import { ReactElement } from "react";
+import React from "react";
+import { BackHandler } from "react-native";
 
 export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, ReactElementGenerator,
     RNPopupSubMenuItem, RNLinkMenuItem, RNCheckedMenuItem, RNMatchMenuItem> {
 
-    private _setEvents?: React.Dispatch<React.SetStateAction<RNPopupSubMenuItem[]>>;
-    private _setRefreshTimeText?: React.Dispatch<React.SetStateAction<string>>;
+    private _refreshTimeText = 'Never';
+    private _setRefreshTimeText: React.Dispatch<React.SetStateAction<string>>;
     private _menuItems: RNPopupSubMenuItem[] = [];
     private _mainContainer: RNElement;
+    public setExpandEvent: React.Dispatch<React.SetStateAction<RNPopupSubMenuItem | null>>;
 
-    constructor(log: (logs: string[]) => void, settings: Settings) {
-        super('', log, settings, new RNRenderer('', log), RNPopupSubMenuItem, RNLinkMenuItem, RNCheckedMenuItem, RNMatchMenuItem);
+    constructor(log: (logs: string[]) => void, settings: Settings,
+        setRefreshTimeText: React.Dispatch<React.SetStateAction<string>>,
+        setExpandEvent: React.Dispatch<React.SetStateAction<RNPopupSubMenuItem | null>>,
+    ) {
+        super('./', log, settings, new RNRenderer('', log), RNPopupSubMenuItem, RNLinkMenuItem, RNCheckedMenuItem, RNMatchMenuItem);
 
-        this.otherContainer.children = [];
+        if (!this.otherContainer.children) {
+            this.otherContainer.children = [];
+        }
 
+        this._setRefreshTimeText = setRefreshTimeText;
+        this.setExpandEvent = setExpandEvent;
         const r = this._renderer;
         this._mainContainer = r.createContainer({ vertical: true });
         r.addContainersToContainer(this._mainContainer, [this.eventContainer, this.otherContainer]);
@@ -24,23 +34,16 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
 
     addEventMenuItemToMenu(item: RNPopupSubMenuItem, position: number): void {
         this._menuItems.splice(position, 0, item);
-        if (this._setEvents) {
-            this._setEvents([...this._menuItems]);
-        }
+        item.parent = this;
     }
 
     setLastRefrestTimeText(text: string): void {
-        if (this._setRefreshTimeText) {
-            this._setRefreshTimeText(text);
-        }
+        this._setRefreshTimeText(text);
     }
 
     addRefreshMenuItem(): void {
         const RefreshItem = () => {
-            const [refreshTimeText, setRefreshTimeText] = useState('Never');
-            this._setRefreshTimeText = setRefreshTimeText;
-
-            const [container] = this.getRefreshMenuItem(refreshTimeText);
+            const [container] = this.getRefreshMenuItem(this._refreshTimeText);
             return container.element();
         };
 
@@ -51,14 +54,22 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
         this.otherContainer.children!.push(item.item);
     }
 
-    get generator(): ReactElementGenerator {
-        return () => {
-            const [events, setEvents] = useState<RNPopupSubMenuItem[]>([]);
-            this._setEvents = setEvents;
+    renderMainUI(refreshTimeText: string, expandedEvent: RNPopupSubMenuItem | null): ReactElement {
+        this._refreshTimeText = refreshTimeText;
+        this._menuItems.forEach(mi => (mi.expanded = (mi === expandedEvent)));
+        this.eventContainer.children = this._menuItems.map(mi => mi.menu);
+        return this._mainContainer.element();
+    }
 
-            this.eventContainer.children = events.map(e => e.menu);
+    protected refresh(): void {
+        throw new Error("Method not implemented.");
+    }
 
-            return this._mainContainer.element();
-        };
+    protected openSettingsWindow(): void {
+        throw new Error("Method not implemented.");
+    }
+
+    protected quit(): void {
+        BackHandler.exitApp();
     }
 }

@@ -6,14 +6,14 @@ const workspaceRoot = path.resolve(projectRoot, '..');
 // Ensure no code other than src/{common,lib} is included.
 const commonCodeRoot = path.resolve(workspaceRoot, 'src', 'common');
 const libCodeRoot = path.resolve(workspaceRoot, 'src', 'lib');
-const parentNoduModules = path.resolve(workspaceRoot, 'node_modules');
+const parentNodeModules = path.resolve(workspaceRoot, 'node_modules');
 const defaultConfig = getDefaultConfig(projectRoot);
 
 const { assetExts, sourceExts } = defaultConfig.resolver;
 
 /** @type {import('@react-native/metro-config').MetroConfig} */
 const config = {
-  watchFolders: [commonCodeRoot, libCodeRoot, parentNoduModules],
+  watchFolders: [commonCodeRoot, libCodeRoot, parentNodeModules],
   transformer: {
     babelTransformerPath: require.resolve("react-native-css-transformer")
   },
@@ -23,7 +23,7 @@ const config = {
     sourceExts: [...sourceExts, "css"],
     nodeModulesPaths: [
       path.resolve(projectRoot, 'node_modules'),
-      parentNoduModules,
+      parentNodeModules,
     ],
   },
 };

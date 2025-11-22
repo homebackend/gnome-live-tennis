@@ -5,59 +5,62 @@ import { useState } from 'react';
 import { Renderer } from '../../src/common/renderer';
 import { StyleKeys } from '../../src/common/style_keys';
 import { TennisMatch } from '../../src/common/types';
+import { RNRunner } from './runner';
 
 export class RNPopupSubMenuItem extends RNRenderer implements PopupSubMenuItem<ReactElementGenerator, ReactElementGenerator> {
+    private _expanded: boolean = false;
     private _properties: PopubSubMenuItemProperties;
-    private _menuItems: CheckedMenuItemCommon[] = [];
-    private _setIsExpanded?: React.Dispatch<React.SetStateAction<boolean>>;
-    private _setMenuItems?: React.Dispatch<React.SetStateAction<CheckedMenuItemCommon[]>>;
+    private _menuItems: MenuItem<ReactElementGenerator>[] = [];
+    private _parent?: RNRunner;
 
     constructor(properties: PopubSubMenuItemProperties) {
         super(properties.basePath, properties.log);
         this._properties = properties;
     }
 
-    get menu(): ReactElementGenerator {
-        return () => {
-            const [isExpanded, setIsExpanded] = useState(false);
-            this._setIsExpanded = setIsExpanded;
-            const [menuItems, setMenuItems] = useState(this._menuItems);
-            this._setMenuItems = setMenuItems;
+    set expanded(expanded: boolean) {
+        this._expanded = expanded;
+    }
 
-            const [menu] = getPopupSubMenuItem(isExpanded, (handler) => {
-                handler()
-                setIsExpanded(!isExpanded);
+    set parent(parent: RNRunner) {
+        this._parent = parent;
+    }
+
+    get menu(): ReactElementGenerator {
+        const parent = this._parent;
+        return () => {
+            const [menu, menuContainer] = getPopupSubMenuItem(this._expanded, (handler) => {
+                const expanded = this._expanded;
+                handler();
+                this._expanded = !expanded;
+                if (parent) {
+                    parent.setExpandEvent(expanded ? null : this);
+                }
             }, this._properties, this);
 
-            if (!menu.children) {
-                menu.children = [];
+            // The menu container is empty at this point.
+            if (this._expanded) {
+                menuContainer.children = this._menuItems.map(mi => mi.item);
             }
-            menu.children = [...menu.children, ...menuItems.map(i => i.item)];
+
             return menu.element();
         };
     }
 
     addMenuItem(item: MenuItem<ReactElementGenerator>): void {
+        console.log('addmenuitem', item instanceof CheckedMenuItemCommon);
         if (item instanceof CheckedMenuItemCommon) {
             item.parent = this;
-            this._menuItems.push(item);
-            if (this._setMenuItems) {
-                this._setMenuItems([...this._menuItems]);
-            }
         }
+        this._menuItems.push(item);
     }
 
     removeMenuItem(item: CheckedMenuItemCommon): void {
         this._menuItems = this._menuItems.filter(i => i !== item);
-        if (this._setMenuItems) {
-            this._setMenuItems([...this._menuItems]);
-        }
     }
 
     hide(): void {
-        if (this._setIsExpanded) {
-            this._setIsExpanded(false);
-        }
+        this._expanded = false;
     }
 
     destroy(): void {

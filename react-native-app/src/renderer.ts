@@ -1,7 +1,10 @@
 // Import shared types from your common directory
 import uuid from 'react-native-uuid';
-import { Image, ImageStyle, Linking, Pressable, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useEffect, useState } from 'react';
+import { SvgUri } from 'react-native-svg';
+import { ActivityIndicator, Image, ImageStyle, Linking, Pressable, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+
+import { LRUCache } from '../../src/common/util';
 import {
     ContainerItemProperties,
     ContainerProperties,
@@ -11,8 +14,9 @@ import {
     TextProperties
 } from '../../src/common/renderer';
 import { getAlignItems, getAlignmentStyle, getJustifyContent, getTextAlignment } from '../../src/common/app/renderer';
-import cssStyles from "../../src/common/style.css";
+import { cssStyles } from "./style";
 import { StyleKeys } from '../../src/common/style_keys';
+import flags from './flags';
 
 export interface RNElement {
     hidden?: boolean;
@@ -23,6 +27,7 @@ export interface RNElement {
 }
 
 export type ReactElementGenerator = () => ReactElement;
+type CSSStyle = ViewStyle | TextStyle | ImageStyle;
 
 export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
     private static CommonStyle = StyleSheet.create({
@@ -31,6 +36,13 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
             textDecorationLine: 'underline',
         },
     });
+
+    private _imageSize: LRUCache<string, { width: number, height: number }> = new LRUCache(100);
+    private _images: LRUCache<string, ReactElement> = new LRUCache(100);
+
+    private getCssStyle(className: string): CSSStyle[] {
+        return className.split(' ').map(cn => cssStyles[cn]);
+    }
 
     openURL(url: string): void {
         Linking.openURL(url).catch(err => console.error("Failed to open URL", err));
@@ -50,11 +62,11 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                 }) : [];
 
             let style: ViewStyle | undefined;
-            let cssStyle: ViewStyle | undefined;
+            let cssStyle: ViewStyle[] | undefined;
 
             if (properties) {
                 if (properties.className) {
-                    cssStyle = cssStyles[properties.className];
+                    cssStyle = this.getCssStyle(properties.className);
                 }
                 const flexDirection = 'vertical' in properties ? properties.vertical ? 'column' : 'row' : 'row';
 
@@ -103,7 +115,7 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                     classNameToUse = StyleKeys.SeparatorHorizontal;
                 }
 
-                const cssStyle = cssStyles[classNameToUse] as ViewStyle | undefined;
+                const cssStyle = this.getCssStyle(classNameToUse);
 
                 if (properties.vertical) {
                     if (properties.size) {
@@ -143,14 +155,18 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
     private _createItemContainerStyle(properties: ContainerItemProperties): ViewStyle {
         const style: ViewStyle = {};
 
+        // Default is column in react native.
+        style.flexDirection = 'row';
         if (properties.xExpand || properties.yExpand) {
             style.flexGrow = 1;
         }
         if (properties.xAlign || properties.yAlign) {
             style.alignItems = getAlignmentStyle(properties.xAlign ? properties.xAlign : properties.yAlign);
         }
-        if (!properties.visible) {
+        if (properties.visible === false) {
             style.opacity = 0;
+        } else {
+            style.opacity = 1;
         }
 
         if (properties.paddingLeft) style.paddingLeft = parseInt(properties.paddingLeft, 10);
@@ -170,34 +186,27 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                     textStyle.textAlign = getTextAlignment(textProperties.textAlign);
                 }
 
-                // Get styles from CSS file if className is specified
-                const cssTextClassStyle = textProperties.className ? cssStyles[textProperties.className] : undefined;
+                const cssTextClassStyle = textProperties.className ? this.getCssStyle(textProperties.className) : undefined;
 
                 let content: ReactElement;
 
                 if (textProperties.link) {
-                    // Wrap content in TouchableOpacity and use Linking API
                     content = React.createElement(TouchableOpacity, {
                         onPress: () => this.openURL(textProperties.link!),
-                        // RN TouchableOpacity style doesn't have text style properties, 
-                        // so apply link styles to the nested <Text>
                     }, React.createElement(Text, {
                         style: [cssTextClassStyle, textStyle, RNRenderer.CommonStyle.linkText]
                     }, textProperties.text));
 
                 } else {
-                    // Use standard Text component. RN does not support innerHTML
                     content = React.createElement(Text, {
                         style: [cssTextClassStyle, textStyle]
                     }, textProperties.text);
                 }
 
-                // Create the wrapper View style that applies padding/alignment/expand properties
                 const itemContainerStyle = this._createItemContainerStyle(textProperties);
-                const cssItemClassStyle = textProperties.className ? cssStyles[textProperties.className] : undefined;
+                const cssItemClassStyle = textProperties.className ? this.getCssStyle(textProperties.className) : undefined;
                 const finalContainerStyle = StyleSheet.flatten([cssItemClassStyle, itemContainerStyle]);
 
-                // The RN equivalent of _createItemContainerAndAddItem is creating this wrapper View:
                 return React.createElement(View, { style: finalContainerStyle, key: uuid.v4().toString() }, content);
             },
         };
@@ -208,44 +217,135 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
     }
 
     addImageToContainer(container: RNElement, imageProperties: ImageProperties): RNElement {
+        const imageSize = this._imageSize;
+        const images = this._images;
+
         const image: RNElement = {
             element: (): ReactElement => {
-                const imageStyle: ImageStyle = {}; // Start with a strict ImageStyle object
+                const CreateImage = (uri: string, expectedHeight: number, attribs: any) => {
+                    const [dimensions, setDimensions] = useState(imageSize.get(uri) ?? { width: 0, height: 0 });
+                    const [isLoading, setIsLoading] = useState(images.get(uri) ? false : true);
+                    const [error, setError] = useState(false);
 
-                // ... (source definition remains the same)
-                const source = typeof imageProperties.src === 'string' ? { uri: imageProperties.src } : imageProperties.src;
+                    useEffect(() => {
+                        const dimension = imageSize.get(uri);
+                        if (dimension) {
+                            setDimensions(dimension);
+                            setIsLoading(false);
+                            return;
+                        }
 
-                // RN Image needs explicit dimensions
-                if (imageProperties.iconSize) imageStyle.height = imageProperties.iconSize;
-                if (imageProperties.height) imageStyle.height = imageProperties.height;
-                if (imageProperties.width) imageStyle.width = imageProperties.width;
-                // ... (default size logic) ...
+                        const updateImage = (width: number, height: number) => {
+                            imageSize.put(uri, { width: width, height: height });
+                            setDimensions({ width, height });
+                            setIsLoading(false);
+                        };
 
-                // Retrieve the style object from the CSS import
-                // We must explicitly cast this to ImageStyle because the declaration file uses a union type
-                const cssImageClassStyle = cssStyles[imageProperties.className!] as ImageStyle | undefined;
+                        if (uri.endsWith('.svg')) {
+                            const processSvg = async () => {
+                                const response = await fetch(uri);
+                                const svgText = await response.text();
 
-                const imageElement = React.createElement(Image, {
-                    source: source,
-                    // The issue is here: StyleSheet.flatten can return a ViewStyle/ImageStyle union.
-                    // We must ensure the result conforms to ImageStyle before passing it to <Image>
+                                const widthMatch = svgText.match(/width="(\d+(\.\d+)?)"/);
+                                const heightMatch = svgText.match(/height="(\d+(\.\d+)?)"/);
+                                const viewBoxMatch = svgText.match(/viewBox="0 0 (\d+(\.\d+)?) (\d+(\.\d+)?)"/);
+
+                                let width = 0;
+                                let height = 0;
+
+                                if (widthMatch && heightMatch) {
+                                    width = parseFloat(widthMatch[1]);
+                                    height = parseFloat(heightMatch[1]);
+                                } else if (viewBoxMatch) {
+                                    width = parseFloat(viewBoxMatch[1]);
+                                    height = parseFloat(viewBoxMatch[3]);
+                                }
+
+                                if (width > 0 && height > 0) {
+                                    updateImage(width, height);
+                                } else {
+                                    console.error("Failed to get svg image size");
+                                    setError(true);
+                                    setIsLoading(false);
+                                }
+                            };
+
+                            processSvg();
+                        } else {
+                            Image.getSize(
+                                uri,
+                                (width, height) => {
+                                    updateImage(width, height);
+                                },
+                                (err) => {
+                                    console.error("Failed to get image size", err);
+                                    setError(true);
+                                    setIsLoading(false);
+                                }
+                            );
+                        }
+                    }, [uri]);
+
+                    if (isLoading) {
+                        return React.createElement(ActivityIndicator, { style: { height: expectedHeight } });
+                    }
+
+                    if (error || dimensions.width === 0 || dimensions.height === 0) {
+                        return React.createElement(View, { style: { height: expectedHeight, justifyContent: 'center', alignItems: 'center' } },
+                            React.createElement(Text, {}, 'Error loading image'),
+                        )
+                    }
+
+                    const aspectRatio = dimensions.width / dimensions.height;
+
+                    let imageElement = images.get(uri);
+                    if (!imageElement) {
+                        if (uri.endsWith('.svg')) {
+                            imageElement = React.createElement(SvgUri, { uri: uri, ...attribs, width: '100%', height: '100%' });
+                        } else {
+                            imageElement = React.createElement(Image, { source: { uri: uri }, ...attribs, height: expectedHeight });
+                        }
+
+                        images.put(uri, imageElement);
+                    }
+
+                    return React.createElement(View, { style: { height: expectedHeight, aspectRatio: aspectRatio } }, imageElement);
+                }
+
+                const imageStyle: ImageStyle = {};
+
+                if (imageProperties.isLocal) {
+                    if (imageProperties.iconSize) imageStyle.height = imageProperties.iconSize;
+                    if (imageProperties.height) imageStyle.height = imageProperties.height;
+                    if (imageProperties.width) imageStyle.width = imageProperties.width;
+                    imageStyle.height = imageStyle.width = imageStyle.height ? imageStyle.height : imageStyle.width;
+                }
+
+                const cssImageClassStyle = imageProperties.className ? this.getCssStyle(imageProperties.className) as ImageStyle[] : undefined;
+
+                const attribs = {
                     style: StyleSheet.flatten([cssImageClassStyle, imageStyle]),
                     accessibilityLabel: imageProperties.alt,
                     key: uuid.v4().toString(),
-                });
+                }
 
-                // --- The Fix: Create the surrounding container View for layout/padding/alignment ---
+                let imageElement: ReactElement;
 
-                // The item properties (padding, alignment, expand) should be applied to a parent <View>,
-                // not the <Image> component itself, as those are ViewStyle properties.
-                const itemContainerStyle = this._createItemContainerStyle(imageProperties); // This returns a ViewStyle
-                const cssItemClassStyle = imageProperties.className ? cssStyles[imageProperties.className] : undefined;
+                if (imageProperties.isLocal) {
+                    const source = flags[imageProperties.src as keyof typeof flags];
+                    imageElement = React.createElement(Image, { source: source, ...attribs });
+                } else {
+                    const expectedHeight = imageProperties.height ? imageProperties.height : 20;
+                    imageElement = CreateImage(imageProperties.src, expectedHeight, attribs);
+                }
+
+                const itemContainerStyle = this._createItemContainerStyle(imageProperties);
+                const cssItemClassStyle = imageProperties.className ? this.getCssStyle(imageProperties.className) : undefined;
                 const finalContainerStyle = StyleSheet.flatten([cssItemClassStyle, itemContainerStyle]);
 
                 let wrappedElement: ReactElement;
 
                 if (imageProperties.link) {
-                    // If there's a link, wrap the Image in a TouchableOpacity
                     wrappedElement = React.createElement(TouchableOpacity, {
                         onPress: () => this.openURL(imageProperties.link!),
                     }, imageElement);
@@ -253,7 +353,6 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                     wrappedElement = imageElement;
                 }
 
-                // Return a <View> that handles the layout, containing the strict <Image> element
                 return React.createElement(View, { style: finalContainerStyle, key: uuid.v4().toString() }, wrappedElement);
             },
         };

@@ -11,7 +11,7 @@ export function getPopupSubMenuItem<ContainerType, TextType, ImageType>(
 ): [ContainerType, ContainerType, TextType] {
     const eventElement = r.createContainer({ className: StyleKeys.MainMenuTournamentItem, xExpand: true });
     if (properties.url) {
-        r.addImageToContainer(eventElement, { src: properties.url, alt: properties.event.type, height: 20 });
+        r.addImageToContainer(eventElement, { src: properties.url, alt: properties.event.type, height: 20, paddingRight: '5px' });
     }
     r.addTextToContainer(eventElement, { text: properties.text, className: StyleKeys.NoWrapText, xExpand: true });
     const indicator = r.addTextToContainer(eventElement, {
@@ -19,7 +19,7 @@ export function getPopupSubMenuItem<ContainerType, TextType, ImageType>(
         className: StyleKeys.MainMenuEventIndicator
     });
 
-    const menuContainer = r.createContainer({ xExpand: true, hidden: !isExpanded });
+    const menuContainer = r.createContainer({ vertical: true, xExpand: true, hidden: !isExpanded });
     const wrapper = r.createContainer({ vertical: true, xExpand: true });
     r.addContainersToContainer(wrapper, [eventElement, menuContainer]);
 
@@ -54,6 +54,7 @@ function addCheckmark<ContainerType, TextType, ImageType>(
         text: '✓',
         className: StyleKeys.MainMenuCheckMark,
         visible: isVisible,
+        paddingRight: '5px',
     });
     r.addOnClickHandler(element, () => toggleHandler());
 

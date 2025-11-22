@@ -71,25 +71,19 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
     }
 
     private _get_display_type(tour: string, eventType: string) {
-        if (tour == 'ATP') {
-            return `ATP ${eventType}`;
-        } else {
-            if (eventType == 'CH') {
-                return `ATP Challenger`;
-            } else {
-                return `ATP ${eventType}`;
-            }
+        switch(eventType) {
+            case 'CH':
+                return 'ATP Challenger';
+            case 'DCR':
+                return 'Davis Cup';
         }
+
+        return `ATP ${eventType}`;
+
     }
 
     private _get_event_type_url(tour: string, eventType: string) {
-        if (tour == 'ATP') {
-            return ["1000", "500", "250"].includes(eventType) ? `https://www.atptour.com/assets/atpwt/images/tournament/badges/categorystamps_${eventType}.png` : undefined;
-        } else {
-            if (eventType == 'CH') {
-                return 'http://www.atptour.com/assets/atpwt/images/tournament/badges/categorystamps_ch.png';
-            }
-        }
+        return `https://www.atptour.com/assets/atpwt/images/tournament/badges/categorystamps_${eventType.toLowerCase()}.png`;
     }
 
     private _get_match_display_status(ms: string): string {

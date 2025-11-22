@@ -21,9 +21,11 @@ export abstract class AppMenuRenderer<ContainerType, TextType, ImageType, MIC,
         super(log, settings, basePath, renderer, EConstructor, LConstructor, CConstructor, MConstructor);
         this.eventContainer = renderer.createContainer({ vertical: true, xExpand: true });
         this.otherContainer = renderer.createContainer({ vertical: true, xExpand: true });
-
-        this.setupBaseMenu();
     }
+
+    protected abstract refresh(): void;
+    protected abstract openSettingsWindow(): void;
+    protected abstract quit(): void;
 
     addMenuSeprator(): void {
         const r = this._renderer;
@@ -35,7 +37,7 @@ export abstract class AppMenuRenderer<ContainerType, TextType, ImageType, MIC,
         const container = r.createContainer({ xExpand: true, className: StyleKeys.MainMenuMatchItem });
         r.addTextToContainer(container, {
             text: 'Last Refresh',
-            onClick: window.electronAPIMenu.refresh,
+            onClick: this.refresh.bind(this),
             className: StyleKeys.NoWrapText,
         });
         const refreshText = r.addTextToContainer(container, {
@@ -43,7 +45,7 @@ export abstract class AppMenuRenderer<ContainerType, TextType, ImageType, MIC,
             className: `${StyleKeys.NoWrapText} ${StyleKeys.MainMenuRefreshLabel}`,
             xExpand: true,
             textAlign: Alignment.End,
-            onClick: window.electronAPIMenu.refresh,
+            onClick: this.refresh.bind(this),
         });
 
         return [container, refreshText];
@@ -55,7 +57,7 @@ export abstract class AppMenuRenderer<ContainerType, TextType, ImageType, MIC,
             text: 'Settings',
             xExpand: true,
             className: StyleKeys.MainMenuMatchItem,
-            onClick: () => window.electronAPIMenu.openSettingsWindow(),
+            onClick: this.openSettingsWindow.bind(this),
         });
     }
 
@@ -65,7 +67,7 @@ export abstract class AppMenuRenderer<ContainerType, TextType, ImageType, MIC,
         r.addTextToContainer(this.otherContainer, {
             text: 'Quit Application',
             xExpand: true,
-            onClick: window.electronAPIMenu.quit,
+            onClick: this.quit.bind(this),
             className: `${StyleKeys.NoWrapText} ${StyleKeys.MainMenuMatchItem}`,
         });
     }

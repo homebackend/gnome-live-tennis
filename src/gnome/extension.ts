@@ -122,6 +122,13 @@ export default class LiveScoreExtension extends Extension implements LiveViewMan
         });
     }
 
+    unsetFetchTimer(): void {
+        if (_dataFetchTimeout) {
+            GLib.source_remove(_dataFetchTimeout);
+            _dataFetchTimeout = null;
+        }        
+    }
+
     destroyLiveView() {
         _activeFloatingWindows.forEach(w => w.destroy());
         _activeFloatingWindows = [];

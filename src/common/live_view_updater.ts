@@ -9,6 +9,7 @@ import { TTFetcher } from "./tt_fetcher";
 
 export interface LiveViewManager {
     setFetchTimer(interval: number, fetcher: () => void): void;
+    unsetFetchTimer(): void;
     getLiveViewCount(): number;
     setLiveViewCount(numWindows: number): Promise<void>
     updateLiveViewContent(window: number, match: TennisMatch): void;
@@ -52,6 +53,7 @@ export class LiveViewUpdater<TF extends TTFetcher> {
 
     disable() {
         this._liveTennis.disable();
+        this._manager.unsetFetchTimer();
     }
 
     async fetchMatchData() {

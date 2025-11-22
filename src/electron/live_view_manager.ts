@@ -81,8 +81,17 @@ export class ElectronLiveViewManager implements LiveViewManager {
     }
 
     setFetchTimer(interval: number, fetcher: () => void): void {
-        if (!this._fetchIntervalId) {
-            this._fetchIntervalId = setInterval(fetcher, 1000 * interval);
+        if (this._fetchIntervalId) {
+            this.unsetFetchTimer();
+        }
+
+        this._fetchIntervalId = setInterval(fetcher, 1000 * interval);
+    }
+
+    unsetFetchTimer(): void {
+        if (this._fetchIntervalId) {
+            clearInterval(this._fetchIntervalId);
+            this._fetchIntervalId = undefined;
         }
     }
 

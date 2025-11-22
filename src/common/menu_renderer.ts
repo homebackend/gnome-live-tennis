@@ -170,6 +170,7 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, LI, CI, MI, E extends Po
         this.addMenuSeprator();
         this.addSettingsItem();
         this.setupAdditionalMenuItems();
+        this.setLastRefreshTime(undefined);
     }
 
     destroy(): void {

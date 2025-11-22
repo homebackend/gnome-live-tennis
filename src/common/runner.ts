@@ -18,7 +18,6 @@ export abstract class Runner {
         this.settings = settings;
         this.basePath = basePath;
         this._tennisEvents = new SortedStringList();
-        this.setLastRefreshTime(undefined);
     }
 
     abstract updateLastRefreshTime(): void;

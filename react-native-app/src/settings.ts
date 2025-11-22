@@ -54,27 +54,31 @@ export class RNSettings implements Settings {
         return this.settings![key];
     }
 
+    private _actualKey(key: string): string {
+        return key.replaceAll('-', '_');
+    }
+
     async getBoolean(key: string): Promise<boolean> {
-        return (await this._getValue(key as keyof Schema)) as boolean;
+        return (await this._getValue(this._actualKey(key) as keyof Schema)) as boolean;
     }
 
     async getStrv(key: string): Promise<string[]> {
-        return (await this._getValue(key as keyof Schema)) as string[];
+        return (await this._getValue(this._actualKey(key) as keyof Schema)) as string[];
     }
 
     async getInt(key: string): Promise<number> {
-        return (await this._getValue(key as keyof Schema)) as number;
+        return (await this._getValue(this._actualKey(key) as keyof Schema)) as number;
     }
 
     async setBoolean(key: string, value: boolean): Promise<void> {
-        this.settings = await SettingsManager.saveSetting(key as keyof Schema, value);
+        this.settings = await SettingsManager.saveSetting(this._actualKey(key) as keyof Schema, value);
     }
 
     async setInt(key: string, value: number): Promise<void> {
-        this.settings = await SettingsManager.saveSetting(key as keyof Schema, value);
+        this.settings = await SettingsManager.saveSetting(this._actualKey(key) as keyof Schema, value);
     }
 
     async setStrv(key: string, value: string[]): Promise<void> {
-        this.settings = await SettingsManager.saveSetting(key as keyof Schema, value);
+        this.settings = await SettingsManager.saveSetting(this._actualKey(key) as keyof Schema, value);
     }
 }

@@ -76,6 +76,8 @@ class MenuRenderer extends AppMenuRenderer<HTMLDivElement, HTMLSpanElement, HTML
 
         root.appendChild(this.eventContainer);
         root.appendChild(this.otherContainer);
+
+        this.setupBaseMenu();
     }
 
     addEventMenuItemToMenu(item: ElectronPopupSubMenuItem, position: number): void {
@@ -103,6 +105,18 @@ class MenuRenderer extends AppMenuRenderer<HTMLDivElement, HTMLSpanElement, HTML
         this._refreshTimeSpan = refreshTimeSpan;
         const r = this._renderer;
         r.addContainersToContainer(this.otherContainer, refreshDiv);
+    }
+
+    protected refresh(): void {
+        window.electronAPIMenu.refresh();
+    }
+    
+    protected openSettingsWindow(): void {
+        window.electronAPIMenu.openSettingsWindow();
+    }
+
+    protected quit(): void {
+        window.electronAPIMenu.quit();
     }
 };
 
