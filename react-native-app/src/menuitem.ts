@@ -1,4 +1,4 @@
-import { ReactElementGenerator, RNElement, RNRenderer } from './renderer';
+import { ReactElementGenerator, RNElement } from './renderer';
 import { CheckedMenuItem, CheckedMenuItemProperties, LinkMenuItemProperties, MatchMenuItemProperties, MatchMenuItemRenderer, MenuItem, PopubSubMenuItemProperties, PopupSubMenuItem } from '../../src/common/menuitem';
 import { getCheckedMenuItem, getLinkMenuItem, getPopupSubMenuItem } from '../../src/common/app/menuitem';
 import { useState } from 'react';
@@ -6,16 +6,19 @@ import { Renderer } from '../../src/common/renderer';
 import { StyleKeys } from '../../src/common/style_keys';
 import { TennisMatch } from '../../src/common/types';
 import { RNRunner } from './runner';
+import { ScrollView } from 'react-native';
+import React from 'react';
 
-export class RNPopupSubMenuItem extends RNRenderer implements PopupSubMenuItem<ReactElementGenerator, ReactElementGenerator> {
+export class RNPopupSubMenuItem implements PopupSubMenuItem<ReactElementGenerator, ReactElementGenerator> {
     private _expanded: boolean = false;
     private _properties: PopubSubMenuItemProperties;
+    private _renderer: Renderer<RNElement, RNElement, RNElement>;
     private _menuItems: MenuItem<ReactElementGenerator>[] = [];
     private _parent?: RNRunner;
 
-    constructor(properties: PopubSubMenuItemProperties) {
-        super(properties.basePath, properties.log);
+    constructor(properties: PopubSubMenuItemProperties, renderer: Renderer<RNElement, RNElement, RNElement>) {
         this._properties = properties;
+        this._renderer = renderer;
     }
 
     set expanded(expanded: boolean) {
@@ -36,14 +39,14 @@ export class RNPopupSubMenuItem extends RNRenderer implements PopupSubMenuItem<R
                 if (parent) {
                     parent.setExpandEvent(expanded ? null : this);
                 }
-            }, this._properties, this);
+            }, this._properties, this._renderer);
 
             // The menu container is empty at this point.
             if (this._expanded) {
                 menuContainer.children = this._menuItems.map(mi => mi.item);
             }
 
-            return menu.element();
+            return React.createElement(ScrollView, { style: { flexDirection: 'row', width: '100%', flexGrow: 1 } }, menu.element());
         };
     }
 
@@ -64,23 +67,28 @@ export class RNPopupSubMenuItem extends RNRenderer implements PopupSubMenuItem<R
     }
 
     destroy(): void {
-        super.destroy();
+        this._renderer.destroy();
     }
 }
 
-export class RNLinkMenuItem extends RNRenderer implements MenuItem<ReactElementGenerator> {
+export class RNLinkMenuItem implements MenuItem<ReactElementGenerator> {
     private _properties: LinkMenuItemProperties;
+    private _renderer: Renderer<RNElement, RNElement, RNElement>;
 
-    constructor(properties: LinkMenuItemProperties) {
-        super(properties.basePath, properties.log);
+    constructor(properties: LinkMenuItemProperties, renderer: Renderer<RNElement, RNElement, RNElement>) {
         this._properties = properties;
+        this._renderer = renderer;
     }
 
     get item(): ReactElementGenerator {
         return () => {
-            const item = getLinkMenuItem(this._properties, this);
+            const item = getLinkMenuItem(this._properties, this._renderer);
             return item.element();
         };
+    }
+
+    destroy(): void {
+        this._renderer.destroy();
     }
 }
 
@@ -160,7 +168,7 @@ export class RNMatchMenuItem extends CheckedMenuItemCommon {
     }
 
     protected addItemData(itemData: RNElement): void {
-        this.updateMatchData(itemData, this._match);
+        this.updateMatchData(itemData, this._match, true);
     }
 
     get item(): ReactElementGenerator {

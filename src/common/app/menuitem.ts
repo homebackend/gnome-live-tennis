@@ -1,4 +1,4 @@
-import { LinkMenuItemProperties, PopubSubMenuItemProperties } from "../menuitem";
+import { getMatchMenuItemProperties, LinkMenuItemProperties, PopubSubMenuItemProperties } from "../menuitem";
 import { Renderer } from "../renderer";
 import { StyleKeys } from "../style_keys";
 
@@ -66,7 +66,7 @@ export function getCheckedMenuItem<ContainerType, TextType, ImageType>(
     checked: boolean,
     toggleHandler: () => void,
 ): [ContainerType, TextType, ContainerType] {
-    const item = r.createContainer({ className: StyleKeys.MainMenuMatchItem, xExpand: true });
+    const item = r.createContainer(getMatchMenuItemProperties());
     const checkMarkItem = addCheckmark(r, item, checked, toggleHandler);
     const itemData = r.createContainer({ xExpand: true });
     r.addOnClickHandler(itemData, () => toggleHandler());

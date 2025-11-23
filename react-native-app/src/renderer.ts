@@ -2,7 +2,8 @@
 import uuid from 'react-native-uuid';
 import React, { ReactElement, useEffect, useState } from 'react';
 import { SvgUri } from 'react-native-svg';
-import { ActivityIndicator, Image, ImageStyle, Linking, Pressable, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, ImageStyle, Linking, Pressable, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { RenderHTML } from 'react-native-render-html';
 
 import { LRUCache } from '../../src/common/util';
 import {
@@ -13,10 +14,10 @@ import {
     SeparatorPropeties,
     TextProperties
 } from '../../src/common/renderer';
-import { getAlignItems, getAlignmentStyle, getJustifyContent, getTextAlignment } from '../../src/common/app/renderer';
-import { cssStyles } from "./style";
+import { getAlignItems, getAlignmentStyle, getJustifyContent } from '../../src/common/app/renderer';
 import { StyleKeys } from '../../src/common/style_keys';
 import flags from './flags';
+import { getCssThemeStyles, LiveTennisTheme } from './style';
 
 export interface RNElement {
     hidden?: boolean;
@@ -30,18 +31,18 @@ export type ReactElementGenerator = () => ReactElement;
 type CSSStyle = ViewStyle | TextStyle | ImageStyle;
 
 export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
-    private static CommonStyle = StyleSheet.create({
-        linkText: {
-            color: 'blue',
-            textDecorationLine: 'underline',
-        },
-    });
-
     private _imageSize: LRUCache<string, { width: number, height: number }> = new LRUCache(100);
     private _images: LRUCache<string, ReactElement> = new LRUCache(100);
+    private _theme: LiveTennisTheme;
+
+    constructor(basePath: string, log: (logs: string[]) => void, theme: LiveTennisTheme) {
+        super(basePath, log);
+        this._theme = theme;
+    }
 
     private getCssStyle(className: string): CSSStyle[] {
-        return className.split(' ').map(cn => cssStyles[cn]);
+        const themeStyles = getCssThemeStyles(this._theme);
+        return className.split(' ').map(cn => themeStyles[cn]);
     }
 
     openURL(url: string): void {
@@ -161,7 +162,7 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
             style.flexGrow = 1;
         }
         if (properties.xAlign || properties.yAlign) {
-            style.alignItems = getAlignmentStyle(properties.xAlign ? properties.xAlign : properties.yAlign);
+            style.justifyContent = getAlignmentStyle(properties.xAlign ? properties.xAlign : properties.yAlign);
         }
         if (properties.visible === false) {
             style.opacity = 0;
@@ -179,28 +180,40 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
         const textElement: RNElement = {
             element: (): ReactElement => {
                 const textStyle: TextStyle = {};
-                if (textProperties.xExpand || textProperties.yExpand) {
-                    textStyle.flexGrow = 1;
-                }
                 if (textProperties.textAlign) {
-                    textStyle.textAlign = getTextAlignment(textProperties.textAlign);
+                    textProperties.xAlign = textProperties.textAlign;
                 }
 
                 const cssTextClassStyle = textProperties.className ? this.getCssStyle(textProperties.className) : undefined;
+                const linkTextStyle = textProperties.link || textProperties.onClick ? this.getCssStyle(StyleKeys.MainMenuLinkButton) : undefined;
+
+                let textContent: ReactElement;
+                if (textProperties.text.includes('<')) {
+                    const contentWidth = Dimensions.get('window').width;
+                    textContent = React.createElement(RenderHTML, {
+                        source: { html: textProperties.text },
+                        contentWidth: contentWidth,
+                    });
+                } else {
+                    textContent = React.createElement(Text, { style: [cssTextClassStyle, textStyle, linkTextStyle] }, textProperties.text);
+                }
 
                 let content: ReactElement;
-
-                if (textProperties.link) {
+                if (textProperties.link || textProperties.onClick) {
                     content = React.createElement(TouchableOpacity, {
-                        onPress: () => this.openURL(textProperties.link!),
-                    }, React.createElement(Text, {
-                        style: [cssTextClassStyle, textStyle, RNRenderer.CommonStyle.linkText]
-                    }, textProperties.text));
+                        style: [cssTextClassStyle, textStyle],
+                        onPress: () => {
+                            if (textProperties.link) {
+                                this.openURL(textProperties.link);
+                            }
+                            if (textProperties.onClick) {
+                                textProperties.onClick();
+                            }
+                        },
+                    }, textContent);
 
                 } else {
-                    content = React.createElement(Text, {
-                        style: [cssTextClassStyle, textStyle]
-                    }, textProperties.text);
+                    content = textContent;
                 }
 
                 const itemContainerStyle = this._createItemContainerStyle(textProperties);
@@ -345,9 +358,16 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
 
                 let wrappedElement: ReactElement;
 
-                if (imageProperties.link) {
+                if (imageProperties.link || imageProperties.onClick) {
                     wrappedElement = React.createElement(TouchableOpacity, {
-                        onPress: () => this.openURL(imageProperties.link!),
+                        onPress: () => {
+                            if (imageProperties.link) {
+                                this.openURL(imageProperties.link);
+                            }
+                            if (imageProperties.onClick) {
+                                imageProperties.onClick();
+                            }
+                        },
                     }, imageElement);
                 } else {
                     wrappedElement = imageElement;

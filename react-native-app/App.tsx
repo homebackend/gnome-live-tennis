@@ -1,68 +1,39 @@
-import { RNSettings } from './src/settings';
-import { RNRunner } from './src/runner';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { useCallback, useEffect, useState } from 'react';
-import { RNPopupSubMenuItem } from './src/menuitem';
-import { ApiHandlers, LiveViewUpdater } from '../src/common/live_view_updater';
-import { AxiosApiHandler } from '../src/common/app/api';
-import { RNLiveViewManager } from './src/live_view_manager';
-import { NodeTTFetcher } from '../src/common/tt_fetcher';
+// App.tsx
+import * as React from 'react';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { RootStackParamList } from './src/types'; // Import main param list
+import { MainMenu } from './src/menu';
+import { PreferencesScreen } from './src/prefs';
+import { CountryPreferencesScreen } from './src/prefs_countries';
+import { useColorScheme } from 'react-native';
 
-const App = () => {
-  const [debug, setDebug] = useState(true);
-  const [isReady, setIsReady] = useState(false);
-  const [runner, setRunner] = useState<RNRunner | null>(null);
-  const [refreshTimeText, setRefreshTimeText] = useState('Never'); // Will update after each fetch
-  const [expandedEvent, setExpandEvent] = useState<RNPopupSubMenuItem | null>(null); // Will update after clicking event menu
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-  const log = useCallback((logs: string[]) => {
-    if (debug) {
-      console.log("[Live Tennis]", logs.join(", "));
-    }
+function App() {
+  const scheme = useColorScheme();
 
-  }, [debug]);
-
-  useEffect(() => {
-    const initializeApp = async () => {
-      const settings = new RNSettings();
-      await settings.initialize();
-      setDebug(await settings.getBoolean('enable-debug-logging'));
-
-      const newRunner = new RNRunner(log, settings, setRefreshTimeText, setExpandEvent);
-      await newRunner.setupBaseMenu();
-      setRunner(newRunner);
-      const apiHandlers: ApiHandlers = {
-        atp: new AxiosApiHandler(log),
-        wta: new AxiosApiHandler(log),
-        tt: new AxiosApiHandler(log),
-      };
-      const manager = new RNLiveViewManager(settings);
-      const updater = new LiveViewUpdater(newRunner, manager, apiHandlers, settings, log, NodeTTFetcher);
-      await updater.fetchMatchData();
-
-      setIsReady(true);
-    };
-
-    initializeApp();
-  }, [log]);
-
-  if (!isReady || !runner) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
-  return runner.renderMainUI(refreshTimeText, expandedEvent);
-};
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+  return (
+    <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen
+          name="Home"
+          component={MainMenu}
+          options={{ title: 'Overview' }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={PreferencesScreen}
+          options={{ title: `Settings` }}
+        />
+        <Stack.Screen
+          name="CountrySettings"
+          component={CountryPreferencesScreen}
+          options={{ title: `Country Settings` }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
 
 export default App;

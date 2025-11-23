@@ -25,10 +25,11 @@ export enum SettingApplicability {
     All,
     GnomeShellExtension,
     ElectronTrayApp,
+    ReactNativeApp,
 }
 
 interface FullSchemaItem<K extends keyof Schema = keyof Schema> {
-    type: string;
+    type: 'boolean' | 'number' | 'array';
     default: Schema[K];
     applicability?: SettingApplicability,
     items?: { type: string, enum?: string },

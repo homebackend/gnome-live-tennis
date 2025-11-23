@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('electronAPIMenu', {
     setSettingInt: (key: string, value: number): void => ipcRenderer.send(MenuRenderKeys.setSettingInt, key, value),
     setSettingStrv: (key: string, value: string[]): void => ipcRenderer.send(MenuRenderKeys.setSettingStrv, key, value),
     setMatchSelected: (matchId: string): void => ipcRenderer.send(MenuRenderKeys.setMatchSelected, matchId),
+    resizeToFitContents: (windowIndex: number, width: number, height: number): void => ipcRenderer.send(MenuRenderKeys.resizeToFitContents, width, height),
 
     onMenuHidden: (callback: any) => ipcRenderer.on(MenuRenderKeys.menuHidden, (_, ...args) => callback(args)),
     onUpdateLastRefreshTime: (callback: any) => ipcRenderer.on(MenuRenderKeys.updateLastRefreshTime, (_, ...args) => callback(...args)),

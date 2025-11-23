@@ -6,8 +6,8 @@ import { TennisEvent, TennisMatch } from "./types";
 
 export abstract class MenuRendererCommon<T, TT, IT, PI, LI, CI, MI, E extends PopupSubMenuItem<PI, LI | CI | MI>,
     L extends MenuItem<LI>, C extends CheckedMenuItem<CI>, M extends MatchMenuItem<MI>> extends Runner {
-    private _EConstructor: new (properties: PopubSubMenuItemProperties) => E;
-    private _LConstructor: new (properties: LinkMenuItemProperties) => L;
+    private _EConstructor: new (properties: PopubSubMenuItemProperties, renderer: Renderer<T, TT, IT>) => E;
+    private _LConstructor: new (properties: LinkMenuItemProperties, renderer: Renderer<T, TT, IT>) => L;
     private _CConstructor: new (properties: CheckedMenuItemProperties, renderer: Renderer<T, TT, IT>) => C;
     private _MConstructor: new (properties: MatchMenuItemProperties, renderer: Renderer<T, TT, IT>) => M;
     protected _renderer: Renderer<T, TT, IT>;
@@ -21,8 +21,8 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, LI, CI, MI, E extends Po
 
     constructor(log: (logs: string[]) => void, settings: Settings, basePath: string,
         renderer: Renderer<T, TT, IT>,
-        EConstructor: new (properties: PopubSubMenuItemProperties) => E,
-        LConstructor: new (properties: LinkMenuItemProperties) => L,
+        EConstructor: new (properties: PopubSubMenuItemProperties, renderer: Renderer<T, TT, IT>) => E,
+        LConstructor: new (properties: LinkMenuItemProperties, renderer: Renderer<T, TT, IT>) => L,
         CConstructor: new (properties: CheckedMenuItemProperties, renderer: Renderer<T, TT, IT>) => C,
         MConstructor: new (properties: MatchMenuItemProperties, renderer: Renderer<T, TT, IT>) => M,
         uuid?: string,
@@ -52,7 +52,7 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, LI, CI, MI, E extends Po
 
     updateLastRefreshTime(): void {
         const timeString = this.lastRefreshTimeDisplay();
-        this.setLastRefrestTimeText(`Last Refresh: <span weight='bold'>${timeString}</span>`);
+        this.setLastRefrestTimeText(`<span weight='bold'>${timeString}</span>`);
     }
 
     hasEvent(eventId: string): boolean {
@@ -68,7 +68,7 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, LI, CI, MI, E extends Po
             text: text,
             url: url,
             clickHandler: () => this._tournamentHeaders.forEach((submenuItem) => submenuItem.hide()),
-        });
+        }, this._renderer);
         this.addEventMenuItemToMenu(submenuItem, position);
         this._tournamentHeaders.set(event.id, submenuItem);
 
@@ -78,7 +78,7 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, LI, CI, MI, E extends Po
                 log: this.log,
                 uuid: this._uuid,
                 menuUrls: event.menuUrls,
-            });
+            }, this._renderer);
             submenuItem.addMenuItem(linkItem);
             this._eventLinkItems.set(event.id, linkItem);
         }

@@ -84,7 +84,7 @@ async function getSetting(property: keyof Schema): Promise<HTMLDivElement> {
 
         case 'array':
             console.log([!item.items, item.items?.type == 'string', item.items?.enum != 'country']);
-            if (!item.items || (item.items.type == 'string' && (!item.items.enum || item.items.enum != 'country'))) {
+            if (!item.items || (item.items.type === 'string' && (!item.items.enum || item.items.enum !== 'country'))) {
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.id = property;

@@ -111,6 +111,7 @@ export class LiveViewUpdater<TF extends TTFetcher> {
             this._currentMatchesData = matchesData;
             await this._updateFloatingWindows(this._currentMatchesData);
             this._runner.setLastRefreshTime(Date.now());
+            this._runner.setUpdateStatus(allGood);
 
             const interval = await this._settings!.getInt('update-interval');
             this._manager.setFetchTimer(interval, this.fetchMatchData.bind(this));

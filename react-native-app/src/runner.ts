@@ -4,7 +4,9 @@ import { AppMenuRenderer } from '../../src/common/app/menu_renderer';
 import { Settings } from "../../src/common/settings";
 import { ReactElement } from "react";
 import React from "react";
-import { BackHandler } from "react-native";
+import { BackHandler, ScrollView, View } from "react-native";
+import { getCssThemeStyles, LiveTennisTheme } from "./style";
+import { StyleKeys } from "../../src/common/style_keys";
 
 export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, ReactElementGenerator,
     RNPopupSubMenuItem, RNLinkMenuItem, RNCheckedMenuItem, RNMatchMenuItem> {
@@ -12,14 +14,17 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
     private _refreshTimeText = 'Never';
     private _setRefreshTimeText: React.Dispatch<React.SetStateAction<string>>;
     private _menuItems: RNPopupSubMenuItem[] = [];
-    private _mainContainer: RNElement;
     public setExpandEvent: React.Dispatch<React.SetStateAction<RNPopupSubMenuItem | null>>;
+    private _openSettings: () => void;
+    private _fetchData: () => void;
+    private _theme: LiveTennisTheme;
 
-    constructor(log: (logs: string[]) => void, settings: Settings,
+    constructor(log: (logs: string[]) => void, settings: Settings, theme: LiveTennisTheme,
         setRefreshTimeText: React.Dispatch<React.SetStateAction<string>>,
         setExpandEvent: React.Dispatch<React.SetStateAction<RNPopupSubMenuItem | null>>,
+        openSettings: () => void, fetchData: () => void,
     ) {
-        super('./', log, settings, new RNRenderer('', log), RNPopupSubMenuItem, RNLinkMenuItem, RNCheckedMenuItem, RNMatchMenuItem);
+        super('./', log, settings, new RNRenderer('', log, theme), RNPopupSubMenuItem, RNLinkMenuItem, RNCheckedMenuItem, RNMatchMenuItem);
 
         if (!this.otherContainer.children) {
             this.otherContainer.children = [];
@@ -27,9 +32,9 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
 
         this._setRefreshTimeText = setRefreshTimeText;
         this.setExpandEvent = setExpandEvent;
-        const r = this._renderer;
-        this._mainContainer = r.createContainer({ vertical: true });
-        r.addContainersToContainer(this._mainContainer, [this.eventContainer, this.otherContainer]);
+        this._openSettings = openSettings;
+        this._fetchData = fetchData;
+        this._theme = theme;
     }
 
     addEventMenuItemToMenu(item: RNPopupSubMenuItem, position: number): void {
@@ -58,15 +63,21 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
         this._refreshTimeText = refreshTimeText;
         this._menuItems.forEach(mi => (mi.expanded = (mi === expandedEvent)));
         this.eventContainer.children = this._menuItems.map(mi => mi.menu);
-        return this._mainContainer.element();
+        const themeData = getCssThemeStyles(this._theme)[StyleKeys.MainMenuTournamentItem];
+        return React.createElement(ScrollView, { style: { flexDirection: 'column' } },
+            React.createElement(View, { style: [themeData, { width: '100%' }] },
+                this.eventContainer.element(),
+                this.otherContainer.element(),
+            ),
+        );
     }
 
     protected refresh(): void {
-        throw new Error("Method not implemented.");
+        this._fetchData();
     }
 
     protected openSettingsWindow(): void {
-        throw new Error("Method not implemented.");
+        this._openSettings();
     }
 
     protected quit(): void {

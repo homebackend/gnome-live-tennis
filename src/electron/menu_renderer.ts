@@ -20,6 +20,7 @@ declare global {
             setSettingBoolean: (key: string, value: boolean) => void;
             setSettingInt: (key: string, value: number) => void;
             setSettingStrv: (key: string, value: string[]) => void;
+            resizeToFitContents: (width: number, height: number) => void;
 
             setMatchSelected: (matchId: string) => void;
 
@@ -87,6 +88,8 @@ class MenuRenderer extends AppMenuRenderer<HTMLDivElement, HTMLSpanElement, HTML
         } else {
             this.eventContainer.appendChild(item.menu);
         }
+
+        setTimeout(resizeWindowToFitContent, 50);
     }
 
     setLastRefrestTimeText(text: string): void {
@@ -98,6 +101,8 @@ class MenuRenderer extends AppMenuRenderer<HTMLDivElement, HTMLSpanElement, HTML
     addItemToMenu(item: ElectronCheckedMenuItem): void {
         const r = this._renderer;
         r.addContainersToContainer(this.otherContainer, item.item);
+
+        setTimeout(resizeWindowToFitContent, 50);
     }
 
     addRefreshMenuItem(): void {
@@ -110,7 +115,7 @@ class MenuRenderer extends AppMenuRenderer<HTMLDivElement, HTMLSpanElement, HTML
     protected refresh(): void {
         window.electronAPIMenu.refresh();
     }
-    
+
     protected openSettingsWindow(): void {
         window.electronAPIMenu.openSettingsWindow();
     }
@@ -119,6 +124,16 @@ class MenuRenderer extends AppMenuRenderer<HTMLDivElement, HTMLSpanElement, HTML
         window.electronAPIMenu.quit();
     }
 };
+
+function resizeWindowToFitContent() {
+    const content = document.getElementById('root');
+    if (content) {
+        const width = content.scrollWidth;
+        const height = content.scrollHeight;
+
+        window.electronAPIMenu.resizeToFitContents(width, height);
+    }
+}
 
 async function renderMenu() {
     const basePath = await window.electronAPIMenu.basePath();

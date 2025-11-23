@@ -231,6 +231,8 @@ export abstract class Runner {
     async filterAutoEvents(handler: (selection: string) => boolean): Promise<string[]> {
         return this._filterSetting('auto-view-new-matches', handler);
     }
+
+    setUpdateStatus(status: boolean) { }
 };
 
 

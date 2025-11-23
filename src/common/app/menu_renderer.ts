@@ -13,8 +13,8 @@ export abstract class AppMenuRenderer<ContainerType, TextType, ImageType, MIC,
 
     constructor(basePath: string, log: (logs: string[]) => void, settings: Settings,
         renderer: Renderer<ContainerType, TextType, ImageType>,
-        EConstructor: new (properties: PopubSubMenuItemProperties) => PI,
-        LConstructor: new (properties: LinkMenuItemProperties) => LI,
+        EConstructor: new (properties: PopubSubMenuItemProperties, renderer: Renderer<ContainerType, TextType, ImageType>) => PI,
+        LConstructor: new (properties: LinkMenuItemProperties, renderer: Renderer<ContainerType, TextType, ImageType>) => LI,
         CConstructor: new (properties: CheckedMenuItemProperties, renderer: Renderer<ContainerType, TextType, ImageType>) => CI,
         MConstructor: new (properties: MatchMenuItemProperties, renderer: Renderer<ContainerType, TextType, ImageType>) => MI,
     ) {
@@ -39,6 +39,7 @@ export abstract class AppMenuRenderer<ContainerType, TextType, ImageType, MIC,
             text: 'Last Refresh',
             onClick: this.refresh.bind(this),
             className: StyleKeys.NoWrapText,
+            paddingRight: '5px',
         });
         const refreshText = r.addTextToContainer(container, {
             text: text,
@@ -71,5 +72,4 @@ export abstract class AppMenuRenderer<ContainerType, TextType, ImageType, MIC,
             className: `${StyleKeys.NoWrapText} ${StyleKeys.MainMenuMatchItem}`,
         });
     }
-
 }

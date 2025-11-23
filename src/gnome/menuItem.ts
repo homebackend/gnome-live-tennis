@@ -157,17 +157,17 @@ export class GnomePopupSubMenuItem implements PopupSubMenuItem<PopupMenu.PopupSu
     }
 }
 
-export class GnomeLinkMenuItem extends GnomeRenderer implements MenuItem<PopupMenu.PopupMenuItem> {
+export class GnomeLinkMenuItem implements MenuItem<PopupMenu.PopupMenuItem> {
     private _item: PopupMenu.PopupMenuItem;
+    private _renderer: Renderer<St.BoxLayout, St.BoxLayout, St.BoxLayout>;
 
-    constructor(properties: LinkMenuItemProperties) {
-        super(properties.uuid!, properties.basePath, properties.log);
-
+    constructor(properties: LinkMenuItemProperties, renderer: Renderer<St.BoxLayout, St.BoxLayout, St.BoxLayout>) {
+        this._renderer = renderer;
         this._item = new PopupMenu.PopupMenuItem('', { reactive: true });
-        const container = this.createContainer({ xExpand: true, className: StyleKeys.MainMenuMatchItem });
+        const container = renderer.createContainer({ xExpand: true, className: StyleKeys.MainMenuMatchItem });
         this._item.actor.add_child(container);
 
-        properties.menuUrls.forEach(menuUrl => this.addTextToContainer(container, {
+        properties.menuUrls.forEach(menuUrl => renderer.addTextToContainer(container, {
             text: menuUrl.title,
             link: menuUrl.url,
             paddingRight: '5px',
@@ -187,7 +187,7 @@ export class GnomeLinkMenuItem extends GnomeRenderer implements MenuItem<PopupMe
     }
 
     destroy(): void {
-        super.destroy();
+        this._renderer.destroy();
     }
 }
 

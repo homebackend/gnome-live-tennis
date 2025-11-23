@@ -5,13 +5,15 @@ import { ElectronRenderer } from "./renderer";
 import { StyleKeys } from "../common/style_keys";
 import { getCheckedMenuItem, getLinkMenuItem, getPopupSubMenuItem, TextMenuClosed, TextMenuOpen } from "../common/app/menuitem";
 
-export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupSubMenuItem<HTMLDivElement, HTMLDivElement> {
+export class ElectronPopupSubMenuItem implements PopupSubMenuItem<HTMLDivElement, HTMLDivElement> {
     private _menu: HTMLDivElement;
     private _menuContainer: HTMLDivElement;
     private _menuIndicator: HTMLSpanElement;
+    private _renderer: Renderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement>;
 
-    constructor(properties: PopubSubMenuItemProperties) {
-        super(properties.basePath, properties.log);
+    constructor(properties: PopubSubMenuItemProperties, renderer: Renderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement>) {
+        this._renderer = renderer;
+
         [this._menu, this._menuContainer, this._menuIndicator] = getPopupSubMenuItem(false, (handler) => {
             const currentDisplay = this._menuContainer.style.display;
 
@@ -22,7 +24,7 @@ export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupS
             } else {
                 this.hide();
             }
-        }, properties, this);
+        }, properties, renderer);
     }
 
     get menu(): HTMLDivElement {
@@ -30,7 +32,7 @@ export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupS
     }
 
     addMenuItem(item: MenuItem<HTMLDivElement>): void {
-        this.addContainersToContainer(this._menuContainer, item.item);
+        this._renderer.addContainersToContainer(this._menuContainer, item.item);
     }
 
     show(): void {
@@ -49,15 +51,15 @@ export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupS
         if (parent) {
             parent.removeChild(this._menu);
         }
+        this._renderer.destroy();
     }
 }
 
-export class ElectronLinkMenuItem extends ElectronRenderer implements MenuItem<HTMLDivElement> {
+export class ElectronLinkMenuItem implements MenuItem<HTMLDivElement> {
     protected _item: HTMLDivElement;
 
-    constructor(properties: LinkMenuItemProperties) {
-        super(properties.basePath, properties.log);
-        this._item = getLinkMenuItem(properties, this);
+    constructor(properties: LinkMenuItemProperties, renderer: Renderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement>) {
+        this._item = getLinkMenuItem(properties, renderer);
     }
 
     get item(): HTMLDivElement {

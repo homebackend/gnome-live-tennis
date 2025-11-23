@@ -20,12 +20,13 @@ export const MenuRenderKeys = {
     setMatchSelection: 'set-match-selection',
     removeEventMenuItem: 'remove-event-menu-item',
     removeMatchMenuItem: 'remove-match-menu-item',
+    resizeToFitContents: 'menu-resize-to-fit-contents',
 };
 
 export const LiveViewRendererKeys = {
     log: MenuRenderKeys.log,
     basePath: MenuRenderKeys.basePath,
-    resizeToFitContents: 'resize-to-fit-contents',
+    resizeToFitContents: 'live-view-resize-to-fit-contents',
     updateLiveViewContent: 'update-live-view-content',
     setLiveViewContentsEmpty: 'set-live-view-contents-empty',
     setWindowIndex: 'set-window-index',
