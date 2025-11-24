@@ -27,6 +27,8 @@
     "start:android": "cd react-native-app && npx react-native run-android",
     "start:android:emulator": "cd /opt/android-sdk/tools && emulator -avd $(emulator -list-avds | head -1)",
     "start:ios": "cd react-native-app && npx react-native run-ios",
+    "log:android": "cd react-native-app && npm run log:android",
+    "log:adb": "adb logcat *:E",
     "prettify": "prettier --write dist-gnome/extension.js dist-gnome/prefs.js",
     "package:gnome": "npm run clean:gnome && npm run build && cd dist-gnome && zip -qr live-tennis-gnome-extension.zip extension.js prefs.js stylesheet.css metadata.json icons flags schemas",
     "package:electron": "npm run build && electron-builder --dir",

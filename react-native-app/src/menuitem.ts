@@ -51,7 +51,6 @@ export class RNPopupSubMenuItem implements PopupSubMenuItem<ReactElementGenerato
     }
 
     addMenuItem(item: MenuItem<ReactElementGenerator>): void {
-        console.log('addmenuitem', item instanceof CheckedMenuItemCommon);
         if (item instanceof CheckedMenuItemCommon) {
             item.parent = this;
         }
