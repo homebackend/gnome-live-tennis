@@ -49,6 +49,26 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
         Linking.openURL(url).catch(err => console.error("Failed to open URL", err));
     }
 
+    private _setExpand(properties: ContainerProperties | undefined, style: ViewStyle) {
+        if (properties) {
+            if ('xExpand' in properties) {
+                if (properties.vertical) {
+                    style.width = '100%';
+                } else {
+                    style.flex = 1;
+                }
+            }
+
+            if ('yExpand' in properties) {
+                if (properties.vertical) {
+                    style.flex = 1;
+                } else {
+                    style.height = '100%';
+                }
+            }
+        }
+    }
+
     createContainer(properties?: ContainerProperties): RNElement {
         const createContainer = (containerElement: RNElement): ReactElement => {
             // Filter out hidden children and get element() call value
@@ -58,7 +78,8 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                     if ('element' in c) {
                         return c.element();
                     } else {
-                        return React.createElement(c);
+                        // This creates and Anonymouse node in dev tools
+                        return React.createElement(c, { style: style });
                     }
                 }) : [];
 
@@ -69,7 +90,7 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                 if (properties.className) {
                     cssStyle = this.getCssStyle(properties.className);
                 }
-                const flexDirection = 'vertical' in properties ? properties.vertical ? 'column' : 'row' : 'row';
+                const flexDirection = properties.vertical ? 'column' : 'row';
 
                 style = {
                     flexDirection: flexDirection,
@@ -78,19 +99,26 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                     alignItems: getAlignItems(properties),
                 };
 
-                if ('xExpand' in properties) style.width = '100%';
-                if ('yExpand' in properties) style.height = '100%';
+                this._setExpand(properties, style);
             }
 
             const finalStyle = StyleSheet.flatten([cssStyle, style]);
 
-            const viewElement = React.createElement(View, { style: finalStyle, key: uuid.v4().toString() }, ...childElements);
+            let wrapper: ReactElement[];
+
             if (containerElement.handler) {
-                const wrapper = React.createElement(Pressable, { key: uuid.v4().toString(), onPress: containerElement.handler }, viewElement);
-                return wrapper;
+                let pressableStyle: ViewStyle = {};
+                if (properties) {
+                    if ('xExpand' in properties) pressableStyle.flex = 1;
+                    if ('yExpand' in properties) pressableStyle.flex = 1;
+                    pressableStyle.flexDirection = properties.vertical ? 'column' : 'row';
+                }
+                wrapper = [React.createElement(Pressable, { key: uuid.v4().toString(), style: pressableStyle, onPress: containerElement.handler }, ...childElements)];
             } else {
-                return viewElement;
+                wrapper = childElements;
             }
+
+            return React.createElement(View, { style: finalStyle, key: uuid.v4().toString() }, ...wrapper);
         }
 
         const containerElement: RNElement = {

@@ -114,7 +114,7 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
         let row1: T;
         let row2: T;
         if (smallWidth) {
-            const dataContainer = this.r.createContainer({ vertical: true });
+            const dataContainer = this.r.createContainer({ vertical: true, xExpand: true });
             row1 = this.r.createContainer(getMatchMenuItemProperties());
             row2 = this.r.createContainer(getMatchMenuItemProperties());
             this.r.addContainersToContainer(dataContainer, [row1, row2]);

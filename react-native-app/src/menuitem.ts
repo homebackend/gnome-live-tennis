@@ -46,7 +46,7 @@ export class RNPopupSubMenuItem implements PopupSubMenuItem<ReactElementGenerato
                 menuContainer.children = this._menuItems.map(mi => mi.item);
             }
 
-            return React.createElement(ScrollView, { style: { flexDirection: 'row', width: '100%', flexGrow: 1 } }, menu.element());
+            return React.createElement(ScrollView, { horizontal: true, contentContainerStyle: { flexGrow: 1 } }, menu.element());
         };
     }
 
@@ -83,7 +83,7 @@ export class RNLinkMenuItem implements MenuItem<ReactElementGenerator> {
     get item(): ReactElementGenerator {
         return () => {
             const item = getLinkMenuItem(this._properties, this._renderer);
-            return item.element();
+            return React.createElement(ScrollView, { horizontal: true }, item.element());
         };
     }
 
