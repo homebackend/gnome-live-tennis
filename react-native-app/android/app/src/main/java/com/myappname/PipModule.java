@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.PictureInPictureParams;
 import android.content.res.Configuration;
 import android.os.Build;
+import android.util.Log;
 import android.util.Rational;
 import androidx.annotation.NonNull;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -15,10 +16,11 @@ public class PipModule extends ReactContextBaseJavaModule {
 
     public PipModule(ReactApplicationContext reactContext) {
         super(reactContext);
+        Log.e("PiPDebug", "PipPackage received Context HashCode: " + reactContext.hashCode());
+        Log.e("PiPDebug", "Inside PipModule constuctor");
     }
 
-    @NonNull
-    @Override
+    @NonNull @Override
     public String getName() {
         return "PipModule";
     }

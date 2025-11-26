@@ -44,9 +44,6 @@ export class AxiosApiHandler implements ApiHandler {
             requestConfig.headers = requestHeaders;
         }
 
-        console.log('headers', requestConfig.headers);
-        console.log('data', requestConfig.data);
-
         try {
             const response: AxiosResponse = await axios(requestConfig);
 

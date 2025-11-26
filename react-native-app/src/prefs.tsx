@@ -170,7 +170,7 @@ export const PreferencesScreen = ({ route, navigation }: SettingsNavigationProps
             {prefs.map(prefGroup => {
                 const applicableProperties = prefGroup.properties.filter(pname => {
                     const property = schema[pname];
-                    return !property.applicability || property.applicability === SettingApplicability.ReactNativeApp;
+                    return !property.applicability || property.applicability.includes(SettingApplicability.ReactNativeApp);
                 });
 
                 if (applicableProperties.length === 0) {

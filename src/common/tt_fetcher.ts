@@ -18,7 +18,7 @@ enum ParsePosition {
 
 export abstract class TTFetcher extends FetcherCommon implements Fetcher {
     private static _url = 'https://en.tennistemple.com';
-    private static _responseCookies: string[] = ['PHPSESSID'];
+    private static _responseCookies: string[] = ['PHPSESSID', 'device_id', 'device_key'];
     private static _tennisTempleId = 'b8852ab1-359d-490c-a900-77a044d2eb9d';
 
     private _log: (logs: string[]) => void;
@@ -43,14 +43,9 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
         const [_, responseCookies] = await this._apiHandler.fetchString({
             url: TTFetcher._url,
             method: HttpMethods.GET,
+            headers: new Map<string, string>(ApiCommonHeaders),
             responseCookies: TTFetcher._responseCookies,
         });
-
-        TTFetcher._responseCookies.forEach(rc => responseCookies?.has(rc))
-        if (!responseCookies || !TTFetcher._responseCookies.every(rc => responseCookies.has(rc))) {
-            this._log(['Cookie not found', TTFetcher._responseCookies.toString()]);
-            return undefined;
-        }
 
         this._cookies = responseCookies;
         return responseCookies;

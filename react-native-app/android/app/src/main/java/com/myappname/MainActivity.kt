@@ -1,11 +1,14 @@
 package com.myappname
 
+import android.content.res.Configuration
+import android.util.Log
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.facebook.react.bridge.ReactContext
-import android.content.res.Configuration
+import com.facebook.react.ReactApplication
+import com.myappname.PipModule
 
 class MainActivity : ReactActivity() {
 
@@ -28,15 +31,21 @@ class MainActivity : ReactActivity() {
   ) {
     super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
 
-    // Get the React Native context
-    val reactContext: ReactContext? = reactInstanceManager.currentReactContext
+    val reactApplication = application as? ReactApplication ?: run {
+        Log.e("PiPDebug", "Application is not a ReactApplication instance.")
+        return
+    }
+
+    val reactContext: ReactContext? = reactApplication.reactHost?.currentReactContext
     if (reactContext != null) {
-      // Find the module we created
       val pipModule = reactContext.getNativeModule(PipModule::class.java)
       if (pipModule != null) {
-        // Send an event to JavaScript side
         pipModule.sendPiPModeChangeEvent(isInPictureInPictureMode)
+      } else {
+        Log.e("PiPDebug", "PipModule not found in React Context!")
       }
+    } else {
+      Log.e("PiPDebug", "React Context is null!")
     }
   }
 }

@@ -120,7 +120,8 @@ export abstract class MenuRendererCommon<T, TT, IT, PI, LI, CI, MI, E extends Po
     }
 
     isMatchSelected(matchId: string): boolean {
-        return this._matchesMenuItems.get(matchId)!.checked;
+        const matchMenuItem = this._matchesMenuItems.get(matchId);
+        return matchMenuItem !== undefined && matchMenuItem.checked;
     }
 
     setMatchSelection(matchId: string, selection: boolean): void {

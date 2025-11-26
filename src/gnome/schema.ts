@@ -1,6 +1,6 @@
 import { js2xml } from 'xml-js';
 import { promises as fs } from 'fs';
-import { schema, SettingApplicability } from '../common/schema';
+import { Schema, schema, SettingApplicability } from '../common/schema';
 
 function getType(valueType: string, items: { type: string } = { type: 'none' }): string {
     switch (valueType) {
@@ -15,7 +15,7 @@ function getType(valueType: string, items: { type: string } = { type: 'none' }):
 }
 
 async function toSchemaXml(path: string, schemaId: string, schemaPath: string): Promise<void> {
-    const keys = Object.keys(schema).filter(key => !schema[key].applicability || schema[key].applicability == SettingApplicability.GnomeShellExtension).map(key => {
+    const keys = (Object.keys(schema) as (keyof Schema)[]).filter(key => !schema[key].applicability || schema[key].applicability.includes(SettingApplicability.GnomeShellExtension)).map(key => {
         const value = schema[key as keyof typeof schema];
         const n = {
             _attributes: {

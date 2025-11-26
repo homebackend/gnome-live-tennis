@@ -4,7 +4,7 @@ import { AppMenuRenderer } from '../../src/common/app/menu_renderer';
 import { Settings } from "../../src/common/settings";
 import { ReactElement } from "react";
 import React from "react";
-import { BackHandler, ScrollView, View } from "react-native";
+import { BackHandler, NativeModules, Platform, ScrollView, View } from "react-native";
 import { getCssThemeStyles, LiveTennisTheme } from "./style";
 import { StyleKeys } from "../../src/common/style_keys";
 
@@ -70,6 +70,20 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
                 this.otherContainer.element(),
             ),
         );
+    }
+
+    setupAdditionalMenuItems(): void {
+        super.setupAdditionalMenuItems();
+        if (__DEV__ && Platform.OS === 'android') {
+            this.addMenuSeprator();
+            const r = this._renderer;
+            r.addTextToContainer(this.otherContainer, {
+                text: 'Open Dev Menu',
+                xExpand: true,
+                className: `${StyleKeys.NoWrapText} ${StyleKeys.MainMenuMatchItem}`,
+                onClick: () => NativeModules.DevMenu.show(),
+            })
+        }
     }
 
     protected refresh(): void {
