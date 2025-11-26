@@ -20,6 +20,7 @@ const pipEventEmitter = new NativeEventEmitter(PipModule);
 export const MainMenu = ({ navigation }: HomeNavigationProps) => {
 
   const [isInPipMode, setIsInPipMode] = useState(false);
+  const [isLiveViewAvailable, setLiveViewAvailable] = useState(false);
   const [currentMatch, setCurrentMatch] = useState<TennisMatch | undefined>(undefined);
   const [debug, setDebug] = useState(true);
   const [isReady, setIsReady] = useState(false);
@@ -36,6 +37,7 @@ export const MainMenu = ({ navigation }: HomeNavigationProps) => {
 
   useEffect(() => {
     const initializeApp = async () => {
+      log(['Intialize App']);
       let updater: LiveViewUpdater<NodeTTFetcher> | undefined;
       const settings = new RNSettings();
       await settings.initialize();
@@ -57,12 +59,13 @@ export const MainMenu = ({ navigation }: HomeNavigationProps) => {
         wta: new AxiosApiHandler(log),
         tt: new AxiosApiHandler(log),
       };
-      const manager = new RNLiveViewManager(log, isInPipMode, setCurrentMatch);
+      const manager = new RNLiveViewManager(log, isInPipMode, setCurrentMatch, setLiveViewAvailable);
       updater = new LiveViewUpdater(newRunner, manager, apiHandlers, settings, log, NodeTTFetcher);
       await updater.fetchMatchData();
 
       setIsReady(true);
 
+      log(['Intialize App finished']);
       return () => {
         manager.unsetFetchTimer();
         manager.destroyCycleTimeout();
@@ -83,10 +86,11 @@ export const MainMenu = ({ navigation }: HomeNavigationProps) => {
   }
 
   if (isInPipMode && currentMatch) {
+    log(['Detected to be in PiP mode'])
     const renderer = new RNRenderer('.', log, theme);
     return new RNLiveViewRenderer('.', log, renderer).renderWindowUI(currentMatch);
   } else {
-    return runner.renderMainUI(refreshTimeText, expandedEvent);
+    return runner.renderMainUI(refreshTimeText, isLiveViewAvailable, expandedEvent);
   }
 };
 

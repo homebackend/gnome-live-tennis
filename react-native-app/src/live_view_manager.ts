@@ -1,6 +1,3 @@
-import { NativeModules, Alert } from 'react-native';
-const { PipModule } = NativeModules;
-
 import { LiveViewManager } from "../../src/common/live_view_updater";
 import { TennisMatch } from "../../src/common/types";
 
@@ -10,14 +7,16 @@ export class RNLiveViewManager implements LiveViewManager {
     private _log: (logs: string[]) => void;
     private _isInPipMode: boolean;
     private _setCurrentMatch: React.Dispatch<React.SetStateAction<TennisMatch | undefined>>
-    private _userAlerted = false;
+    private _setLiveViewAvailable: React.Dispatch<React.SetStateAction<boolean>>;
 
     constructor(log: (logs: string[]) => void, isInPipMode: boolean,
-        setCurrentMatch: React.Dispatch<React.SetStateAction<TennisMatch | undefined>>
+        setCurrentMatch: React.Dispatch<React.SetStateAction<TennisMatch | undefined>>,
+        setLiveViewAvailable: React.Dispatch<React.SetStateAction<boolean>>,
     ) {
         this._log = log;
         this._isInPipMode = isInPipMode;
         this._setCurrentMatch = setCurrentMatch;
+        this._setLiveViewAvailable = setLiveViewAvailable;
     }
 
     setFetchTimer(interval: number, fetcher: () => void): void {
@@ -45,21 +44,11 @@ export class RNLiveViewManager implements LiveViewManager {
 
     async setLiveViewCount(numWindows: number): Promise<void> {
         if (!this._isInPipMode) {
-            if (numWindows > 0) {
+            if (numWindows > 1) {
                 this._log(['Only single pip window is supported', numWindows.toString()]);
             }
-            if (PipModule && PipModule.enterPipMode) {
-                // This calls the native 'enterPipMode' function we defined in Kotlin/Java.
-                PipModule.enterPipMode();
-            } else if (!this._userAlerted) {
-                this._log(['PiP mode is not available']);
-                this._log(['Live view cannot be shown']);
-                Alert.alert(
-                    "PiP Not Available",
-                    "Picture-in-Picture mode requires Android O (API 26) or higher, and the native module must be linked correctly."
-                );
-                this._userAlerted = true;
-            }
+            
+            this._setLiveViewAvailable(true);
         }
     }
 

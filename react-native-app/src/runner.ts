@@ -1,10 +1,12 @@
+import React from "react";
+import { ReactElement } from "react";
+import { Alert, BackHandler, NativeModules, Platform, ScrollView, View } from "react-native";
+const { PipModule } = NativeModules;
+
 import { RNCheckedMenuItem, RNLinkMenuItem, RNMatchMenuItem, RNPopupSubMenuItem } from "./menuitem";
 import { ReactElementGenerator, RNElement, RNRenderer } from "./renderer";
 import { AppMenuRenderer } from '../../src/common/app/menu_renderer';
 import { Settings } from "../../src/common/settings";
-import { ReactElement } from "react";
-import React from "react";
-import { BackHandler, NativeModules, Platform, ScrollView, View } from "react-native";
 import { getCssThemeStyles, LiveTennisTheme } from "./style";
 import { StyleKeys } from "../../src/common/style_keys";
 
@@ -18,6 +20,7 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
     private _openSettings: () => void;
     private _fetchData: () => void;
     private _theme: LiveTennisTheme;
+    private _userAlerted = false;
 
     constructor(log: (logs: string[]) => void, settings: Settings, theme: LiveTennisTheme,
         setRefreshTimeText: React.Dispatch<React.SetStateAction<string>>,
@@ -59,10 +62,32 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
         this.otherContainer.children!.push(item.item);
     }
 
-    renderMainUI(refreshTimeText: string, expandedEvent: RNPopupSubMenuItem | null): ReactElement {
+    renderMainUI(refreshTimeText: string, isLiveViewAvailable: boolean, expandedEvent: RNPopupSubMenuItem | null): ReactElement {
         this._refreshTimeText = refreshTimeText;
         this._menuItems.forEach(mi => (mi.expanded = (mi === expandedEvent)));
         this.eventContainer.children = this._menuItems.map(mi => mi.menu);
+        if (isLiveViewAvailable) {
+            const container = this._renderer.createContainer({ xExpand: true });
+            this._renderer.addTextToContainer(container, {
+                text: 'Live View Available',
+                onClick: () => {
+                    if (PipModule && PipModule.enterPipMode) {
+                        // This calls the native 'enterPipMode' function we defined in Kotlin/Java.
+                        this.log(['Entering PiP mode']);
+                        PipModule.enterPipMode();
+                    } else if (!this._userAlerted) {
+                        this.log(['PiP mode is not available']);
+                        this.log(['Live view cannot be shown']);
+                        Alert.alert(
+                            "PiP Not Available",
+                            "Picture-in-Picture mode requires Android O (API 26) or higher, and the native module must be linked correctly."
+                        );
+                        this._userAlerted = true;
+                    }
+                },
+            })
+            this.eventContainer.children.push(container);
+        }
         const themeData = getCssThemeStyles(this._theme)[StyleKeys.MainMenuTournamentItem];
         return React.createElement(ScrollView, { style: { flexDirection: 'column' } },
             React.createElement(View, { style: [themeData, { width: '100%' }] },
