@@ -19,7 +19,7 @@ function App() {
         <Stack.Screen
           name="Home"
           component={MainMenu}
-          options={{ title: 'Overview' }}
+          options={{ title: 'Live Tennis' }}
         />
         <Stack.Screen
           name="Settings"

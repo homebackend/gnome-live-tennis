@@ -1,4 +1,4 @@
-package com.myappname; // Make sure this matches your project's package name
+package com.homebackend.livetennis;
 
 import android.app.Activity;
 import android.app.PictureInPictureParams;

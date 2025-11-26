@@ -24,7 +24,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     window = UIWindow(frame: UIScreen.main.bounds)
 
     factory.startReactNative(
-      withModuleName: "MyAppName",
+      withModuleName: "Live Tennis",
       in: window,
       launchOptions: launchOptions
     )

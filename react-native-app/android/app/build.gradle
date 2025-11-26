@@ -77,9 +77,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.myappname"
+    namespace "com.homebackend.livetennis"
     defaultConfig {
-        applicationId "com.myappname"
+        applicationId "com.homebackend.livetennis"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
