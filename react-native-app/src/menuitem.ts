@@ -93,7 +93,6 @@ export class RNLinkMenuItem implements MenuItem<ReactElementGenerator> {
 
 abstract class CheckedMenuItemCommon extends MatchMenuItemRenderer<RNElement, RNElement, RNElement> implements CheckedMenuItem<ReactElementGenerator> {
     private _checked: boolean;
-    private _setChecked?: React.Dispatch<React.SetStateAction<boolean>>;
     private _clickHandler?: (checked: boolean) => void;
     private _parent?: RNPopupSubMenuItem;
 
@@ -107,21 +106,16 @@ abstract class CheckedMenuItemCommon extends MatchMenuItemRenderer<RNElement, RN
         return this._checked;
     }
 
-    set checked(checked: boolean) {
-        if (this._setChecked) {
-            this._setChecked(checked);
-        }
-    }
-
     protected abstract addItemData(itemData: RNElement): void;
 
     get item(): ReactElementGenerator {
         return () => {
             const [isChecked, setChecked] = useState(this._checked);
-            this._setChecked = setChecked;
 
             const [item, , itemData] = getCheckedMenuItem(this.r, isChecked, () => {
+                this._checked = !isChecked;
                 setChecked(!isChecked);
+
                 if (this._clickHandler) {
                     this._clickHandler(!isChecked);
                 }

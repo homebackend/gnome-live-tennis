@@ -24,7 +24,7 @@ export interface RNElement {
     parent?: RNElement;
     children?: (RNElement | ReactElementGenerator)[];
     handler?: () => void;
-    element: () => ReactElement;
+    element: ReactElementGenerator;
 }
 
 export type ReactElementGenerator = () => ReactElement;
