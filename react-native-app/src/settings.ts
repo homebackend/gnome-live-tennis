@@ -23,21 +23,18 @@ class SettingsManager {
         }
     }
 
-    static async saveSetting<K extends keyof Schema>(key: K, value: Schema[K]): Promise<Schema> {
+    static async saveSetting<K extends keyof Schema>(key: K, value: Schema[K]): Promise<void> {
         if (!schema[key]) {
             console.warn(`Attempted to save unknown setting key: ${String(key)}`);
-            return {} as Schema;
+            return;
         }
 
         try {
-            const currentSettings = await this.loadSettings();
-            currentSettings[key] = value;
-            const jsonValue = JSON.stringify(currentSettings);
-            await AsyncStorage.setItem(SETTINGS_KEY, jsonValue);
-            return currentSettings;
+            const partialUpdate = { [key]: value };
+            const jsonValue = JSON.stringify(partialUpdate);
+            await AsyncStorage.mergeItem(SETTINGS_KEY, jsonValue);
         } catch (e) {
             console.error("Error saving setting:", e);
-            return {} as Schema;
         }
     }
 }
@@ -70,15 +67,20 @@ export class RNSettings implements Settings {
         return (await this._getValue(this._actualKey(key) as keyof Schema)) as number;
     }
 
+    private async _setValue<K extends keyof Schema>(key: K, value: Schema[K]): Promise<void> {
+        await SettingsManager.saveSetting(key, value);
+        this.settings![key] = value;
+    }
+
     async setBoolean(key: string, value: boolean): Promise<void> {
-        this.settings = await SettingsManager.saveSetting(this._actualKey(key) as keyof Schema, value);
+        await this._setValue(this._actualKey(key) as keyof Schema, value);
     }
 
     async setInt(key: string, value: number): Promise<void> {
-        this.settings = await SettingsManager.saveSetting(this._actualKey(key) as keyof Schema, value);
+        await this._setValue(this._actualKey(key) as keyof Schema, value);
     }
 
     async setStrv(key: string, value: string[]): Promise<void> {
-        this.settings = await SettingsManager.saveSetting(this._actualKey(key) as keyof Schema, value);
+        await this._setValue(this._actualKey(key) as keyof Schema, value);
     }
 }
