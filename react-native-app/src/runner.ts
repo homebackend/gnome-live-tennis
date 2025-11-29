@@ -1,7 +1,6 @@
 import React from "react";
 import { ReactElement } from "react";
-import { Alert, BackHandler, NativeModules, Platform, ScrollView, View } from "react-native";
-const { PipModule } = NativeModules;
+import { BackHandler, NativeModules, Platform, ScrollView, View } from "react-native";
 
 import { RNCheckedMenuItem, RNLinkMenuItem, RNMatchMenuItem, RNPopupSubMenuItem } from "./menuitem";
 import { ReactElementGenerator, RNElement, RNRenderer } from "./renderer";
@@ -79,32 +78,10 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
         return super.addMatch(event, match);
     }
 
-    renderMainUI(refreshTimeText: string, isLiveViewAvailable: boolean, expandedEvent: RNPopupSubMenuItem | null): ReactElement {
+    renderMainUI(refreshTimeText: string, expandedEvent: RNPopupSubMenuItem | null): ReactElement {
         this._refreshTimeText = refreshTimeText;
         this._menuItems.forEach(mi => (mi.expanded = (mi === expandedEvent)));
         this.eventContainer.children = this._menuItems.map(mi => mi.menu);
-        if (isLiveViewAvailable) {
-            const container = this._renderer.createContainer({ xExpand: true });
-            this._renderer.addTextToContainer(container, {
-                text: 'Live View Available',
-                onClick: () => {
-                    if (PipModule && PipModule.enterPipMode) {
-                        // This calls the native 'enterPipMode' function we defined in Kotlin/Java.
-                        this.log(['Entering PiP mode']);
-                        PipModule.enterPipMode();
-                    } else if (!this._userAlerted) {
-                        this.log(['PiP mode is not available']);
-                        this.log(['Live view cannot be shown']);
-                        Alert.alert(
-                            "PiP Not Available",
-                            "Picture-in-Picture mode requires Android O (API 26) or higher, and the native module must be linked correctly."
-                        );
-                        this._userAlerted = true;
-                    }
-                },
-            })
-            this.eventContainer.children.push(container);
-        }
         const themeData = getCssThemeStyles(this._theme)[StyleKeys.MainMenuTournamentItem];
         return React.createElement(ScrollView, { style: { flexDirection: 'column' } },
             React.createElement(View, { style: [themeData, { width: '100%' }] },

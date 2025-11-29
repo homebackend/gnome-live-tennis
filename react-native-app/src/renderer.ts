@@ -319,7 +319,6 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                 let imageElement: ReactElement;
 
                 if (imageProperties.isLocal) {
-                    console.log(imageProperties.src);
                     let source;
                     if (imageProperties.src in flags) {
                         source = flags[imageProperties.src as keyof typeof flags];

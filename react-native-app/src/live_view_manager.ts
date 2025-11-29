@@ -5,18 +5,13 @@ export class RNLiveViewManager implements LiveViewManager {
     private _fetcherId?: number;
     private _cycleIntervalId?: number;
     private _log: (logs: string[]) => void;
-    private _isInPipMode: boolean;
     private _setCurrentMatch: React.Dispatch<React.SetStateAction<TennisMatch | undefined>>
-    private _setLiveViewAvailable: React.Dispatch<React.SetStateAction<boolean>>;
 
-    constructor(log: (logs: string[]) => void, isInPipMode: boolean,
+    constructor(log: (logs: string[]) => void,
         setCurrentMatch: React.Dispatch<React.SetStateAction<TennisMatch | undefined>>,
-        setLiveViewAvailable: React.Dispatch<React.SetStateAction<boolean>>,
     ) {
         this._log = log;
-        this._isInPipMode = isInPipMode;
         this._setCurrentMatch = setCurrentMatch;
-        this._setLiveViewAvailable = setLiveViewAvailable;
     }
 
     setFetchTimer(interval: number, fetcher: () => void): void {
@@ -39,13 +34,8 @@ export class RNLiveViewManager implements LiveViewManager {
     }
 
     async setLiveViewCount(numWindows: number): Promise<void> {
-        if (!this._isInPipMode) {
-            if (numWindows > 1) {
-                this._log(['Only single pip window is supported', numWindows.toString()]);
-            }
-            if (numWindows > 0) {
-                this._setLiveViewAvailable(true);
-            }
+        if (numWindows > 1) {
+            this._log(['Only single pip window is supported', numWindows.toString()]);
         }
     }
 

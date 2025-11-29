@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useState } from "react";
 import React from "react";
-import { ActivityIndicator, Image, NativeEventEmitter, NativeModules, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, View } from "react-native";
 
 import { HomeNavigationProps } from "./navigation_types";
 import { RNRunner } from "./runner";
@@ -16,14 +16,10 @@ import { RNRenderer } from "./renderer";
 import { RNLiveViewRenderer } from "./live_view_renderer";
 import { LRUCache } from "../../src/common/util";
 
-const { PipModule } = NativeModules;
-const pipEventEmitter = new NativeEventEmitter(PipModule);
 const ImageDimensionCache: LRUCache<string, { width: number, height: number }> = new LRUCache(100)
 
 export const MainMenu = ({ navigation }: HomeNavigationProps) => {
 
-  const [isInPipMode, setIsInPipMode] = useState(false);
-  const [isLiveViewAvailable, setLiveViewAvailable] = useState(false);
   const [currentMatch, setCurrentMatch] = useState<TennisMatch | undefined>(undefined);
   const [debug, setDebug] = useState(true);
   const [isReady, setIsReady] = useState(false);
@@ -56,17 +52,11 @@ export const MainMenu = ({ navigation }: HomeNavigationProps) => {
 
   useEffect(() => {
     const initializeApp = async () => {
-      log(['Intialize App']);
       let updater: LiveViewUpdater<NodeTTFetcher> | undefined;
       const settings = new RNSettings();
       await settings.initialize();
       setDebug(await settings.getBoolean('enable-debug-logging'));
 
-      const pipSubscription = pipEventEmitter.addListener('onPipModeChanged', (event) => {
-        setIsInPipMode(event);
-      });
-
-      console.log('creating renderer');
       const renderer = new RNRenderer(log, theme, ImageDimensionCache);
       const newRunner = new RNRunner(log, settings, theme, renderer,
         setRefreshTimeText, setExpandEvent, addToImageFetchQueue,
@@ -82,23 +72,21 @@ export const MainMenu = ({ navigation }: HomeNavigationProps) => {
         wta: new AxiosApiHandler(log),
         tt: new AxiosApiHandler(log),
       };
-      const manager = new RNLiveViewManager(log, isInPipMode, setCurrentMatch, setLiveViewAvailable);
+      const manager = new RNLiveViewManager(log, setCurrentMatch);
       updater = new LiveViewUpdater(newRunner, manager, apiHandlers, settings, log, NodeTTFetcher);
       setLiveViewRenderer(new RNLiveViewRenderer('', log, renderer));
       await updater.fetchMatchData();
 
       setIsReady(true);
 
-      log(['Intialize App finished']);
       return () => {
         manager.unsetFetchTimer();
         manager.destroyCycleTimeout();
-        pipSubscription.remove();
       };
     };
 
     initializeApp();
-  }, [addToImageFetchQueue, isInPipMode, log, navigation, theme]);
+  }, [addToImageFetchQueue, log, navigation, theme]);
 
   useEffect(() => {
     const fetchImageDimensions = async (uris: string[]) => {
@@ -140,7 +128,6 @@ export const MainMenu = ({ navigation }: HomeNavigationProps) => {
         };
 
         ImageDimensionCache.put(uri, { width: width, height: height });
-        console.log('dimension set for ', uri);
       }));
 
       setImagesToFetch([]);
@@ -152,7 +139,7 @@ export const MainMenu = ({ navigation }: HomeNavigationProps) => {
     }
   }, [imagesToFetch]);
 
-  if (!isReady || !runner || (isInPipMode && !currentMatch)) {
+  if (!isReady || !runner) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
@@ -160,21 +147,14 @@ export const MainMenu = ({ navigation }: HomeNavigationProps) => {
     );
   }
 
-  if (isInPipMode && currentMatch && liveViewRenderer) {
-    log(['Detected to be in PiP mode'])
-    return liveViewRenderer.renderWindowUI(currentMatch, theme);
-  } else {
-    console.log('Rendering main menu');
-    const menuView = runner.renderMainUI(refreshTimeText, isLiveViewAvailable, expandedEvent);
-    let separator;
-    let liveView;
-    if (currentMatch && liveViewRenderer) {
-      separator = React.createElement(View, { style: { width: '100%', height: 4, backgroundColor: '#000000' } });
-      console.log('Rendering live view');
-      liveView = liveViewRenderer.renderWindowUI(currentMatch, theme);
-    }
-    return React.createElement(View, { style: { width: '100%', height: '100%' } }, menuView, separator, liveView);
+  const menuView = runner.renderMainUI(refreshTimeText, expandedEvent);
+  let separator;
+  let liveView;
+  if (currentMatch && liveViewRenderer) {
+    separator = React.createElement(View, { style: { width: '100%', height: 4, backgroundColor: '#000000' } });
+    liveView = liveViewRenderer.renderWindowUI(currentMatch, theme);
   }
+  return React.createElement(View, { style: { width: '100%', height: '100%' } }, menuView, separator, liveView);
 };
 
 const styles = StyleSheet.create({
