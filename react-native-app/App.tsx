@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import type { RootStackParamList } from './src/types'; // Import main param list
+import type { RootStackParamList } from './src/navigation_types'; // Import main param list
 import { MainMenu } from './src/menu';
 import { PreferencesScreen } from './src/prefs';
 import { CountryPreferencesScreen } from './src/prefs_countries';

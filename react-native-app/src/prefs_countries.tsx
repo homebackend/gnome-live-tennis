@@ -2,7 +2,7 @@ import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Countries } from "../../src/common/countries";
 import { useState } from "react";
 import { CommaSeparatedInputProperties, flagImageSource, styles } from "./prefs_common";
-import { CountrySettingsNavigationProps } from "./types";
+import { CountrySettingsNavigationProps } from "./navigation_types";
 
 const CountrySelector: React.FC<CommaSeparatedInputProperties> = ({ initialValuesArray, summary, description, onChange }) => {
     const [selectedCountries, setSelectedCountries] = useState<string[]>(initialValuesArray);

@@ -35,11 +35,7 @@ export class RNLiveViewManager implements LiveViewManager {
     }
 
     getLiveViewCount(): number {
-        if (this._isInPipMode) {
-            return 1;
-        } else {
-            return 0;
-        }
+        return 1;
     }
 
     async setLiveViewCount(numWindows: number): Promise<void> {
@@ -47,19 +43,20 @@ export class RNLiveViewManager implements LiveViewManager {
             if (numWindows > 1) {
                 this._log(['Only single pip window is supported', numWindows.toString()]);
             }
-            
-            this._setLiveViewAvailable(true);
+            if (numWindows > 0) {
+                this._setLiveViewAvailable(true);
+            }
         }
     }
 
     updateLiveViewContent(window: number, match: TennisMatch): void {
-        if (this._isInPipMode && window === 0) {
+        if (window === 0) {
             this._setCurrentMatch(match);
         }
     }
 
     setLiveViewContentsEmpty(window: number): void {
-        if (this._isInPipMode && window === 0) {
+        if (window === 0) {
             this._setCurrentMatch(undefined);
         }
     }
@@ -80,7 +77,6 @@ export class RNLiveViewManager implements LiveViewManager {
                 }
             }, 1000 * interval);
         }
-
     }
 
     destroyCycleTimeout(): void {

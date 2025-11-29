@@ -12,6 +12,7 @@ export type TextAlign = 'auto' | 'left' | 'right' | 'center' | 'justify';
 
 export interface ContainerProperties {
     vertical?: boolean;
+    parentVertical?: boolean,
     className?: string;
     xAlign?: Alignment;
     yAlign?: Alignment;

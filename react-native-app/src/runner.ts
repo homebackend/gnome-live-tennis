@@ -9,6 +9,7 @@ import { AppMenuRenderer } from '../../src/common/app/menu_renderer';
 import { Settings } from "../../src/common/settings";
 import { getCssThemeStyles, LiveTennisTheme } from "./style";
 import { StyleKeys } from "../../src/common/style_keys";
+import { TennisEvent, TennisMatch } from "../../src/common/types";
 
 export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, ReactElementGenerator,
     RNPopupSubMenuItem, RNLinkMenuItem, RNCheckedMenuItem, RNMatchMenuItem> {
@@ -17,17 +18,21 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
     private _setRefreshTimeText: React.Dispatch<React.SetStateAction<string>>;
     private _menuItems: RNPopupSubMenuItem[] = [];
     public setExpandEvent: React.Dispatch<React.SetStateAction<RNPopupSubMenuItem | null>>;
+    private _addToImageFetchQueue: (uri?: string) => void;
     private _openSettings: () => void;
     private _fetchData: () => void;
     private _theme: LiveTennisTheme;
     private _userAlerted = false;
 
-    constructor(log: (logs: string[]) => void, settings: Settings, theme: LiveTennisTheme,
+    constructor(log: (logs: string[]) => void, settings: Settings,
+        theme: LiveTennisTheme, renderer: RNRenderer,
         setRefreshTimeText: React.Dispatch<React.SetStateAction<string>>,
         setExpandEvent: React.Dispatch<React.SetStateAction<RNPopupSubMenuItem | null>>,
+        addToImageFetchQueue: (uri?: string) => void,
         openSettings: () => void, fetchData: () => void,
     ) {
-        super('./', log, settings, new RNRenderer('', log, theme), RNPopupSubMenuItem, RNLinkMenuItem, RNCheckedMenuItem, RNMatchMenuItem);
+        super('./', log, settings, renderer,
+            RNPopupSubMenuItem, RNLinkMenuItem, RNCheckedMenuItem, RNMatchMenuItem);
 
         if (!this.otherContainer.children) {
             this.otherContainer.children = [];
@@ -35,6 +40,7 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
 
         this._setRefreshTimeText = setRefreshTimeText;
         this.setExpandEvent = setExpandEvent;
+        this._addToImageFetchQueue = addToImageFetchQueue;
         this._openSettings = openSettings;
         this._fetchData = fetchData;
         this._theme = theme;
@@ -60,6 +66,17 @@ export class RNRunner extends AppMenuRenderer<RNElement, RNElement, RNElement, R
 
     addItemToMenu(item: RNCheckedMenuItem): void {
         this.otherContainer.children!.push(item.item);
+    }
+
+    async addEvent(event: TennisEvent): Promise<void> {
+        this._addToImageFetchQueue(event.eventTypeUrl);
+        return super.addEvent(event);
+    }
+
+    async addMatch(event: TennisEvent, match: TennisMatch): Promise<void> {
+        match.team1.players.forEach(p => this._addToImageFetchQueue(p.headUrl));
+        match.team2.players.forEach(p => this._addToImageFetchQueue(p.headUrl));
+        return super.addMatch(event, match);
     }
 
     renderMainUI(refreshTimeText: string, isLiveViewAvailable: boolean, expandedEvent: RNPopupSubMenuItem | null): ReactElement {

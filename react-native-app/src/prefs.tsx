@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Image, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { SettingsNavigationProps } from "./types";
+import { SettingsNavigationProps } from "./navigation_types";
 import { prefs, schema, SettingApplicability } from "../../src/common/schema";
 import { CommaSeparatedInputProperties, flagImageSource, styles } from "./prefs_common";
 
@@ -49,7 +49,6 @@ const NumberSettingInput: React.FC<NumberSettingInputProperties> = ({ initialVal
         </View>
     );
 };
-
 
 const CommaSeparatedInput: React.FC<CommaSeparatedInputProperties> = ({ initialValuesArray = [], summary, description, onChange }) => {
     const [valuesArray, setValuesArray] = useState(initialValuesArray);

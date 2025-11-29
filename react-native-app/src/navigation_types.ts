@@ -16,4 +16,3 @@ export type RootStackParamList = {
 export type HomeNavigationProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 export type SettingsNavigationProps = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 export type CountrySettingsNavigationProps = NativeStackScreenProps<RootStackParamList, 'CountrySettings'>;
-

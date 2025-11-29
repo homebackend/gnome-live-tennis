@@ -1,6 +1,6 @@
 // Import shared types from your common directory
 import uuid from 'react-native-uuid';
-import React, { ReactElement, useEffect, useState } from 'react';
+import React, { ReactElement } from 'react';
 import { SvgUri } from 'react-native-svg';
 import { ActivityIndicator, Dimensions, Image, ImageStyle, Linking, Pressable, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { RenderHTML } from 'react-native-render-html';
@@ -18,6 +18,7 @@ import { getAlignItems, getAlignmentStyle, getJustifyContent } from '../../src/c
 import { StyleKeys } from '../../src/common/style_keys';
 import flags from './flags';
 import { getCssThemeStyles, LiveTennisTheme } from './style';
+import { icons } from './icons';
 
 export interface RNElement {
     hidden?: boolean;
@@ -27,17 +28,21 @@ export interface RNElement {
     element: ReactElementGenerator;
 }
 
+export type ImageDimension = { url: string; width: number; height: number; };
 export type ReactElementGenerator = () => ReactElement;
 type CSSStyle = ViewStyle | TextStyle | ImageStyle;
 
 export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
-    private _imageSize: LRUCache<string, { width: number, height: number }> = new LRUCache(100);
+    private _imageSize: LRUCache<string, { width: number, height: number }>;
     private _images: LRUCache<string, ReactElement> = new LRUCache(100);
     private _theme: LiveTennisTheme;
 
-    constructor(basePath: string, log: (logs: string[]) => void, theme: LiveTennisTheme) {
-        super(basePath, log);
+    constructor(log: (logs: string[]) => void, theme: LiveTennisTheme,
+        imageSize: LRUCache<string, { width: number, height: number }>
+    ) {
+        super('', log);
         this._theme = theme;
+        this._imageSize = imageSize;
     }
 
     private getCssStyle(className: string): CSSStyle[] {
@@ -52,7 +57,7 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
     private _setExpand(properties: ContainerProperties | undefined, style: ViewStyle) {
         if (properties) {
             if ('xExpand' in properties) {
-                if (properties.vertical) {
+                if (properties.parentVertical) {
                     style.width = '100%';
                 } else {
                     style.flex = 1;
@@ -60,7 +65,7 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
             }
 
             if ('yExpand' in properties) {
-                if (properties.vertical) {
+                if (properties.parentVertical) {
                     style.flex = 1;
                 } else {
                     style.height = '100%';
@@ -150,7 +155,8 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                     if (properties.size) {
                         style.height = properties.size;
                     } else {
-                        style.height = '100%';
+                        style.height = undefined;
+                        style.alignSelf = 'stretch';
                     }
                     style.width = properties.width ?? 2;
                 } else {
@@ -158,7 +164,8 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                     if (properties.size) {
                         style.width = properties.size;
                     } else {
-                        style.width = '100%';
+                        style.alignSelf = 'stretch';
+                        style.width = undefined;
                     }
                 }
 
@@ -221,6 +228,7 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                     textContent = React.createElement(RenderHTML, {
                         source: { html: textProperties.text },
                         contentWidth: contentWidth,
+                        tagsStyles: tagsStyles,
                     });
                 } else {
                     textContent = React.createElement(Text, { style: [cssTextClassStyle, textStyle, linkTextStyle] }, textProperties.text);
@@ -264,80 +272,18 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
         const image: RNElement = {
             element: (): ReactElement => {
                 const CreateImage = (uri: string, expectedHeight: number, attribs: any) => {
-                    const [dimensions, setDimensions] = useState(imageSize.get(uri) ?? { width: 0, height: 0 });
-                    const [isLoading, setIsLoading] = useState(images.get(uri) ? false : true);
-                    const [error, setError] = useState(false);
-
-                    useEffect(() => {
-                        const dimension = imageSize.get(uri);
-                        if (dimension) {
-                            setDimensions(dimension);
-                            setIsLoading(false);
-                            return;
-                        }
-
-                        const updateImage = (width: number, height: number) => {
-                            imageSize.put(uri, { width: width, height: height });
-                            setDimensions({ width, height });
-                            setIsLoading(false);
-                        };
-
-                        if (uri.endsWith('.svg')) {
-                            const processSvg = async () => {
-                                const response = await fetch(uri);
-                                const svgText = await response.text();
-
-                                const widthMatch = svgText.match(/width="(\d+(\.\d+)?)"/);
-                                const heightMatch = svgText.match(/height="(\d+(\.\d+)?)"/);
-                                const viewBoxMatch = svgText.match(/viewBox="0 0 (\d+(\.\d+)?) (\d+(\.\d+)?)"/);
-
-                                let width = 0;
-                                let height = 0;
-
-                                if (widthMatch && heightMatch) {
-                                    width = parseFloat(widthMatch[1]);
-                                    height = parseFloat(heightMatch[1]);
-                                } else if (viewBoxMatch) {
-                                    width = parseFloat(viewBoxMatch[1]);
-                                    height = parseFloat(viewBoxMatch[3]);
-                                }
-
-                                if (width > 0 && height > 0) {
-                                    updateImage(width, height);
-                                } else {
-                                    console.error("Failed to get svg image size");
-                                    setError(true);
-                                    setIsLoading(false);
-                                }
-                            };
-
-                            processSvg();
-                        } else {
-                            Image.getSize(
-                                uri,
-                                (width, height) => {
-                                    updateImage(width, height);
-                                },
-                                (err) => {
-                                    console.error("Failed to get image size", err);
-                                    setError(true);
-                                    setIsLoading(false);
-                                }
-                            );
-                        }
-                    }, [uri]);
-
-                    if (isLoading) {
+                    const dimension = imageSize.get(uri);
+                    if (!dimension) {
                         return React.createElement(ActivityIndicator, { style: { height: expectedHeight } });
                     }
 
-                    if (error || dimensions.width === 0 || dimensions.height === 0) {
+                    if (dimension.width === 0 || dimension.height === 0) {
                         return React.createElement(View, { style: { height: expectedHeight, justifyContent: 'center', alignItems: 'center' } },
                             React.createElement(Text, {}, 'Error loading image'),
                         )
                     }
 
-                    const aspectRatio = dimensions.width / dimensions.height;
+                    const aspectRatio = dimension.width / dimension.height;
 
                     let imageElement = images.get(uri);
                     if (!imageElement) {
@@ -373,7 +319,13 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
                 let imageElement: ReactElement;
 
                 if (imageProperties.isLocal) {
-                    const source = flags[imageProperties.src as keyof typeof flags];
+                    console.log(imageProperties.src);
+                    let source;
+                    if (imageProperties.src in flags) {
+                        source = flags[imageProperties.src as keyof typeof flags];
+                    } else {
+                        source = icons[imageProperties.src as keyof typeof icons];
+                    }
                     imageElement = React.createElement(Image, { source: source, ...attribs });
                 } else {
                     const expectedHeight = imageProperties.height ? imageProperties.height : 20;
@@ -417,3 +369,14 @@ export class RNRenderer extends Renderer<RNElement, RNElement, RNElement> {
 
     }
 }
+
+const tagsStyles = {
+  sup: {
+    fontSize: 'smaller',
+    transform: [{ translateY: -5 }],
+  },
+  sub: {
+    fontSize: 'smaller',
+    transform: [{ translateY: 5 }],
+  }
+};
