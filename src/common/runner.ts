@@ -1,6 +1,6 @@
-import { Settings } from "./settings.js";
-import { TennisEvent, TennisMatch } from "./types.js";
-import { SortedStringList } from "./util.js";
+import { Settings } from "./settings";
+import { TennisEvent, TennisMatch } from "./types";
+import { SortedStringList } from "./util";
 
 export abstract class Runner {
     protected log: (logs: string[]) => void;
@@ -18,7 +18,6 @@ export abstract class Runner {
         this.settings = settings;
         this.basePath = basePath;
         this._tennisEvents = new SortedStringList();
-        this.setLastRefreshTime(undefined);
     }
 
     abstract updateLastRefreshTime(): void;
@@ -232,6 +231,8 @@ export abstract class Runner {
     async filterAutoEvents(handler: (selection: string) => boolean): Promise<string[]> {
         return this._filterSetting('auto-view-new-matches', handler);
     }
+
+    setUpdateStatus(status: boolean) { }
 };
 
 

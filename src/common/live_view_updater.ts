@@ -1,14 +1,15 @@
-import { LiveTennis, QueryResponseType } from "./fetcher.js";
-import { Runner } from "./runner.js";
-import { Settings } from "./settings.js";
-import { TennisEvent, TennisMatch } from "./types.js";
-import { AtpFetcher } from "./atp_fetcher.js";
-import { ApiHandler } from "./api.js";
-import { WtaFetcher } from "./wta_fetcher.js";
-import { TTFetcher } from "./tt_fetcher.js";
+import { LiveTennis, QueryResponseType } from "./fetcher";
+import { Runner } from "./runner";
+import { Settings } from "./settings";
+import { TennisMatch } from "./types";
+import { AtpFetcher } from "./atp_fetcher";
+import { ApiHandler } from "./api";
+import { WtaFetcher } from "./wta_fetcher";
+import { TTFetcher } from "./tt_fetcher";
 
 export interface LiveViewManager {
     setFetchTimer(interval: number, fetcher: () => void): void;
+    unsetFetchTimer(): void;
     getLiveViewCount(): number;
     setLiveViewCount(numWindows: number): Promise<void>
     updateLiveViewContent(window: number, match: TennisMatch): void;
@@ -52,6 +53,7 @@ export class LiveViewUpdater<TF extends TTFetcher> {
 
     disable() {
         this._liveTennis.disable();
+        this._manager.unsetFetchTimer();
     }
 
     async fetchMatchData() {
@@ -109,6 +111,7 @@ export class LiveViewUpdater<TF extends TTFetcher> {
             this._currentMatchesData = matchesData;
             await this._updateFloatingWindows(this._currentMatchesData);
             this._runner.setLastRefreshTime(Date.now());
+            this._runner.setUpdateStatus(allGood);
 
             const interval = await this._settings!.getInt('update-interval');
             this._manager.setFetchTimer(interval, this.fetchMatchData.bind(this));

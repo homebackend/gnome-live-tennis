@@ -1,7 +1,7 @@
-import { LiveViewRendererCommon } from "../common/live_view_renderer.js";
-import { TennisMatch } from "../common/types.js";
-import { ElectronRenderer } from "./renderer.js";
-import { StyleKeys } from "../common/style_keys.js";
+import { LiveViewRendererCommon } from "../common/live_view_renderer";
+import { TennisMatch } from "../common/types";
+import { ElectronRenderer } from "./renderer";
+import { StyleKeys } from "../common/style_keys";
 
 declare global {
     interface Window {

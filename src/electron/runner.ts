@@ -1,11 +1,14 @@
-import { BrowserWindow, ipcMain, Point, Rectangle, screen, Tray } from "electron";
-import { Runner } from "../common/runner.js";
-import { Settings } from "../common/settings.js";
-import { TennisEvent, TennisMatch } from "../common/types.js";
 import * as path from 'path';
-import { MenuRenderKeys } from "./render_keys.js";
+import { BrowserWindow, ipcMain, Point, Rectangle, screen, Tray } from "electron";
+import { Runner } from "../common/runner";
+import { Settings } from "../common/settings";
+import { TennisEvent, TennisMatch } from "../common/types";
+import { MenuRenderKeys } from "./render_keys";
 
 export class ElectronRunner extends Runner {
+    private static DefaultWindowWidth = 650;
+    private static DefaultWindowHeight = 600;
+
     private _eventIds = new Set<string>();
     private _matchIds = new Set<string>();
     private _selectedMatchIds = new Set<string>();
@@ -18,8 +21,8 @@ export class ElectronRunner extends Runner {
         const preloadPath = path.join(basePath, 'menu_preload.js');
 
         this._customMenu = new BrowserWindow({
-            width: 600,
-            height: 600,
+            width: ElectronRunner.DefaultWindowWidth,
+            height: ElectronRunner.DefaultWindowHeight,
             show: false,
             frame: false,
             transparent: false,
@@ -73,15 +76,15 @@ export class ElectronRunner extends Runner {
         let x, y;
         const windowBounds = this._customMenu.getBounds();
         const displayBounds = screen.getPrimaryDisplay().bounds;
-        
-        let iconBounds = bounds; 
+
+        let iconBounds = bounds;
 
         // Workaround for Linux (where bounds might be 0,0,0,0)
         if (iconBounds.width === 0 && process.platform === 'linux') {
-             const cursor = screen.getCursorScreenPoint();
-             iconBounds = { x: cursor.x, y: cursor.y, width: 0, height: 0 };
+            const cursor = screen.getCursorScreenPoint();
+            iconBounds = { x: cursor.x, y: cursor.y, width: 0, height: 0 };
         }
-        
+
         // Positioning calculation (adjusts for Top/Bottom taskbars)
         if (process.platform === 'darwin') { // macOS (top menu bar)
             x = Math.round(iconBounds.x + (iconBounds.width / 2) - (windowBounds.width / 2));
@@ -93,7 +96,7 @@ export class ElectronRunner extends Runner {
 
         // Handle edge cases where window might go off-screen
         if (x + windowBounds.width > displayBounds.width) {
-             x = displayBounds.width - windowBounds.width;
+            x = displayBounds.width - windowBounds.width;
         }
         if (x < displayBounds.x) {
             x = displayBounds.x;
@@ -102,6 +105,11 @@ export class ElectronRunner extends Runner {
         this._customMenu.setPosition(x, y);
         this._customMenu.show();
         this._customMenu.focus();
+
+        ipcMain.on(MenuRenderKeys.resizeToFitContents, async (event, width: number) => {
+            const [, windowHeight] = this._customMenu.getSize();
+            this._customMenu.setSize(Math.max(width, ElectronRunner.DefaultWindowWidth), Math.max(windowHeight, ElectronRunner.DefaultWindowHeight));
+        });
     }
 
     updateLastRefreshTime(): void {

@@ -1,11 +1,9 @@
 // src/renderer.ts
-import { MenuRendererCommon } from '../common/menu_renderer.js';
-import { Alignment } from '../common/renderer.js';
-import { Settings } from '../common/settings.js';
-import { TennisEvent, TennisMatch } from '../common/types.js';
-import { ElectronCheckedMenuItem, ElectronLinkMenuItem, ElectronMatchMenuItem, ElectronPopupSubMenuItem } from './menuitem.js';
-import { ElectronRenderer } from './renderer.js';
-import { StyleKeys } from '../common/style_keys.js';
+import { Settings } from '../common/settings';
+import { TennisEvent, TennisMatch } from '../common/types';
+import { ElectronCheckedMenuItem, ElectronLinkMenuItem, ElectronMatchMenuItem, ElectronPopupSubMenuItem } from './menuitem';
+import { ElectronRenderer } from './renderer';
+import { AppMenuRenderer } from '../common/app/menu_renderer';
 
 declare global {
     interface Window {
@@ -22,6 +20,7 @@ declare global {
             setSettingBoolean: (key: string, value: boolean) => void;
             setSettingInt: (key: string, value: number) => void;
             setSettingStrv: (key: string, value: string[]) => void;
+            resizeToFitContents: (width: number, height: number) => void;
 
             setMatchSelected: (matchId: string) => void;
 
@@ -63,36 +62,34 @@ class MainWindowSettings implements Settings {
     }
 }
 
-class MenuRenderer extends MenuRendererCommon<HTMLDivElement, HTMLSpanElement, HTMLImageElement, HTMLDivElement, HTMLDivElement, HTMLDivElement, HTMLDivElement,
+class MenuRenderer extends AppMenuRenderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement, HTMLDivElement,
     ElectronPopupSubMenuItem, ElectronLinkMenuItem, ElectronCheckedMenuItem, ElectronMatchMenuItem> {
-    private _eventDiv: HTMLDivElement;
-    private _othersDiv: HTMLDivElement;
     private _refreshTimeSpan?: HTMLSpanElement;
 
     constructor(basePath: string, renderer: ElectronRenderer) {
-        super(window.electronAPIMenu.log, new MainWindowSettings(), basePath,
-            renderer, ElectronPopupSubMenuItem, ElectronLinkMenuItem, ElectronCheckedMenuItem, ElectronMatchMenuItem);
+        super(basePath, window.electronAPIMenu.log, new MainWindowSettings(), renderer,
+            ElectronPopupSubMenuItem, ElectronLinkMenuItem, ElectronCheckedMenuItem, ElectronMatchMenuItem);
 
         const root = document.getElementById('root');
         if (!root) {
             throw new Error('Root element not found');
         }
 
-        this._eventDiv = renderer.createContainer({ vertical: true, xExpand: true });
-        root.appendChild(this._eventDiv);
-        this._othersDiv = renderer.createContainer({ vertical: true, xExpand: true });
-        root.appendChild(this._othersDiv);
+        root.appendChild(this.eventContainer);
+        root.appendChild(this.otherContainer);
 
         this.setupBaseMenu();
     }
 
     addEventMenuItemToMenu(item: ElectronPopupSubMenuItem, position: number): void {
-        if (this._eventDiv.children.length > position) {
-            const referenceNode = this._eventDiv.children[position];
-            this._eventDiv.insertBefore(item.menu, referenceNode);
+        if (this.eventContainer.children.length > position) {
+            const referenceNode = this.eventContainer.children[position];
+            this.eventContainer.insertBefore(item.menu, referenceNode);
         } else {
-            this._eventDiv.appendChild(item.menu);
+            this.eventContainer.appendChild(item.menu);
         }
+
+        setTimeout(resizeWindowToFitContent, 50);
     }
 
     setLastRefrestTimeText(text: string): void {
@@ -101,56 +98,42 @@ class MenuRenderer extends MenuRendererCommon<HTMLDivElement, HTMLSpanElement, H
         }
     }
 
-    addMenuSeprator(): void {
-        const r = this._renderer;
-        r.addContainersToContainer(this._othersDiv, r.createSeparator({}));
-    }
-
     addItemToMenu(item: ElectronCheckedMenuItem): void {
         const r = this._renderer;
-        r.addContainersToContainer(this._othersDiv, item.item);
+        r.addContainersToContainer(this.otherContainer, item.item);
+
+        setTimeout(resizeWindowToFitContent, 50);
     }
 
     addRefreshMenuItem(): void {
+        const [refreshDiv, refreshTimeSpan] = this.getRefreshMenuItem('Never');
+        this._refreshTimeSpan = refreshTimeSpan;
         const r = this._renderer;
-        const refreshDiv = r.createContainer({ xExpand: true, className: StyleKeys.MainMenuMatchItem });
-        r.addTextToContainer(refreshDiv, {
-            text: 'Last Refresh',
-            onClick: window.electronAPIMenu.refresh,
-            className: StyleKeys.NoWrapText,
-        });
-        this._refreshTimeSpan = r.addTextToContainer(refreshDiv, {
-            text: 'Never',
-            className: `${StyleKeys.NoWrapText} ${StyleKeys.MainMenuRefreshLabel}`,
-            xExpand: true,
-            textAlign: Alignment.End,
-            onClick: window.electronAPIMenu.refresh,
-        });
-
-        r.addContainersToContainer(this._othersDiv, refreshDiv);
+        r.addContainersToContainer(this.otherContainer, refreshDiv);
     }
 
-    addSettingsItem(): void {
-        const r = this._renderer;
-        r.addTextToContainer(this._othersDiv, {
-            text: 'Settings',
-            xExpand: true,
-            className: StyleKeys.MainMenuMatchItem,
-            onClick: () => window.electronAPIMenu.openSettingsWindow(),
-        });
+    protected refresh(): void {
+        window.electronAPIMenu.refresh();
     }
 
-    setupAdditionalMenuItems(): void {
-        this.addMenuSeprator();
-        const r = this._renderer;
-        r.addTextToContainer(this._othersDiv, {
-            text: 'Quit Application',
-            xExpand: true,
-            onClick: window.electronAPIMenu.quit,
-            className: `${StyleKeys.NoWrapText} ${StyleKeys.MainMenuMatchItem}`,
-        });
+    protected openSettingsWindow(): void {
+        window.electronAPIMenu.openSettingsWindow();
+    }
+
+    protected quit(): void {
+        window.electronAPIMenu.quit();
     }
 };
+
+function resizeWindowToFitContent() {
+    const content = document.getElementById('root');
+    if (content) {
+        const width = content.scrollWidth;
+        const height = content.scrollHeight;
+
+        window.electronAPIMenu.resizeToFitContents(width, height);
+    }
+}
 
 async function renderMenu() {
     const basePath = await window.electronAPIMenu.basePath();

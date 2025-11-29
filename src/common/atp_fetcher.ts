@@ -1,6 +1,6 @@
-import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
-import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api.js";
-import { Fetcher, FetcherCommon, FetcherProperties } from "./fetcher.js";
+import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types";
+import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api";
+import { Fetcher, FetcherCommon, FetcherProperties } from "./fetcher";
 
 export interface AtpFetcherProperties extends FetcherProperties {
     tour: string;
@@ -24,6 +24,7 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
         const slug = `${firstName.toLowerCase()}-${lastName.toLowerCase()}`;
         return {
             id: p["PlayerId"],
+            placeholder: false,
             countryCode: p["PlayerCountry"],
             country: p["PlayerCountryName"],
             firstName: firstName,
@@ -60,6 +61,7 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
 
         return {
             players: players,
+            placeholder: false,
             entryType: t['EntryType'],
             seed: t['Seed'],
             gameScore: String(t['GameScore']),
@@ -69,25 +71,19 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
     }
 
     private _get_display_type(tour: string, eventType: string) {
-        if (tour == 'ATP') {
-            return `ATP ${eventType}`;
-        } else {
-            if (eventType == 'CH') {
-                return `ATP Challenger`;
-            } else {
-                return `ATP ${eventType}`;
-            }
+        switch(eventType) {
+            case 'CH':
+                return 'ATP Challenger';
+            case 'DCR':
+                return 'Davis Cup';
         }
+
+        return `ATP ${eventType}`;
+
     }
 
     private _get_event_type_url(tour: string, eventType: string) {
-        if (tour == 'ATP') {
-            return ["1000", "500", "250"].includes(eventType) ? `https://www.atptour.com/assets/atpwt/images/tournament/badges/categorystamps_${eventType}.png` : undefined;
-        } else {
-            if (eventType == 'CH') {
-                return 'http://www.atptour.com/assets/atpwt/images/tournament/badges/categorystamps_ch.png';
-            }
-        }
+        return `https://www.atptour.com/assets/atpwt/images/tournament/badges/categorystamps_${eventType.toLowerCase()}.png`;
     }
 
     private _get_match_display_status(ms: string): string {
@@ -184,6 +180,7 @@ export class AtpFetcher extends FetcherCommon implements Fetcher {
 
                 const match: TennisMatch = {
                     id: mid,
+                    placeholder: false,
                     isDoubles: isDoubles,
                     roundName: m['RoundName'],
                     courtName: m['CourtName'],

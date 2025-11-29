@@ -25,12 +25,13 @@ export enum SettingApplicability {
     All,
     GnomeShellExtension,
     ElectronTrayApp,
+    ReactNativeApp,
 }
 
-interface FullSchemaItem {
-    type: string;
-    default?: any;
-    applicability?: SettingApplicability,
+interface FullSchemaItem<K extends keyof Schema = keyof Schema> {
+    type: 'boolean' | 'number' | 'array';
+    default: Schema[K];
+    applicability?: SettingApplicability[],
     items?: { type: string, enum?: string },
     summary?: string;
     description?: string;
@@ -38,15 +39,15 @@ interface FullSchemaItem {
     maximum?: number;
 }
 
-export interface FullSchema {
-    [key: string]: FullSchemaItem;
-}
+export type FullSchema = {
+    [key in keyof Schema]: FullSchemaItem<key>;
+};
 
 export const schema: FullSchema = {
     autostart: {
         type: 'boolean',
         default: true,
-        applicability: SettingApplicability.ElectronTrayApp,
+        applicability: [SettingApplicability.ElectronTrayApp],
         summary: 'Start Live Tennis Automatically',
         description: 'Whether to start Live Tennis automatically with your desktop.',
     },
@@ -79,6 +80,7 @@ export const schema: FullSchema = {
         default: 1,
         summary: 'Number of floating windows',
         description: 'The maximum number of floating windows to display at once.',
+        applicability: [SettingApplicability.ElectronTrayApp, SettingApplicability.GnomeShellExtension]
     },
     match_display_duration: {
         type: 'number',
@@ -158,6 +160,7 @@ export const schema: FullSchema = {
         default: false,
         summary: 'Enable Tennis Temple',
         description: 'Process events and matches as provided by tennistemple.com.',
+        applicability: [SettingApplicability.ElectronTrayApp, SettingApplicability.GnomeShellExtension]
     },
     live_window_size_x: {
         type: 'number',
@@ -166,6 +169,7 @@ export const schema: FullSchema = {
         description: 'Width in pixels of Live view window (between 200 and 600).',
         minimum: 200,
         maximum: 600,
+        applicability: [SettingApplicability.ElectronTrayApp, SettingApplicability.GnomeShellExtension]
     },
     live_window_size_y: {
         type: 'number',
@@ -174,6 +178,7 @@ export const schema: FullSchema = {
         description: 'Height in pixels of Live view window (between 200 and 600).',
         minimum: 200,
         maximum: 600,
+        applicability: [SettingApplicability.ElectronTrayApp, SettingApplicability.GnomeShellExtension]
     },
     enable_debug_logging: {
         type: 'boolean',

@@ -1,6 +1,6 @@
 import Store, { Schema as StoreSchemaType } from 'electron-store';
-import { schema, Schema, SettingApplicability } from "../common/schema.js";
-import { Settings } from "../common/settings.js";
+import { schema, Schema, SettingApplicability } from "../common/schema";
+import { Settings } from "../common/settings";
 
 export class ElectronSettings implements Settings {
     private _store: Store<Schema>;
@@ -8,7 +8,7 @@ export class ElectronSettings implements Settings {
     constructor() {
         const storeSchema = {} as StoreSchemaType<Schema>;
 
-        Object.entries(schema).filter(([_, value]) => !value.applicability || value.applicability == SettingApplicability.ElectronTrayApp).map(([key, value]) => {
+        Object.entries(schema).filter(([_, value]) => !value.applicability || value.applicability.includes(SettingApplicability.ElectronTrayApp)).map(([key, value]) => {
             storeSchema[key as keyof Schema] = { type: value.type, default: value.default };
         });
 

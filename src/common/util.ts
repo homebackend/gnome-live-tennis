@@ -86,6 +86,116 @@ export class SortedStringList {
     }
 }
 
+/**
+ * Represents a node in the Doubly Linked List.
+ */
+class Node<K, V> {
+    public next: Node<K, V> | null = null;
+    public prev: Node<K, V> | null = null;
+    constructor(public key: K, public value: V) {}
+}
+
+/**
+ * An LRU Cache implementation using a Map and a Doubly Linked List.
+ */
+export class LRUCache<K, V> {
+    private capacity: number;
+    private map: Map<K, Node<K, V>> = new Map();
+    private head: Node<K, V> | null = null; // Most recently used
+    private tail: Node<K, V> | null = null; // Least recently used
+
+    constructor(capacity: number) {
+        this.capacity = capacity;
+    }
+
+    /**
+     * Get an item from the cache. Moves the item to the front (most recently used).
+     */
+    public get(key: K): V | undefined {
+        if (this.map.has(key)) {
+            const node = this.map.get(key)!;
+            this.moveToHead(node);
+            return node.value;
+        }
+        return undefined;
+    }
+
+    /**
+     * Add or update an item in the cache. Adds to the front. Evicts LRU if capacity is reached.
+     */
+    public put(key: K, value: V): void {
+        if (this.map.has(key)) {
+            // Update value and move to head
+            const node = this.map.get(key)!;
+            node.value = value;
+            this.moveToHead(node);
+        } else {
+            // New node, add to head
+            const newNode = new Node(key, value);
+            this.map.set(key, newNode);
+            this.addToHead(newNode);
+
+            // Check capacity
+            if (this.map.size > this.capacity) {
+                this.removeLRU();
+            }
+        }
+    }
+
+    /**
+     * Helper to move a node to the front of the list.
+     */
+    private moveToHead(node: Node<K, V>): void {
+        this.removeFromList(node);
+        this.addToHead(node);
+    }
+
+    /**
+     * Helper to add a node to the front of the list.
+     */
+    private addToHead(node: Node<K, V>): void {
+        node.prev = null;
+        node.next = this.head;
+
+        if (this.head !== null) {
+            this.head.prev = node;
+        }
+        this.head = node;
+
+        if (this.tail === null) {
+            this.tail = node;
+        }
+    }
+
+    /**
+     * Helper to remove a node from the linked list.
+     */
+    private removeFromList(node: Node<K, V>): void {
+        if (node.prev !== null) {
+            node.prev.next = node.next;
+        } else {
+            this.head = node.next;
+        }
+
+        if (node.next !== null) {
+            node.next.prev = node.prev;
+        } else {
+            this.tail = node.prev;
+        }
+    }
+
+    /**
+     * Helper to remove the least recently used item (the tail).
+     */
+    private removeLRU(): void {
+        if (this.tail !== null) {
+            const lruNode = this.tail;
+            this.removeFromList(lruNode);
+            this.map.delete(lruNode.key);
+        }
+    }
+}
+
 export function generateUUIDv4(): string {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
         return crypto.randomUUID();

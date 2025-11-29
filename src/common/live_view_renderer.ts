@@ -1,6 +1,6 @@
-import { StyleKeys } from "./style_keys.js";
-import { Alignment, Renderer } from "./renderer.js";
-import { TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
+import { StyleKeys } from "./style_keys";
+import { Alignment, Renderer } from "./renderer";
+import { TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types";
 
 export abstract class LiveViewRendererCommon<T, TT, IT> {
     protected basePath: string;
@@ -16,7 +16,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
     private _addEventHeader(eventHeader: T, match: TennisMatch) {
         const event = match.event;
 
-        const eventType = this.renderer.createContainer({ className: StyleKeys.LiveViewEventType, xAlign: Alignment.Center, yExpand: false });
+        const eventType = this.renderer.createContainer({ vertical: true, className: StyleKeys.LiveViewEventType, xAlign: Alignment.Center, yExpand: false });
         ///*
         this.renderer.addTextToContainer(eventType, { text: match.event.displayType, className: StyleKeys.LiveViewEventTypeText });
         //*/
@@ -67,7 +67,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
 
     private _addMatchHeader(box: T, match: TennisMatch) {
         // Match Header (Quarterfinals, etc.)
-        const matchHeader = this.renderer.createContainer({ className: StyleKeys.LiveViewMatchHeaderBox, xExpand: true });
+        const matchHeader = this.renderer.createContainer({ className: StyleKeys.LiveViewMatchHeaderBox, xExpand: true, parentVertical: true });
         this.renderer.addTextToContainer(matchHeader, {
             text: `${match.roundName}`,
             className: `${StyleKeys.NoWrapText} ${StyleKeys.LiveViewMatchHeaderLabel} ${StyleKeys.LiveViewRoundLabel}`
@@ -148,7 +148,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
         this.renderer.addContainersToContainer(row, serviceBox);
 
         this.renderer.addTextToContainer(row, {
-            text: team.gameScore != null ? team.gameScore : '',
+            text: team.gameScore === null || team.gameScore === 'null' ? '' : team.gameScore,
             className: StyleKeys.LiveViewGameScoreBox,
             yAlign: alignment,
         });
@@ -168,7 +168,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
     }
 
     private _addMatchScoreRow(box: T, match: TennisMatch, team: TennisTeam, server: number, scoreAlignment: Alignment) {
-        const row = this.renderer.createContainer({ className: StyleKeys.LiveViewMatchContentBox, xAlign: Alignment.Begin, yAlign: scoreAlignment });
+        const row = this.renderer.createContainer({ className: StyleKeys.LiveViewMatchContentBox, xAlign: Alignment.Begin, yAlign: scoreAlignment, parentVertical: true });
         this._addTeam(team, match.isDoubles, row);
         this._addScore(team, scoreAlignment, StyleKeys.LiveViewGameScoreBoxTop, match.server == server, row);
         this.renderer.addContainersToContainer(box, row);
@@ -183,6 +183,7 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
     private _addExtrasRows(box: T, match: TennisMatch) {
         if (match.h2hUrl || match.umpireFirstName || match.umpireLastName) {
             const row = this.renderer.createContainer({
+                parentVertical: true,
                 xExpand: true,
             });
 
@@ -224,11 +225,11 @@ export abstract class LiveViewRendererCommon<T, TT, IT> {
     }
 
     protected createMainWindow(mainBox: T, match: TennisMatch) {
-        const eventHeader = this.renderer.createContainer({ justifyContent: 'space-between', xExpand: true });
+        const eventHeader = this.renderer.createContainer({ justifyContent: 'space-between', xExpand: true, parentVertical: true });
         this._addEventHeader(eventHeader, match);
         this.renderer.addContainersToContainer(mainBox, eventHeader);
 
-        const box = this.renderer.createContainer({ vertical: true, xExpand: true, className: StyleKeys.LiveViewSubMainBox });
+        const box = this.renderer.createContainer({ vertical: true, xExpand: true, className: StyleKeys.LiveViewSubMainBox, parentVertical: true });
 
         this._addMatchHeader(box, match);
         this.renderer.addSeparatorToContainer(box, {});

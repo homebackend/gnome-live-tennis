@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { MenuRenderKeys, PreferenceRenderKeys } from './render_keys.js';
+import { MenuRenderKeys, PreferenceRenderKeys } from './render_keys';
 
 contextBridge.exposeInMainWorld('preferences', {
     closeWindow: () => ipcRenderer.send(PreferenceRenderKeys.closePreferencesWindow),

@@ -1,76 +1,30 @@
-import { CheckedMenuItem, CheckedMenuItemProperties, LinkMenuItemProperties, MatchMenuItem, MatchMenuItemProperties, MatchMenuItemRenderer, MenuItem, PopubSubMenuItemProperties, PopupSubMenuItem } from "../common/menuitem.js";
-import { Renderer } from "../common/renderer.js";
-import { TennisMatch } from "../common/types.js";
-import { ElectronRenderer } from "./renderer.js";
-import { StyleKeys } from "../common/style_keys.js";
+import { CheckedMenuItem, CheckedMenuItemProperties, LinkMenuItemProperties, MatchMenuItem, MatchMenuItemProperties, MatchMenuItemRenderer, MenuItem, PopubSubMenuItemProperties, PopupSubMenuItem } from "../common/menuitem";
+import { Renderer } from "../common/renderer";
+import { TennisMatch } from "../common/types";
+import { ElectronRenderer } from "./renderer";
+import { StyleKeys } from "../common/style_keys";
+import { getCheckedMenuItem, getLinkMenuItem, getPopupSubMenuItem, TextMenuClosed, TextMenuOpen } from "../common/app/menuitem";
 
-abstract class MenuItemRenderer extends MatchMenuItemRenderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement> {
-    protected addCheckmark(div: HTMLDivElement, isVisible: boolean, toggleHandler: ((value: boolean) => void) | undefined): HTMLSpanElement {
-        const element = this.r.addTextToContainer(div, {
-            text: '✓',
-            className: StyleKeys.MainMenuCheckMark,
-            visibility: isVisible ? 'visible' : 'hidden',
-        });
-        this.r.addOnClickHandler(element, () => {
-            const parent = element.parentElement;
-            if (parent) {
-                if (parent.style.visibility === 'hidden') {
-                    parent.style.visibility = 'visible';
-                } else {
-                    parent.style.visibility = 'hidden';
-                }
-                if (toggleHandler) {
-                    toggleHandler(parent.style.visibility === 'visible');
-                }
-            }
-        });
-
-        return element;
-    }
-}
-
-export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupSubMenuItem<HTMLDivElement, HTMLDivElement> {
+export class ElectronPopupSubMenuItem implements PopupSubMenuItem<HTMLDivElement, HTMLDivElement> {
     private _menu: HTMLDivElement;
     private _menuContainer: HTMLDivElement;
     private _menuIndicator: HTMLSpanElement;
+    private _renderer: Renderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement>;
 
-    constructor(properties: PopubSubMenuItemProperties) {
-        super(properties.basePath, properties.log);
-        [this._menu, this._menuContainer, this._menuIndicator] = this._setup(properties);
-    }
+    constructor(properties: PopubSubMenuItemProperties, renderer: Renderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement>) {
+        this._renderer = renderer;
 
-    private _setup(properties: PopubSubMenuItemProperties): [HTMLDivElement, HTMLDivElement, HTMLSpanElement] {
-        const eventElement = this.createContainer({ className: StyleKeys.MainMenuTournamentItem, xExpand: true });
-        if (properties.url) {
-            this.addImageToContainer(eventElement, { src: properties.url, alt: properties.event.type, height: 20 });
-        }
-        this.addTextToContainer(eventElement, { text: properties.text, className: StyleKeys.NoWrapText, xExpand: true });
-        const indicator = this.addTextToContainer(eventElement, { text: '▶', className: StyleKeys.MainMenuEventIndicator });
+        [this._menu, this._menuContainer, this._menuIndicator] = getPopupSubMenuItem(false, (handler) => {
+            const currentDisplay = this._menuContainer.style.display;
 
-        const menuContainer = this.createContainer({ xExpand: true });
-        menuContainer.style.display = 'none'; // Hide matches on start
-        const wrapper = this.createContainer({ vertical: true, xExpand: true });
-        this.addContainersToContainer(wrapper, [eventElement, menuContainer]);
+            handler();
 
-        this.addOnClickHandler(eventElement, () => {
-            const currentDisplay = menuContainer.style.display;
-
-            // Hide other sub menu
-            if (properties.clickHandler) {
-                properties.clickHandler();
-            }
-
-            // Toggle this sub menus display
             if (currentDisplay === 'none') {
-                menuContainer.style.display = 'block';
-                indicator.textContent = '▼';
+                this.show();
             } else {
-                menuContainer.style.display = 'none';
-                indicator.textContent = '▶';
+                this.hide();
             }
-        });
-
-        return [wrapper, menuContainer, indicator];
+        }, properties, renderer);
     }
 
     get menu(): HTMLDivElement {
@@ -78,12 +32,17 @@ export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupS
     }
 
     addMenuItem(item: MenuItem<HTMLDivElement>): void {
-        this.addContainersToContainer(this._menuContainer, item.item);
+        this._renderer.addContainersToContainer(this._menuContainer, item.item);
+    }
+
+    show(): void {
+        this._menuContainer.style.display = 'block';
+        this._menuIndicator.textContent = TextMenuOpen;
     }
 
     hide(): void {
         this._menuContainer.style.display = 'none';
-        this._menuIndicator.textContent = '▶';
+        this._menuIndicator.textContent = TextMenuClosed;
     }
 
     destroy(): void {
@@ -92,28 +51,23 @@ export class ElectronPopupSubMenuItem extends ElectronRenderer implements PopupS
         if (parent) {
             parent.removeChild(this._menu);
         }
+        this._renderer.destroy();
     }
 }
 
-export class ElectronLinkMenuItem extends ElectronRenderer implements MenuItem<HTMLDivElement> {
+export class ElectronLinkMenuItem implements MenuItem<HTMLDivElement> {
     protected _item: HTMLDivElement;
 
-    constructor(properties: LinkMenuItemProperties) {
-        super(properties.basePath, properties.log);
-        this._item = this.createContainer({ xExpand: true, className: StyleKeys.MainMenuMatchItem });
-        properties.menuUrls.forEach(menuUrl => this.addTextToContainer(this._item, {
-            text: menuUrl.title,
-            link: menuUrl.url,
-            paddingRight: '5px',
-        }));
+    constructor(properties: LinkMenuItemProperties, renderer: Renderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement>) {
+        this._item = getLinkMenuItem(properties, renderer);
     }
 
     get item(): HTMLDivElement {
         return this._item;
     }
 
-    connect(action: string, handler: () => void): void {
-        this._item.addEventListener(action, handler);
+    get generatedItem(): HTMLDivElement {
+        return this._item;
     }
 
     destroy(): void {
@@ -121,7 +75,7 @@ export class ElectronLinkMenuItem extends ElectronRenderer implements MenuItem<H
     }
 }
 
-class CheckedMenuItemCommon extends MenuItemRenderer implements CheckedMenuItem<HTMLDivElement> {
+class CheckedMenuItemCommon extends MatchMenuItemRenderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement> implements CheckedMenuItem<HTMLDivElement> {
     protected _checked: boolean;
     protected _checkmark: HTMLSpanElement;
     protected _item: HTMLDivElement;
@@ -130,17 +84,19 @@ class CheckedMenuItemCommon extends MenuItemRenderer implements CheckedMenuItem<
     constructor(r: Renderer<HTMLDivElement, HTMLSpanElement, HTMLImageElement>, checked: boolean, clickHandler?: (checked: boolean) => void) {
         super(r);
         this._checked = checked;
-        [this._item, this._checkmark, this._itemData] = this._create(checked, clickHandler);
-    }
-
-    private _create(checked: boolean, clickHandler?: (checked: boolean) => void): [HTMLDivElement, HTMLSpanElement, HTMLDivElement] {
-        const item = this.r.createContainer({ className: StyleKeys.MainMenuMatchItem, xExpand: true });
-        const checkMarkItem = this.addCheckmark(item, checked, clickHandler);
-        const itemData = this.r.createContainer({ xExpand: true });
-        this.r.addOnClickHandler(itemData, () => checkMarkItem.click());
-        this.r.addContainersToContainer(item, itemData);
-
-        return [item, checkMarkItem, itemData];
+        [this._item, this._checkmark, this._itemData] = getCheckedMenuItem(r, checked, () => {
+            const parent = this._checkmark.parentElement;
+            if (parent) {
+                if (parent.style.visibility === 'hidden') {
+                    parent.style.visibility = 'visible';
+                } else {
+                    parent.style.visibility = 'hidden';
+                }
+                if (clickHandler) {
+                    clickHandler(parent.style.visibility === 'visible');
+                }
+            }
+        });
     }
 
     get checked(): boolean {
@@ -157,8 +113,8 @@ class CheckedMenuItemCommon extends MenuItemRenderer implements CheckedMenuItem<
         return this._item;
     }
 
-    connect(action: string, handler: () => void): void {
-        this._item.addEventListener(action, handler);
+    get generatedItem(): HTMLDivElement {
+        return this._item
     }
 
     destroy(): void {

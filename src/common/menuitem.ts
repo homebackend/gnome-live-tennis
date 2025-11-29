@@ -1,6 +1,10 @@
-import { StyleKeys } from "./style_keys.js";
-import { Alignment, ContainerItemProperties, Renderer } from "./renderer.js";
-import { MenuUrl, TennisEvent, TennisMatch, TennisTeam } from "./types.js";
+import { StyleKeys } from "./style_keys";
+import { Alignment, ContainerProperties, Renderer } from "./renderer";
+import { MenuUrl, TennisEvent, TennisMatch, TennisTeam } from "./types";
+
+export function getMatchMenuItemProperties(): ContainerProperties {
+    return { className: StyleKeys.MainMenuMatchItem, xExpand: true }
+}
 
 export interface PopubSubMenuItemProperties {
     basePath: string;
@@ -40,7 +44,6 @@ export interface PopupSubMenuItem<T, U> {
 
 export interface MenuItem<T> {
     get item(): T;
-    connect(action: string, handler: () => void): void;
     destroy(): void;
 };
 
@@ -79,15 +82,17 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
                 );
             }
 
-            teamItems.push(() =>
-                this.r.addFlagToContainer(
-                    matchDataElement,
-                    p.countryCode,
-                    StyleKeys.MainMenuPlayerFlag,
-                    MatchMenuItemRenderer.ImageHeight,
-                    MatchMenuItemRenderer.ImagePadding
-                )
-            );
+            if (!p.placeholder && p.countryCode) {
+                teamItems.push(() =>
+                    this.r.addFlagToContainer(
+                        matchDataElement,
+                        p.countryCode,
+                        StyleKeys.MainMenuPlayerFlag,
+                        MatchMenuItemRenderer.ImageHeight,
+                        MatchMenuItemRenderer.ImagePadding
+                    )
+                );
+            }
         });
 
         teamItems.push(() =>
@@ -105,17 +110,29 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
         teamItems.forEach(f => f());
     }
 
-    updateMatchData(matchDataElement: T, match: TennisMatch) {
-        this._addTeam(matchDataElement, match.team1, false);
-        this.r.addTextToContainer(matchDataElement, {
+    updateMatchData(matchDataElement: T, match: TennisMatch, smallWidth: boolean = false) {
+        let row1: T;
+        let row2: T;
+        if (smallWidth) {
+            const dataContainer = this.r.createContainer({ vertical: true, xExpand: true });
+            row1 = this.r.createContainer(getMatchMenuItemProperties());
+            row2 = this.r.createContainer(getMatchMenuItemProperties());
+            this.r.addContainersToContainer(dataContainer, [row1, row2]);
+            this.r.addContainersToContainer(matchDataElement, dataContainer);
+        } else {
+            row1 = row2 = matchDataElement;
+        }
+
+        this._addTeam(row1, match.team1, false);
+        this.r.addTextToContainer(row1, {
             text: 'VS',
             className: StyleKeys.MainMenuVerses,
             paddingRight: MatchMenuItemRenderer.TextPadding,
         });
-        this._addTeam(matchDataElement, match.team2, true);
+        this._addTeam(row1, match.team2, true);
 
         if (match.url) {
-            this.r.addTextToContainer(matchDataElement, {
+            this.r.addTextToContainer(row2, {
                 text: 'Stats',
                 link: match.url,
                 paddingRight: MatchMenuItemRenderer.TextPadding,
@@ -123,7 +140,7 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
         }
 
         if (match.h2hUrl) {
-            this.r.addTextToContainer(matchDataElement, {
+            this.r.addTextToContainer(row2, {
                 text: 'H2H',
                 link: match.h2hUrl,
                 paddingRight: MatchMenuItemRenderer.TextPadding,
@@ -131,7 +148,7 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
         }
 
         if (match.isLive) {
-            this.r.addTextToContainer(matchDataElement, {
+            this.r.addTextToContainer(row2, {
                 text: 'LIVE',
                 className: StyleKeys.MainMenuMatchStatusLive,
                 paddingRight: MatchMenuItemRenderer.TextPadding,
@@ -139,7 +156,7 @@ export abstract class MatchMenuItemRenderer<T, TextType, ImageType> {
         }
 
         if (match.displayScore) {
-            this.r.addTextToContainer(matchDataElement, {
+            this.r.addTextToContainer(row2, {
                 text: match.displayScore,
                 className: `${StyleKeys.NoWrapText} ${match.isLive ? StyleKeys.MainMenuMatchStatusLive : StyleKeys.MainMenuMatchStatusFinished}`,
                 xExpand: true,

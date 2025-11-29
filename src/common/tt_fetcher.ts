@@ -1,8 +1,8 @@
-import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api.js";
-import { Fetcher, FetcherCommon, FetcherProperties } from "./fetcher.js";
-import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types.js";
-import { generateUUIDv4 } from "./util.js";
-import { Parser } from '../lib/htmlparser2/Parser.js';
+import { ApiCommonHeaders, ApiHandler, HttpMethods } from "./api";
+import { Fetcher, FetcherCommon, FetcherProperties } from "./fetcher";
+import { TennisEvent, TennisMatch, TennisPlayer, TennisSetScore, TennisTeam } from "./types";
+import { generateUUIDv4 } from "./util";
+import { Parser } from '../lib/htmlparser2/Parser';
 
 enum ParsePosition {
     Top,
@@ -18,7 +18,7 @@ enum ParsePosition {
 
 export abstract class TTFetcher extends FetcherCommon implements Fetcher {
     private static _url = 'https://en.tennistemple.com';
-    private static _responseCookies: string[] = ['PHPSESSID'];
+    private static _responseCookies: string[] = ['PHPSESSID', 'device_id', 'device_key'];
     private static _tennisTempleId = 'b8852ab1-359d-490c-a900-77a044d2eb9d';
 
     private _log: (logs: string[]) => void;
@@ -43,14 +43,9 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
         const [_, responseCookies] = await this._apiHandler.fetchString({
             url: TTFetcher._url,
             method: HttpMethods.GET,
+            headers: new Map<string, string>(ApiCommonHeaders),
             responseCookies: TTFetcher._responseCookies,
         });
-
-        TTFetcher._responseCookies.forEach(rc => responseCookies?.has(rc))
-        if (!responseCookies || !TTFetcher._responseCookies.every(rc => responseCookies.has(rc))) {
-            this._log(['Cookie not found', TTFetcher._responseCookies.toString()]);
-            return undefined;
-        }
 
         this._cookies = responseCookies;
         return responseCookies;
@@ -91,6 +86,7 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
     private _getMatch(isLive: boolean, event: TennisEvent): TennisMatch {
         return {
             id: "",
+            placeholder: false,
             isDoubles: false,
             roundId: "",
             roundName: "",
@@ -122,6 +118,7 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
     private _getTeam(): TennisTeam {
         return {
             players: [this._getPlayer()],
+            placeholder: false,
             entryType: '',
             seed: '',
             gameScore: '',
@@ -133,6 +130,7 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
     private _getPlayer(): TennisPlayer {
         return {
             id: "",
+            placeholder: false,
             countryCode: "",
             country: "",
             firstName: "",
@@ -340,7 +338,7 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
         });
 
         if (!response) {
-            this._log(['Empty response']);
+            this._log(['Empty response fot tennistemple.com']);
             return undefined;
         }
 
@@ -355,5 +353,17 @@ export abstract class TTFetcher extends FetcherCommon implements Fetcher {
 
     disable(): void {
         this._apiHandler.abort();
+    }
+}
+
+export class NodeTTFetcher extends TTFetcher {
+    protected getFullUrl(relativeUrl: string, baseUrl: string): string {
+        try {
+            const absoluteUrl = new URL(relativeUrl, baseUrl);
+            return absoluteUrl.toString();
+        } catch (e) {
+            console.log("Failed to resolve URI with GLib");
+            return '';
+        }
     }
 }

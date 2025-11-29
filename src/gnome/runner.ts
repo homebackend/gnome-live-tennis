@@ -2,10 +2,10 @@ import St from "gi://St";
 
 import * as PopupMenu from "resource:///org/gnome/shell/ui/popupMenu.js";
 
-import { Settings } from "../common/settings.js";
-import { MenuRendererCommon } from "../common/menu_renderer.js";
-import { GCheckedMenuItem, GMatchMenuItem, GnomeCheckedMenuItem, GnomeLinkMenuItem, GnomeMatchMenuItem, GnomePopupSubMenuItem } from "./menuItem.js";
-import { GnomeRenderer } from "./renderer.js";
+import { Settings } from "../common/settings";
+import { MenuRendererCommon } from "../common/menu_renderer";
+import { GCheckedMenuItem, GMatchMenuItem, GnomeCheckedMenuItem, GnomeLinkMenuItem, GnomeMatchMenuItem, GnomePopupSubMenuItem } from "./menuItem";
+import { GnomeRenderer } from "./renderer";
 
 const ICON_SIZE = 22;
 
