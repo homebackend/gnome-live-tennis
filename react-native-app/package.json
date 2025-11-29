@@ -10,7 +10,7 @@
     "start": "npm run flags && react-native start",
     "clean": "cd android && ./gradlew clean",
     "log:android": "react-native log-android",
-    "package:android": "cd android && ./gradlew assembleDebug",
+    "package:android": "npm install && npm run flags && cd android && ./gradlew assembleDebug",
     "test": "jest"
   },
   "dependencies": {
