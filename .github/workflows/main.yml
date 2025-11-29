@@ -159,4 +159,4 @@ jobs:
             artifacts/linux-packages-deb-rpm-appimage/dist-gnome/*.zip
             artifacts/linux-packages-arch/*.pacman
             artifacts/windows-installer/*.exe
-            artifacts/android/react-native-app/android/app/build/outputs/apk/debug/app-debug.apk
+            artifacts/android/app-debug.apk
