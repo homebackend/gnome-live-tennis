@@ -102,6 +102,8 @@ async function buildGnome() {
   }
 
   await copyCommonAssets(distDir, 'stylesheet.css');
+  await fs.rm(`${distDir}/icons/linux`, { recursive: true })
+  await fs.rm(`${distDir}/icons/win`, { recursive: true })
   await fs.copy(path.join(process.cwd(), 'src', 'gnome', 'metadata.json'), path.join(distDir, 'metadata.json'));
 
   console.log('GNOME extension build complete.');
