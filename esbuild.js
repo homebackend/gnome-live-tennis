@@ -1,5 +1,6 @@
 // esbuild.js
 import { build } from "esbuild";
+import { ESLint } from 'eslint';
 import { type } from "os";
 import fs from 'fs-extra';
 import * as path from 'path';
@@ -68,20 +69,48 @@ async function buildElectron() {
   console.log('Electron build complete.');
 }
 
+async function lintFiles(files) {
+  const eslint = new ESLint({
+    fix: true,
+    overrideConfigFile: true,
+    overrideConfig: {
+      rules: {
+        'padding-line-between-statements': [
+          'error',
+          { blankLine: 'always', prev: 'function', next: 'function' },
+        ],
+        'lines-between-class-members': [
+          'error',
+          'always',
+          { exceptAfterSingleLine: false },
+        ]
+      }
+    }
+  });
+
+  const results = await eslint.lintFiles(Object.values(files));
+  await ESLint.outputFixes(results);
+}
+
 async function buildGnome() {
   const distDir = path.join(process.cwd(), 'dist-gnome');
 
+  const entryPoints = {
+    extension: 'src/gnome/extension.ts',
+    prefs: 'src/gnome/prefs.ts'
+  };
+
   await build({
     ...commonBuildOptions,
-    entryPoints: {
-      extension: 'src/gnome/extension.ts',
-      prefs: 'src/gnome/prefs.ts'
-    },
+    entryPoints: entryPoints,
     outdir: distDir,
     platform: 'node',
     target: ['es2022'],
     external: ['@girs/*', 'gi', "gi://*", "resource://*"],
   });
+
+  const genFiles = Object.values(entryPoints).map(file => distDir + '/' + path.basename(file, '.ts') + '.js');
+  lintFiles(genFiles);
 
   await build({
     ...commonBuildOptions,

@@ -59,6 +59,7 @@
     "electron": "^38.6.0",
     "electron-builder": "^26.0.12",
     "esbuild": "^0.25.10",
+    "eslint": "^9.39.2",
     "fs-extra": "^11.3.2",
     "prettier": "^3.6.2",
     "sslkeylog": "^0.2.2",
